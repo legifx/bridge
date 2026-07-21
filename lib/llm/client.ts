@@ -11,7 +11,7 @@ import OpenAI from "openai";
 import type { ZodType } from "zod";
 import { getDemoResponse } from "@/lib/demo/cache";
 
-const MODEL = process.env.OPENROUTER_MODEL || "google/gemini-2.0-flash-001";
+const MODEL = process.env.OPENROUTER_MODEL || "google/gemma-4-31b-it:free";
 
 export function isDemoMode(): boolean {
   return process.env.DEMO_MODE === "true" || !process.env.OPENROUTER_API_KEY;

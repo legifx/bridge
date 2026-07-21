@@ -11,10 +11,15 @@ instead, because the available budget is a shared OpenRouter credit pool. The ac
 layer (`lib/llm/client.ts`) is provider-agnostic: one `baseURL` + model id change swaps it
 back to Anthropic or any other provider. All calls still return schema-validated JSON.
 
-**Model: `google/gemini-2.0-flash-001` (configurable via `OPENROUTER_MODEL`).**
-Vision-capable (needed for Stage-1 photo scans), emits clean JSON, and is cheap
-(~$0.10/M input, ~$0.40/M output) so a ~$10 budget lasts months of hackathon use.
-Model id is an env var, so switching costs nothing.
+**Model: `google/gemma-4-31b-it:free` by default (configurable via `OPENROUTER_MODEL`).**
+Chosen over the paid default after comparing current options: it is **free**, vision-capable
+(needed for Stage-1 photo scans), does native function calling / JSON, has a 262K context, and
+— crucially for an education app — is Apache-2.0 with **no "we train on your free inputs"** clause,
+unlike some other free models (e.g. poolside/laguna free explicitly trains on free-tier inputs).
+That keeps the §7 privacy story intact. Free tier has rate limits (~20/min); the documented paid
+fallback `google/gemini-2.0-flash-001` (~$0.10/$0.40 per MTok) is a one-line swap if they bite.
+Model id is an env var, so switching costs nothing. Vision is a hard requirement — this ruled out
+coding-specialized models like poolside/laguna (text-only).
 
 **Next.js 16, not 15.** `create-next-app@latest` ships Next 16 + Tailwind v4 + React 19.
 16 is the current default and there was no reason to pin backwards. App Router, strict TS,
