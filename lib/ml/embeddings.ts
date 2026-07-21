@@ -12,7 +12,10 @@ export { cosine, vecToBytes, bytesToVec } from "./vector";
 export const EMBED_DIM = 384;
 const MODEL = "Xenova/all-MiniLM-L6-v2";
 
-export const EMBEDDINGS_ENABLED = process.env.EMBEDDINGS_DISABLED !== "1";
+// Disabled explicitly, or automatically on serverless (Vercel) where the ONNX
+// model + read-only FS don't fit — the hosted demo uses stored vectors instead.
+export const EMBEDDINGS_ENABLED =
+  process.env.EMBEDDINGS_DISABLED !== "1" && !process.env.VERCEL;
 
 export class EmbeddingsDisabledError extends Error {
   constructor() {
