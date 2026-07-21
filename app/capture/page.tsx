@@ -7,7 +7,6 @@ import { CHEM_SOURCE_TEXT } from "@/lib/demo/chem";
 
 const STAGES = ["Reading page", "Extracting concepts", "Linking prerequisites"];
 
-/** Downscale an image to a max long edge before upload — saves tokens + latency (§2). */
 async function downscale(file: File, maxEdge = 1600): Promise<string> {
   const bitmap = await createImageBitmap(file);
   const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
@@ -67,82 +66,83 @@ export default function Capture() {
 
   return (
     <Shell>
-      <header className="mb-5">
-        <h1 className="font-display text-2xl text-ink">Capture material</h1>
-        <p className="mt-1 text-sm text-ink-soft">
-          Snap a page, or paste text. Bridge turns it into a concept map — in the subject&rsquo;s own words.
-        </p>
-      </header>
+      <div className="px-2">
+        <header className="mb-6 mt-2">
+          <p className="font-mono text-2xs uppercase tracking-[0.3em] text-faint">Capture</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-text">Add material</h1>
+          <p className="mt-1 text-sm text-dim">Snap a page or paste text — in the subject&rsquo;s own words.</p>
+        </header>
 
-      <div className="space-y-4">
         <button
           onClick={() => fileRef.current?.click()}
           disabled={busy}
-          className="flex w-full items-center justify-center gap-3 rounded-[--radius] border-2 border-dashed border-curriculum/40 bg-paper-raised py-8 text-curriculum"
+          className="aura glass lit flex w-full flex-col items-center justify-center gap-3 rounded-[--r-lg] py-12 ring-focus"
+          style={{ "--glow": "var(--curriculum)", "--aura-y": "50%", "--aura-strength": 0.7 } as React.CSSProperties}
         >
-          <span className="text-3xl leading-none">＋</span>
-          <span className="font-medium">{preview ? "Retake photo" : "Take / choose a photo"}</span>
+          <span
+            className="flex h-14 w-14 items-center justify-center rounded-full text-2xl text-white"
+            style={{ background: "rgba(255,255,255,0.1)", boxShadow: "0 0 24px rgba(59,123,255,0.5)" }}
+          >
+            +
+          </span>
+          <span className="text-sm font-medium text-text">{preview ? "Retake photo" : "Take / choose a photo"}</span>
         </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={onFile}
-          className="hidden"
-        />
+        <input ref={fileRef} type="file" accept="image/*" capture="environment" onChange={onFile} className="hidden" />
 
         {preview && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={preview} alt="captured page" className="w-full rounded-[--radius] border border-line" />
+          <img src={preview} alt="captured page" className="mt-4 w-full rounded-[--r-lg]" />
         )}
 
-        <div className="flex items-center gap-3 text-xs text-ink-soft">
-          <span className="h-px flex-1 bg-line" /> or paste text <span className="h-px flex-1 bg-line" />
+        <div className="my-5 flex items-center gap-3 font-mono text-2xs uppercase tracking-[0.2em] text-faint">
+          <span className="h-px flex-1 bg-hair" /> or paste <span className="h-px flex-1 bg-hair" />
         </div>
 
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Paste a paragraph from your notes or textbook…"
+          placeholder="Paste a paragraph from your notes…"
           rows={6}
-          className="w-full resize-y rounded-[--radius] border border-line bg-paper p-3 text-base text-ink outline-none focus:border-curriculum focus:ring-2 focus:ring-curriculum/30"
+          className="w-full resize-y rounded-[--r] bg-[rgba(255,255,255,0.05)] p-4 text-base text-text outline-none ring-focus placeholder:text-faint"
         />
         <button
           onClick={() => setText(CHEM_SOURCE_TEXT)}
           disabled={busy}
-          className="text-sm font-medium text-curriculum underline underline-offset-4"
+          className="mt-3 font-mono text-2xs uppercase tracking-[0.2em] text-[#9dc0ff]"
         >
-          Use demo chapter
+          use demo chapter ↗
+        </button>
+
+        {busy && (
+          <ol className="mt-6 space-y-2.5" aria-live="polite">
+            {STAGES.map((label, i) => (
+              <li key={label} className="flex items-center gap-3 text-sm">
+                <span
+                  className="h-2 w-2 rounded-full"
+                  style={{
+                    background: i < stage ? "var(--acid)" : i === stage ? "var(--curriculum)" : "rgba(255,255,255,0.15)",
+                    boxShadow: i <= stage ? "0 0 10px currentColor" : undefined,
+                    color: i < stage ? "var(--acid)" : "var(--curriculum)",
+                  }}
+                />
+                <span className={i <= stage ? "text-text" : "text-faint"}>{label}</span>
+              </li>
+            ))}
+          </ol>
+        )}
+
+        {error && (
+          <p className="mt-5 rounded-[--r] bg-[rgba(255,51,85,0.1)] p-3 text-sm text-reject">{error}</p>
+        )}
+
+        <button
+          onClick={run}
+          disabled={!canRun}
+          className="mt-6 w-full rounded-full bg-white py-3.5 text-sm font-semibold text-black transition disabled:opacity-30"
+        >
+          {busy ? "Working…" : "Build concept map"}
         </button>
       </div>
-
-      {busy && (
-        <ol className="mt-6 space-y-2" aria-live="polite">
-          {STAGES.map((label, i) => (
-            <li key={label} className="flex items-center gap-3 text-sm">
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  i < stage ? "bg-ok" : i === stage ? "animate-pulse bg-curriculum" : "bg-line"
-                }`}
-              />
-              <span className={i <= stage ? "text-ink" : "text-ink-soft"}>{label}</span>
-            </li>
-          ))}
-        </ol>
-      )}
-
-      {error && (
-        <p className="mt-5 rounded-[--radius] border border-bad/40 bg-bad/5 p-3 text-sm text-bad">{error}</p>
-      )}
-
-      <button
-        onClick={run}
-        disabled={!canRun}
-        className="mt-6 w-full rounded-[--radius] bg-curriculum py-3 text-sm font-medium text-white disabled:opacity-40"
-      >
-        {busy ? "Working…" : "Build concept map"}
-      </button>
     </Shell>
   );
 }

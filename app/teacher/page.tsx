@@ -1,14 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Led } from "@/components/Led";
 
-type Row = {
-  conceptLabel: string;
-  attempts: number;
-  correct: number;
-  struggleRate: number;
-  masteredCount: number;
-};
+type Row = { conceptLabel: string; attempts: number; correct: number; struggleRate: number; masteredCount: number };
 
 export default function Teacher() {
   const [rows, setRows] = useState<Row[] | null>(null);
@@ -20,54 +15,66 @@ export default function Teacher() {
   }, []);
 
   return (
-    <main className="mx-auto w-full max-w-[900px] px-6 py-10">
-      <header className="mb-2">
-        <p className="font-mono text-xs uppercase tracking-[0.25em] text-curriculum">Teacher view</p>
-        <h1 className="font-display text-3xl text-ink">Where the cohort struggles</h1>
+    <main className="mx-auto w-full max-w-[900px] px-6 pb-16 pt-10">
+      <header className="mb-3">
+        <p className="font-mono text-2xs uppercase tracking-[0.3em] text-faint">Teacher</p>
+        <h1 className="mt-1 text-3xl font-semibold tracking-tight text-text">Where the cohort struggles</h1>
       </header>
-      <p className="mb-8 max-w-2xl rounded-[--radius] border-l-4 border-curriculum bg-curriculum-soft/40 p-3 text-sm text-ink">
-        Bridge profiles material, not children. This view shows concept-level counts only — no student
-        names, no individuals, and never anyone&rsquo;s interests.
-      </p>
+      <div
+        className="mb-8 aura glass rounded-[--r-lg] p-4"
+        style={{ "--glow": "var(--curriculum)", "--aura-x": "12%", "--aura-y": "50%", "--aura-strength": 0.35 } as React.CSSProperties}
+      >
+        <p className="text-sm text-dim">
+          <span className="font-semibold text-text">Bridge profiles material, not children.</span> Concept-level
+          counts only — no student names, no individuals, and never anyone&rsquo;s interests.
+        </p>
+      </div>
 
-      {!rows && <p className="text-sm text-ink-soft">Loading…</p>}
+      {!rows && <p className="text-sm text-faint">Loading…</p>}
       {rows && rows.length === 0 && (
-        <p className="text-sm text-ink-soft">No cohort activity yet. Once learners answer checks, hardest concepts rank here.</p>
+        <p className="text-sm text-faint">No cohort activity yet. Once learners answer checks, hardest concepts rank here.</p>
       )}
 
       {rows && rows.length > 0 && (
-        <table className="w-full border-collapse text-left text-sm">
-          <thead>
-            <tr className="border-b border-line text-ink-soft">
-              <th className="py-2 font-medium">Concept</th>
-              <th className="py-2 text-right font-medium">Attempts</th>
-              <th className="py-2 text-right font-medium">Correct</th>
-              <th className="py-2 font-medium">Struggle</th>
-              <th className="py-2 text-right font-medium">Mastered</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r) => (
-              <tr key={r.conceptLabel} className="border-b border-line/60">
-                <td className="py-3 font-display text-base text-ink">{r.conceptLabel}</td>
-                <td className="py-3 text-right font-mono text-ink-soft">{r.attempts}</td>
-                <td className="py-3 text-right font-mono text-ink-soft">{r.correct}</td>
-                <td className="py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="h-2 w-32 overflow-hidden rounded-full bg-line">
-                      <div
-                        className="h-full rounded-full bg-curriculum"
-                        style={{ width: `${Math.round(r.struggleRate * 100)}%` }}
-                      />
-                    </div>
-                    <span className="font-mono text-xs text-ink-soft">{Math.round(r.struggleRate * 100)}%</span>
-                  </div>
-                </td>
-                <td className="py-3 text-right font-mono text-ink-soft">{r.masteredCount}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="space-y-2.5">
+          <div className="grid grid-cols-[1fr_auto_1.4fr_auto] items-center gap-4 px-4 font-mono text-2xs uppercase tracking-[0.15em] text-faint">
+            <span>Concept</span>
+            <span className="text-right">Att</span>
+            <span>Struggle</span>
+            <span className="text-right">Mastered</span>
+          </div>
+          {rows.map((r) => (
+            <div
+              key={r.conceptLabel}
+              className="grid grid-cols-[1fr_auto_1.4fr_auto] items-center gap-4 rounded-[--r] bg-[rgba(255,255,255,0.035)] px-4 py-3.5"
+            >
+              <span className="text-base font-semibold tracking-tight text-text">{r.conceptLabel}</span>
+              <span className="flex justify-end">
+                <Led value={`${r.attempts}`} dot={3} color="#9dc0ff" />
+              </span>
+              <div className="flex items-center gap-3">
+                <div className="h-2 w-full max-w-[160px] overflow-hidden rounded-full bg-[rgba(255,255,255,0.08)]">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${Math.round(r.struggleRate * 100)}%`,
+                      background: r.struggleRate > 0.5 ? "var(--reject)" : "var(--curriculum)",
+                      boxShadow: "0 0 12px currentColor",
+                      color: r.struggleRate > 0.5 ? "var(--reject)" : "var(--curriculum)",
+                    }}
+                  />
+                </div>
+                <span className="flex items-center gap-1">
+                  <Led value={`${Math.round(r.struggleRate * 100)}`} dot={2.6} color={r.struggleRate > 0.5 ? "#ff8ba0" : "#9dc0ff"} />
+                  <span className="font-mono text-2xs text-faint">%</span>
+                </span>
+              </div>
+              <span className="flex justify-end">
+                <Led value={`${r.masteredCount}`} dot={3} color="#c9ff7a" />
+              </span>
+            </div>
+          ))}
+        </div>
       )}
     </main>
   );

@@ -25,51 +25,57 @@ export default function Verification() {
 
   return (
     <Shell>
-      <header className="mb-4">
-        <h1 className="font-display text-2xl text-ink">Verification log</h1>
-        <p className="mt-1 text-sm text-ink-soft">
-          Every bridge is fact-checked by a second, independent model against the source. Accepted and
-          rejected attempts are both kept — honesty is the point.
-        </p>
-      </header>
+      <div className="px-2">
+        <header className="mb-5 mt-2">
+          <p className="font-mono text-2xs uppercase tracking-[0.3em] text-faint">Verification</p>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight text-text">Every bridge, fact-checked</h1>
+          <p className="mt-2 max-w-md text-sm text-dim">
+            A second, independent model checks each analogy against the source. Accepted and rejected
+            attempts are both kept — honesty is the point.
+          </p>
+        </header>
 
-      {!entries && <p className="mt-8 text-center text-sm text-ink-soft">Loading…</p>}
-      {entries && entries.length === 0 && (
-        <p className="mt-8 text-center text-sm text-ink-soft">
-          No bridges yet. Learn a concept and its attempts show up here.
-        </p>
-      )}
+        {!entries && <p className="mt-10 text-center text-sm text-faint">Loading…</p>}
+        {entries && entries.length === 0 && (
+          <p className="mt-10 text-center text-sm text-faint">No bridges yet. Learn a concept and its attempts show up here.</p>
+        )}
 
-      <ul className="space-y-3">
-        {entries?.map((e) => {
-          const rejected = e.status === "rejected";
-          return (
-            <li
-              key={e.id}
-              className={`rounded-[--radius] border p-3 ${
-                rejected ? "border-bad/40 bg-bad/5" : "border-ok/30 bg-ok/5"
-              }`}
-            >
-              <div className="mb-1 flex items-center justify-between">
-                <span className="font-display text-sm text-ink">
-                  {e.conceptLabel}{" "}
-                  <span className="font-body text-xs text-ink-soft">via {e.domainName}</span>
-                </span>
-                <span className={`font-mono text-xs ${rejected ? "text-bad" : "text-ok"}`}>
-                  {e.isFallback ? "plain fallback" : e.status} · a{e.attempt}
-                </span>
-              </div>
-              {e.preview && <p className="text-sm text-ink">{e.preview}</p>}
-              {rejected &&
-                e.verdict.contradictions.map((c, i) => (
-                  <p key={i} className="mt-1 text-xs text-bad">
-                    <span className="font-medium">{c.claim}</span> — {c.reason}
-                  </p>
-                ))}
-            </li>
-          );
-        })}
-      </ul>
+        <ul className="space-y-3">
+          {entries?.map((e) => {
+            const rejected = e.status === "rejected";
+            return (
+              <li
+                key={e.id}
+                className="aura glass rounded-[--r-lg] p-4"
+                style={
+                  {
+                    "--glow": rejected ? "var(--reject)" : "var(--acid)",
+                    "--aura-x": "82%",
+                    "--aura-y": "30%",
+                    "--aura-strength": 0.4,
+                  } as React.CSSProperties
+                }
+              >
+                <div className="mb-1.5 flex items-center justify-between gap-3">
+                  <span className="text-sm font-semibold text-text">
+                    {e.conceptLabel} <span className="font-mono text-2xs font-normal text-faint">via {e.domainName}</span>
+                  </span>
+                  <span className={`font-mono text-2xs uppercase tracking-[0.15em] ${rejected ? "text-reject" : "text-[#c9ff7a]"}`}>
+                    {e.isFallback ? "plain" : e.status} · a{e.attempt}
+                  </span>
+                </div>
+                {e.preview && <p className="text-sm text-dim">{e.preview}</p>}
+                {rejected &&
+                  e.verdict.contradictions.map((c, i) => (
+                    <p key={i} className="mt-1 text-xs text-[#ff8ba0]">
+                      <span className="font-medium text-reject">{c.claim}</span> — {c.reason}
+                    </p>
+                  ))}
+              </li>
+            );
+          })}
+        </ul>
+      </div>
     </Shell>
   );
 }
