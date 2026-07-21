@@ -1,26 +1,88 @@
 @import "tailwindcss";
 
+/*
+  Bridge design tokens — "school notebook meets signal processing" (§6).
+  Two-color semantic system:
+    --curriculum  = the subject / curriculum layer (single saturated ink)
+    --interest    = the learner's OWN interest domain (a clearly different accent)
+  Nothing else in the app gets color.
+*/
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* paper-neutral base — a cool, slightly grey white (NOT cream) */
+  --paper: #eef1f5;
+  --paper-raised: #f7f9fb;
+  --line: #d6dbe3; /* notebook rule lines / hairlines */
+  --ink: #171a21; /* body text */
+  --ink-soft: #565d6b; /* secondary text */
+
+  /* semantic color layer */
+  --curriculum: #1f3fd6; /* subject / curriculum — saturated blue ink */
+  --curriculum-soft: #dfe4fb;
+  --interest: #e0521a; /* learner's own world — vermilion, maximally distinct */
+  --interest-soft: #fbe4d8;
+
+  --ok: #1f8a4c;
+  --warn: #b45309;
+  --bad: #c02626;
+
+  --radius: 0.75rem;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-curriculum: var(--curriculum);
+  --color-curriculum-soft: var(--curriculum-soft);
+  --color-interest: var(--interest);
+  --color-interest-soft: var(--interest-soft);
+  --color-ok: var(--ok);
+  --color-warn: var(--warn);
+  --color-bad: var(--bad);
+
+  --font-display: var(--font-display), Georgia, serif;
+  --font-body: var(--font-body), system-ui, sans-serif;
+  --font-mono: var(--font-mono), ui-monospace, monospace;
+
+  /* type scale (major third) */
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1.0625rem; /* generous body — this is a reading app */
+  --text-lg: 1.375rem;
+  --text-xl: 1.75rem;
+  --text-2xl: 2.25rem;
+  --text-3xl: 3rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--paper);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* faint notebook ruling on the app shell, kept very quiet */
+.notebook-lines {
+  background-image: linear-gradient(var(--line) 1px, transparent 1px);
+  background-size: 100% 2rem;
+  background-position: 0 -1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

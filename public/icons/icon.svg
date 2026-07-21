@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Bridge">
+  <rect width="512" height="512" rx="96" fill="#1f3fd6"/>
+  <!-- the bridge: a drawn line connecting two nodes (the app's signature image) -->
+  <path d="M120 320 Q256 200 392 320" fill="none" stroke="#eef1f5" stroke-width="18" stroke-linecap="round"/>
+  <circle cx="120" cy="320" r="34" fill="#eef1f5"/>
+  <circle cx="392" cy="320" r="34" fill="#e0521a"/>
+</svg>
