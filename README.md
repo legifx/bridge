@@ -2,6 +2,13 @@
 
 **Learn new material through the knowledge you already hold.**
 
+**▶ Live demo: https://bridge-livid-one.vercel.app** — explore the two seeded profiles
+(competitive gaming vs. horse riding): tap **compare profiles** to see the same concept
+explained through both worlds, or open a concept to watch a bridge get **rejected by the
+fact-checker, then accepted**. (The hosted demo runs read-only on seeded data; capturing your
+own material or onboarding a new profile runs the local embedding model, so clone and run
+locally for that.)
+
 Bridge builds an **interest and prior-knowledge profile** of a learner, then re-expresses
 curriculum concepts through a domain that learner already understands deeply. The same
 chemistry chapter is explained to a competitive-gaming student and to a horse-riding student
@@ -106,6 +113,20 @@ interests — never family, emotions, or health.
 
 Next.js 16 (App Router, TS strict) · Tailwind v4 · SQLite + Prisma 6 · OpenRouter (structured JSON)
 · local `@xenova/transformers` embeddings (`all-MiniLM-L6-v2`) · PWA (installable).
+
+## Deploy
+
+Two supported targets, same codebase:
+
+- **Persistent host (Railway / Fly.io)** — the intended production target. SQLite lives on a
+  persistent volume and the full app works, including capture and onboarding (local embeddings
+  run in the Node process).
+- **Vercel (serverless)** — the [live demo](https://bridge-livid-one.vercel.app). The app adapts
+  itself with **zero configuration**: when `process.env.VERCEL` is set it copies a seeded template
+  DB (`prisma/demo.db`) into `/tmp`, and it serves the read-only demo flows (compare, learn,
+  verification, teacher) from **stored vectors** instead of loading the 90 MB embedding model.
+  Capture/onboarding return a friendly notice pointing to a local run. No environment variables
+  are required — with no API key the app runs in `DEMO_MODE` on cached AI responses.
 
 ## What's not built yet (honest status)
 
