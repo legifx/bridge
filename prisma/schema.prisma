@@ -25,6 +25,7 @@ model InterestDomain {
   learnerId  String
   name       String
   embedding  Bytes // Float32 vector (local all-MiniLM-L6-v2)
+  anchors    String  @default("[]") // JSON: concrete nouns from the learner's world
   alpha      Float   @default(1) // Beta posterior — successes + 1
   beta       Float   @default(1) // Beta posterior — failures + 1
   confidence Float   @default(0.5)
