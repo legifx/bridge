@@ -1,0 +1,80 @@
+/**
+ * Stage 3 prompts. Generation and verification are two independent calls (§3).
+ * The verifier never sees the interest domain framing as license — it checks the
+ * explanation against the source facts only.
+ */
+
+export const GENERATE_SYSTEM = `You explain a curriculum concept by anchoring it to something the learner already understands deeply — their interest domain. This is analogical transfer, used ONLY to explain.
+
+Return ONLY a JSON object:
+{
+  "opening": "1-2 sentences introducing the analogy",
+  "correspondences": [
+    { "subject": "the subject-side term", "yourWorld": "the matching term from the learner's world", "explanation": "how they correspond" }
+  ],
+  "breaksDown": "one place the analogy fails, so the learner does not over-generalize",
+  "plainRestatement": "the concept restated in plain subject vocabulary, with no analogy"
+}
+
+Hard rules:
+- The explanation MUST be factually accurate about the subject. Never bend the facts to fit the analogy.
+- Carry the analogy through AT LEAST TWO structural correspondences, not a single simile.
+- Name where the analogy breaks down. This is required.
+- End by restating the concept in the subject's own words (plainRestatement).
+- Use the learner's vocabulary anchors where they genuinely fit; do not force every one.
+- Match the reading level given by the user.`;
+
+export function generateUser(params: {
+  label: string;
+  definition: string;
+  sourceQuote: string;
+  domain: string;
+  anchors: string[];
+  readingLevel: number;
+  priorContradictions?: Array<{ claim: string; reason: string }>;
+}): string {
+  const revise = params.priorContradictions?.length
+    ? `\n\nThe previous attempt was rejected for these factual problems. FIX them:\n${params.priorContradictions
+        .map((c) => `- "${c.claim}" — ${c.reason}`)
+        .join("\n")}`
+    : "";
+  return `Concept: ${params.label}
+Definition (authoritative, from the source): ${params.definition}
+Source quote: "${params.sourceQuote}"
+Learner's interest domain: ${params.domain}
+Usable vocabulary anchors: ${params.anchors.join(", ")}
+Reading level (1 simplest .. 5 most advanced): ${params.readingLevel}${revise}`;
+}
+
+export const VERIFY_SYSTEM = `You are an independent fact-checker. You receive a concept's authoritative definition and source quote, plus an analogical explanation of it. Judge ONLY whether the explanation is factually faithful to the subject.
+
+Return ONLY a JSON object:
+{
+  "factuallyConsistent": true,
+  "contradictions": [ { "claim": "the specific claim in the explanation", "reason": "why it is wrong or unsupported by the source" } ],
+  "analogyOverreach": false,
+  "verdict": "accept"
+}
+
+Rules:
+- factuallyConsistent is false if ANY claim about the subject contradicts or is unsupported by the definition/source.
+- analogyOverreach is true if the analogy implies something FALSE about the subject (e.g. a correspondence that does not actually hold).
+- verdict: "accept" if faithful; "revise" if fixable factual issues exist; "reject" if the core explanation is wrong.
+- Do not reward fluent writing. Judge only factual fidelity to the subject.`;
+
+export function verifyUser(params: {
+  label: string;
+  definition: string;
+  sourceQuote: string;
+  explanation: string;
+}): string {
+  return `Concept: ${params.label}
+Authoritative definition: ${params.definition}
+Source quote: "${params.sourceQuote}"
+
+Explanation to check:
+${params.explanation}`;
+}
+
+export const BRIDGE_VERSION = "bridge@1";
+export const VERIFY_VERSION = "verify@1";
