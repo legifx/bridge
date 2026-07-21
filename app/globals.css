@@ -1,80 +1,145 @@
 @import "tailwindcss";
 
 /*
-  Bridge design tokens — "school notebook meets signal processing" (§6).
-  Two-color semantic system:
-    --curriculum  = the subject / curriculum layer (single saturated ink)
-    --interest    = the learner's OWN interest domain (a clearly different accent)
-  Nothing else in the app gets color.
+  Bridge — "Hypercolor instrument" design system.
+  Pure-black canvas, luminous aura gradient cards that bleed beyond their edges,
+  dot-matrix LED numerals, 1px hairline tick scales, frosted glass without
+  borders, subtle film grain. Premium health-tech instrument aesthetic.
+
+  Semantic color stays load-bearing:
+    --curriculum = electric blue  (the subject / curriculum layer)
+    --interest   = magenta        (the learner's own world)
+  so at a glance you always know which is which — now expressed as light.
 */
 :root {
-  /* paper-neutral base — a cool, slightly grey white (NOT cream) */
-  --paper: #eef1f5;
-  --paper-raised: #f7f9fb;
-  --line: #d6dbe3; /* notebook rule lines / hairlines */
-  --ink: #171a21; /* body text */
-  --ink-soft: #565d6b; /* secondary text */
+  --bg: #000000;
+  --text: #f4f6fb;
+  --dim: rgba(244, 246, 251, 0.58);
+  --faint: rgba(244, 246, 251, 0.34);
+  --hair: rgba(255, 255, 255, 0.12);
+  --hair-strong: rgba(255, 255, 255, 0.22);
+  --glass: rgba(255, 255, 255, 0.045);
+  --glass-2: rgba(255, 255, 255, 0.07);
 
-  /* semantic color layer */
-  --curriculum: #1f3fd6; /* subject / curriculum — saturated blue ink */
-  --curriculum-soft: #dfe4fb;
-  --interest: #e0521a; /* learner's own world — vermilion, maximally distinct */
-  --interest-soft: #fbe4d8;
+  /* aura hues */
+  --curriculum: #3b7bff; /* electric blue — subject */
+  --interest: #ff3bac; /* magenta — the learner's world */
+  --acid: #b3ff3c; /* acid green — mastery / accepted */
+  --orange: #ff7a1a; /* amber accent */
+  --violet: #8b5cff;
+  --teal: #22e0c6;
+  --reject: #ff3355; /* rejected bridge */
 
-  --ok: #1f8a4c;
-  --warn: #b45309;
-  --bad: #c02626;
+  /* superellipse-ish radii */
+  --r-sm: 16px;
+  --r: 24px;
+  --r-lg: 34px;
+  --r-xl: 44px;
 
-  --radius: 0.75rem;
+  --shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.8);
 }
 
 @theme inline {
-  --color-paper: var(--paper);
-  --color-paper-raised: var(--paper-raised);
-  --color-line: var(--line);
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
+  --color-bg: var(--bg);
+  --color-text: var(--text);
+  --color-dim: var(--dim);
+  --color-faint: var(--faint);
+  --color-hair: var(--hair);
   --color-curriculum: var(--curriculum);
-  --color-curriculum-soft: var(--curriculum-soft);
   --color-interest: var(--interest);
-  --color-interest-soft: var(--interest-soft);
-  --color-ok: var(--ok);
-  --color-warn: var(--warn);
-  --color-bad: var(--bad);
+  --color-acid: var(--acid);
+  --color-orange: var(--orange);
+  --color-violet: var(--violet);
+  --color-teal: var(--teal);
+  --color-reject: var(--reject);
 
-  --font-display: var(--font-display), Georgia, serif;
-  --font-body: var(--font-body), system-ui, sans-serif;
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono), ui-monospace, monospace;
 
-  /* type scale (major third) */
+  --text-2xs: 0.6875rem;
   --text-xs: 0.75rem;
   --text-sm: 0.875rem;
-  --text-base: 1.0625rem; /* generous body — this is a reading app */
-  --text-lg: 1.375rem;
-  --text-xl: 1.75rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.625rem;
   --text-2xl: 2.25rem;
   --text-3xl: 3rem;
 }
 
 html {
-  background: var(--paper);
+  background: #000;
+  color-scheme: dark;
 }
-
 body {
-  background: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  line-height: 1.6;
+  background: #000;
+  color: var(--text);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  letter-spacing: -0.01em;
 }
 
-/* faint notebook ruling on the app shell, kept very quiet */
-.notebook-lines {
-  background-image: linear-gradient(var(--line) 1px, transparent 1px);
-  background-size: 100% 2rem;
-  background-position: 0 -1px;
+/* ---------- film grain (fixed, over everything, non-interactive) ---------- */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* ---------- glass surfaces (no borders) ---------- */
+.glass {
+  background: var(--glass);
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  border-radius: var(--r-lg);
+}
+.glass-2 {
+  background: var(--glass-2);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+}
+
+/* ---------- aura: a soft radial glow that bleeds beyond the element ---------- */
+.aura {
+  position: relative;
+  isolation: isolate;
+}
+.aura::before {
+  content: "";
+  position: absolute;
+  inset: -30%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    58% 58% at var(--aura-x, 50%) var(--aura-y, 38%),
+    var(--glow, var(--curriculum)) 0%,
+    color-mix(in oklab, var(--glow, var(--curriculum)) 40%, transparent) 42%,
+    transparent 72%
+  );
+  filter: blur(38px);
+  opacity: var(--aura-strength, 0.85);
+}
+
+/* thin hairline */
+.hair {
+  background: var(--hair);
+}
+
+/* an inset top highlight so glass cards catch light like the refs */
+.lit {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
+    var(--shadow);
+}
+
+/* focus ring tuned for dark */
+.ring-focus:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--curriculum) 80%, white);
+  outline-offset: 2px;
 }
 
 @media (prefers-reduced-motion: reduce) {
