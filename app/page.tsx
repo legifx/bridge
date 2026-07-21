@@ -1,163 +1,152 @@
 "use client";
 
-import { useState } from "react";
-import { CHEM_SOURCE_TEXT } from "@/lib/demo/chem";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Shell } from "@/components/Shell";
 
-type GraphConcept = {
+type Concept = {
   id: string;
   label: string;
   definition: string;
   difficulty: number;
-  prerequisiteIds: string[];
+  mastery: number;
 };
-type Graph = {
-  concepts: GraphConcept[];
+type Domain = { id: string; name: string; successRate: number };
+type Data = {
+  learner: { displayName: string };
+  concepts: Concept[];
+  edges: { from: string; to: string }[];
   order: string[];
-  hadCycle: boolean;
+  domains: Domain[];
 };
 
-const STAGES = ["Reading page", "Extracting concepts", "Linking prerequisites"];
+function masteryStyle(m: number) {
+  // low mastery = outline only; high = filled curriculum ink. Interest color is never used here.
+  if (m >= 0.66) return "border-curriculum bg-curriculum text-white";
+  if (m >= 0.4) return "border-curriculum bg-curriculum-soft text-curriculum";
+  return "border-line bg-paper-raised text-ink";
+}
 
 export default function Home() {
-  const [text, setText] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [stage, setStage] = useState(0);
-  const [graph, setGraph] = useState<Graph | null>(null);
-  const [demo, setDemo] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<Data | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  async function run() {
-    setBusy(true);
-    setError(null);
-    setGraph(null);
-    setStage(0);
-    // Advance the visible stage labels while the request is in flight.
-    const ticker = setInterval(
-      () => setStage((s) => Math.min(s + 1, STAGES.length - 1)),
-      700,
-    );
-    try {
-      const res = await fetch("/api/extract", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Extraction failed.");
-      setGraph(data.graph);
-      setDemo(data.demoMode);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
-    } finally {
-      clearInterval(ticker);
-      setBusy(false);
-    }
-  }
+  useEffect(() => {
+    fetch("/api/concepts")
+      .then((r) => r.json())
+      .then(setData)
+      .finally(() => setLoading(false));
+  }, []);
 
-  const byId = new Map(graph?.concepts.map((c) => [c.id, c]) ?? []);
-  const ordered = graph ? graph.order.map((id) => byId.get(id)!).filter(Boolean) : [];
+  const byId = new Map(data?.concepts.map((c) => [c.id, c]) ?? []);
+  const ordered = data ? data.order.map((id) => byId.get(id)!).filter(Boolean) : [];
 
   return (
-    <main className="mx-auto w-full max-w-[640px] px-5 py-8">
-      <header className="mb-6">
-        <p className="font-mono text-xs uppercase tracking-widest text-ink-soft">Bridge</p>
-        <h1 className="font-display text-2xl leading-tight text-ink">
-          Learn new things through what you already know.
-        </h1>
-        <p className="mt-2 text-sm text-ink-soft">
-          Paste study material. Bridge turns it into a concept graph — not a summary — in the
-          subject&rsquo;s own vocabulary.
-        </p>
-      </header>
+    <Shell>
+      {loading && <p className="mt-10 text-center text-sm text-ink-soft">Loading…</p>}
 
-      <section className="rounded-[--radius] border border-line bg-paper-raised p-4">
-        <label htmlFor="src" className="mb-2 block text-sm font-medium text-ink">
-          Study material
-        </label>
-        <textarea
-          id="src"
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Paste a paragraph from your notes or textbook…"
-          rows={7}
-          className="w-full resize-y rounded-[--radius] border border-line bg-paper p-3 text-base text-ink outline-none focus:border-curriculum focus:ring-2 focus:ring-curriculum/30"
+      {!loading && data && data.domains.length === 0 && (
+        <EmptyState
+          title="Start with what you already know."
+          body="Answer 5 quick taps and Bridge builds your interest profile. Then every concept is explained through your world."
+          cta="Build my profile"
+          href="/onboarding"
         />
-        <div className="mt-3 flex flex-wrap items-center gap-3">
-          <button
-            onClick={run}
-            disabled={busy || text.trim().length === 0}
-            className="rounded-[--radius] bg-curriculum px-4 py-2 text-sm font-medium text-white disabled:opacity-40"
-          >
-            {busy ? "Working…" : "Extract concepts"}
-          </button>
-          <button
-            onClick={() => setText(CHEM_SOURCE_TEXT)}
-            disabled={busy}
-            className="text-sm font-medium text-curriculum underline underline-offset-4 disabled:opacity-40"
-          >
-            Use demo chapter
-          </button>
-        </div>
-      </section>
-
-      {busy && (
-        <ol className="mt-5 space-y-2" aria-live="polite">
-          {STAGES.map((label, i) => (
-            <li key={label} className="flex items-center gap-3 text-sm">
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  i < stage ? "bg-ok" : i === stage ? "bg-curriculum animate-pulse" : "bg-line"
-                }`}
-              />
-              <span className={i <= stage ? "text-ink" : "text-ink-soft"}>{label}</span>
-            </li>
-          ))}
-        </ol>
       )}
 
-      {error && (
-        <p className="mt-5 rounded-[--radius] border border-bad/40 bg-bad/5 p-3 text-sm text-bad">
-          {error}
-        </p>
+      {!loading && data && data.domains.length > 0 && data.concepts.length === 0 && (
+        <EmptyState
+          title="Add something to learn."
+          body="Snap a photo of a page or paste text. Bridge turns it into a concept map."
+          cta="Capture material"
+          href="/capture"
+        />
       )}
 
-      {graph && (
-        <section className="mt-6">
-          <div className="mb-3 flex items-baseline justify-between">
-            <h2 className="font-display text-lg text-ink">Learning order</h2>
-            {demo && <span className="font-mono text-xs text-interest">demo mode · cached</span>}
-          </div>
-          {graph.hadCycle && (
-            <p className="mb-3 text-xs text-warn">
-              A prerequisite cycle was detected and broken so the order stays usable.
+      {!loading && data && data.domains.length > 0 && data.concepts.length > 0 && (
+        <>
+          <header className="mb-4">
+            <h1 className="font-display text-2xl text-ink">Your concept map</h1>
+            <p className="mt-1 text-sm text-ink-soft">
+              In learning order, prerequisites first. Colored by how well you know each idea.
             </p>
-          )}
-          <ol className="space-y-3">
+          </header>
+
+          <div className="mb-5 flex flex-wrap gap-2">
+            {data.domains.map((d) => (
+              <span
+                key={d.id}
+                className="rounded-full border border-interest bg-interest-soft px-3 py-1 text-xs font-medium text-interest"
+              >
+                {d.name}
+                <span className="ml-1 font-mono text-[10px] opacity-70">
+                  {Math.round(d.successRate * 100)}%
+                </span>
+              </span>
+            ))}
+          </div>
+
+          <ol className="relative space-y-3 border-l border-line pl-5">
             {ordered.map((c, i) => (
               <li
                 key={c.id}
-                className="rounded-[--radius] border-l-4 border-curriculum bg-paper-raised p-4"
+                className="concept-node relative"
+                style={{ animationDelay: `${i * 70}ms` }}
               >
-                <div className="flex items-baseline justify-between gap-3">
-                  <h3 className="font-display text-base text-ink">
-                    <span className="mr-2 font-mono text-xs text-ink-soft">
-                      {String(i + 1).padStart(2, "0")}
+                <span className="absolute -left-[27px] top-4 h-3 w-3 rounded-full border-2 border-curriculum bg-paper" />
+                <Link
+                  href={`/learn/${c.id}`}
+                  className={`block rounded-[--radius] border p-4 transition ${masteryStyle(c.mastery)}`}
+                >
+                  <div className="flex items-baseline justify-between gap-3">
+                    <h2 className="font-display text-base">{c.label}</h2>
+                    <span className="font-mono text-xs opacity-70">
+                      {Math.round(c.mastery * 100)}%
                     </span>
-                    {c.label}
-                  </h3>
-                  <span className="font-mono text-xs text-ink-soft">diff {c.difficulty}</span>
-                </div>
-                <p className="mt-1 text-sm text-ink">{c.definition}</p>
-                {c.prerequisiteIds.length > 0 && (
-                  <p className="mt-2 text-xs text-ink-soft">
-                    needs: {c.prerequisiteIds.map((p) => byId.get(p)?.label ?? p).join(", ")}
-                  </p>
-                )}
+                  </div>
+                  <p className="mt-1 text-sm opacity-90">{c.definition}</p>
+                </Link>
               </li>
             ))}
           </ol>
-        </section>
+        </>
       )}
-    </main>
+
+      <style jsx>{`
+        .concept-node {
+          opacity: 0;
+          transform: translateY(6px);
+          animation: rise 0.4s ease forwards;
+        }
+        @keyframes rise {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .concept-node {
+            opacity: 1;
+            transform: none;
+            animation: none;
+          }
+        }
+      `}</style>
+    </Shell>
+  );
+}
+
+function EmptyState({ title, body, cta, href }: { title: string; body: string; cta: string; href: string }) {
+  return (
+    <div className="mt-16 text-center">
+      <h1 className="font-display text-2xl text-ink">{title}</h1>
+      <p className="mx-auto mt-2 max-w-sm text-sm text-ink-soft">{body}</p>
+      <Link
+        href={href}
+        className="mt-6 inline-block rounded-[--radius] bg-curriculum px-5 py-2.5 text-sm font-medium text-white"
+      >
+        {cta}
+      </Link>
+    </div>
   );
 }
