@@ -11,16 +11,26 @@
  * missing fixture is caught during development, never silently empty in a demo.
  */
 import { CHEM_EXTRACTION } from "./chem";
+import { BRIDGE_FIXTURES } from "./bridges";
 
 const registry: Record<string, unknown> = {
   "extract:chem": CHEM_EXTRACTION,
   // Any text pasted while DEMO_MODE=true resolves to the chemistry chapter,
   // so a judge without a key still sees a real concept graph.
   "extract:default": CHEM_EXTRACTION,
+  // Free-text interest enrichment fallback (onboarding).
+  "profile:default": { name: "", vocabularyAnchors: [] },
+  // Hand-written reject -> accept bridges for the showcase concept.
+  ...BRIDGE_FIXTURES,
 };
 
 export function registerDemoResponse(key: string, value: unknown): void {
   registry[key] = value;
+}
+
+/** True if an exact fixture exists for this key (no stage fallback). */
+export function hasDemoResponse(key: string): boolean {
+  return key in registry;
 }
 
 export function getDemoResponse(key: string): unknown {

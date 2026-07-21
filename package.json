@@ -9,7 +9,11 @@
     "lint": "eslint",
     "test": "vitest run",
     "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
     "postinstall": "prisma generate"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -30,6 +34,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "tailwindcss": "^4",
+    "tsx": "^4.23.1",
     "typescript": "^5",
     "vitest": "^4.1.10"
   }

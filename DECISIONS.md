@@ -44,6 +44,37 @@ Does not affect a normal clone on a normal machine.
 `demoKey`, so the whole flow runs with no API key. Real embedding + dedupe + graph math still
 run on the cached concepts, so the demo exercises genuine code, not a mock.
 
+## Stages 2–4, screens, demo
+
+**Thompson sampling needs a Beta sampler**, which needs a Gamma sampler. Implemented
+Marsaglia-Tsang Gamma + Box-Muller normal over an injectable seeded RNG (`mulberry32`), so
+the bandit is deterministic under test. No stats dependency.
+
+**Elo is symmetric (both ratings move).** We persist only the learner's ability on
+`Concept.elo`; the concept's difficulty rating is derived from its 1–5 `difficulty` tag via
+`difficultyToElo`. The unit test checks the symmetric zero-sum update directly.
+
+**SM-2 repetitions aren't stored** (the schema has `easeFactor`/`interval` but no `repetitions`).
+We reconstruct repetitions from the stored interval (0→0, 1→1, 6→2, else→3). Good enough for a
+lite scheduler and keeps the schema at §4.
+
+**Interest match = cosine + bandit, and the cosine is honestly small.** For maximally different
+domains (chemistry vs esports) the semantic overlap between a concept and an interest anchor is
+genuinely near-zero. We show the real cosine rather than a flattering number — and that is the
+point: naive embedding/RAG can't bridge distant domains, which is *why* the product needs a
+generate→verify pipeline plus a bandit, not similarity alone.
+
+**DEMO bridge fixtures are keyed by concept-label slug, not DB id**, so the hand-written
+reject→accept pair for "Ionic bond" survives re-seeding (cuids change every seed). Concepts with
+no fixture get a deterministic, on-topic templated bridge so the demo is always truthful.
+
+**Seed runs the real pipeline in forced DEMO_MODE** (`prisma db seed` via `tsx`). It wipes and
+recreates its own demo rows — two learners, one chem chapter each, pre-generated bridges, and a
+handful of graded reviews so the teacher aggregate and mastery colors have data.
+
+**Concept map is a prerequisite-ordered vertical timeline**, not a 2-D force graph — it reads
+cleanly on a 390px viewport and films well, which is what the rubric rewards.
+
 ## Open / deferred
 
 - PWA icon is a single SVG (`purpose: any maskable`). Rasterized PNG fallbacks can be added later.

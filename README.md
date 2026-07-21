@@ -59,8 +59,9 @@ answer with expected score `E = 1 / (1 + 10^((R_C − R_L)/400))` and
 `1 → 6 → interval·easeFactor` days; the ease factor adjusts by recall quality
 `EF ← max(1.3, EF + (0.1 − (5−q)·(0.08 + (5−q)·0.02)))`; a miss resets the interval to 1.
 
-> Status: Stage 1 is built and working end to end. Stages 2–4 are next (see build order). The
-> formulas above are the specification these modules implement.
+> Status: all four stages are built and working end to end, with the full learner flow
+> (onboarding → capture → concept map → learn session → retrieval check), a verification log,
+> an aggregate-only teacher view, a split-screen profile comparison, and seeded demo data.
 
 ---
 
@@ -73,15 +74,22 @@ npx prisma migrate dev
 npm run dev
 ```
 
-Open http://localhost:3000, paste study material (or tap **Use demo chapter**), and watch the
-concept graph assemble. With `DEMO_MODE=true` the AI responses are cached — the full flow runs
-with no key — while the embedding, dedupe, and graph math run for real.
+Then seed two demo learners (competitive gaming vs horse riding) with pre-generated bridges:
+
+```bash
+npm run db:seed
+```
+
+Open http://localhost:3000. Tap **compare profiles** to see the same concept explained through
+two different worlds, or start onboarding to build your own profile. With `DEMO_MODE=true` the AI
+responses are cached — the full flow runs with no key — while the embedding, dedupe, graph,
+Thompson, Elo, and SM-2 math all run for real.
 
 To use live AI: set `OPENROUTER_API_KEY` in `.env` and `DEMO_MODE=false`.
 (Provider is OpenRouter; model via `OPENROUTER_MODEL`, default `google/gemini-2.0-flash-001`.)
 
 ```bash
-npm test                  # unit tests for the core graph / ML algorithms
+npm test                  # unit tests: dedupe, cycle detection, Thompson, Elo, SM-2
 ```
 
 ## Privacy
@@ -98,9 +106,11 @@ Next.js 16 (App Router, TS strict) · Tailwind v4 · SQLite + Prisma 6 · OpenRo
 
 ## What's not built yet (honest status)
 
-- Stages 2–4 (interest profile, bridge engine + verification log, adaptive loop).
-- Camera capture + client-side image downscale (the API already accepts images).
-- Concept-map visualization, learn session, teacher view, seeded two-profile demo.
+- **Live vision** is wired end to end (camera + client downscale + `images[]` API), but the
+  bundled demo data is text-sourced; scanning a real handwritten page needs a live API key.
+- The concept map is a linear, prerequisite-ordered timeline rather than a free-form 2-D graph.
+- SM-2 scheduling stores state per review but there is no "due today" review queue screen yet.
+- No PNG icon rasterization (the PWA ships a single maskable SVG icon).
 
 See [`DECISIONS.md`](./DECISIONS.md) for the reasoning behind each technical choice.
 
