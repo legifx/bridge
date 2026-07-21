@@ -1,0 +1,134 @@
+// Bridge — data model (see BUILD_PROMPT §4).
+// SQLite, one file, zero setup. Embeddings are stored as raw Float32 bytes.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Learner {
+  id           String   @id @default(cuid())
+  displayName  String
+  readingLevel Int      @default(3) // 1..5
+  createdAt    DateTime @default(now())
+
+  domains  InterestDomain[]
+  sources  Source[]
+  concepts Concept[]
+}
+
+model InterestDomain {
+  id         String  @id @default(cuid())
+  learnerId  String
+  name       String
+  embedding  Bytes // Float32 vector (local all-MiniLM-L6-v2)
+  alpha      Float   @default(1) // Beta posterior — successes + 1
+  beta       Float   @default(1) // Beta posterior — failures + 1
+  confidence Float   @default(0.5)
+
+  learner Learner  @relation(fields: [learnerId], references: [id], onDelete: Cascade)
+  bridges Bridge[]
+
+  @@index([learnerId])
+}
+
+model Source {
+  id        String   @id @default(cuid())
+  learnerId String
+  kind      String // photo | pdf | text
+  rawText   String
+  imagePath String?
+  createdAt DateTime @default(now())
+
+  learner  Learner   @relation(fields: [learnerId], references: [id], onDelete: Cascade)
+  concepts Concept[]
+
+  @@index([learnerId])
+}
+
+model Concept {
+  id         String  @id @default(cuid())
+  learnerId  String
+  label      String
+  definition String
+  sourceQuote String
+  difficulty Int     @default(3) // 1..5
+  elo        Float   @default(1200) // mastery: learner ability per concept
+  embedding  Bytes? // stored for Stage-3 interest<->concept matching
+  sourceId   String?
+
+  learner  Learner  @relation(fields: [learnerId], references: [id], onDelete: Cascade)
+  source   Source?  @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  bridges  Bridge[]
+  reviews  Review[]
+
+  // prerequisite DAG edges
+  edgesOut ConceptEdge[] @relation("fromConcept")
+  edgesIn  ConceptEdge[] @relation("toConcept")
+
+  @@index([learnerId])
+}
+
+model ConceptEdge {
+  fromConceptId String
+  toConceptId   String
+
+  from Concept @relation("fromConcept", fields: [fromConceptId], references: [id], onDelete: Cascade)
+  to   Concept @relation("toConcept", fields: [toConceptId], references: [id], onDelete: Cascade)
+
+  @@id([fromConceptId, toConceptId])
+}
+
+model Bridge {
+  id          String @id @default(cuid())
+  conceptId   String
+  domainId    String
+  body        String
+  status      String // accepted | rejected
+  attempt     Int    @default(1)
+  verdictJson String // full Verdict from the verifier
+  createdAt   DateTime @default(now())
+
+  concept  Concept        @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+  domain   InterestDomain @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  feedback Feedback[]
+
+  @@index([conceptId])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  conceptId  String
+  correct    Boolean
+  answeredAt DateTime @default(now())
+  nextDueAt  DateTime
+  easeFactor Float    @default(2.5)
+  interval   Int      @default(0) // days
+
+  concept Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@index([conceptId])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  bridgeId  String
+  clicked   Boolean // true = "that clicked", false = "didn't land"
+  createdAt DateTime @default(now())
+
+  bridge Bridge @relation(fields: [bridgeId], references: [id], onDelete: Cascade)
+}
+
+// Aggregate only — no learner ids, no names, no interest data (see §7).
+model ClassSnapshot {
+  id            String @id @default(cuid())
+  cohortKey     String
+  conceptLabel  String
+  attempts      Int    @default(0)
+  masteredCount Int    @default(0)
+
+  @@index([cohortKey])
+}
