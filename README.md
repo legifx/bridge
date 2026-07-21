@@ -88,7 +88,7 @@ Thompson, Elo, and SM-2 math all run for real.
 To use live AI: set `OPENROUTER_API_KEY` in `.env` and `DEMO_MODE=false`.
 (Provider is OpenRouter; model via `OPENROUTER_MODEL`. Default is the **free**, vision-capable
 `google/gemma-4-31b-it:free` — Apache-2.0 and not trained on your inputs, which suits a
-privacy-first education app. Paid fallback `google/gemini-2.0-flash-001` if the free tier is
+privacy-first education app. Paid fallback `google/gemini-3.1-flash-lite` if the free tier is
 rate-limited.)
 
 ```bash

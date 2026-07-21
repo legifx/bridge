@@ -17,7 +17,7 @@ Chosen over the paid default after comparing current options: it is **free**, vi
 — crucially for an education app — is Apache-2.0 with **no "we train on your free inputs"** clause,
 unlike some other free models (e.g. poolside/laguna free explicitly trains on free-tier inputs).
 That keeps the §7 privacy story intact. Free tier has rate limits (~20/min); the documented paid
-fallback `google/gemini-2.0-flash-001` (~$0.10/$0.40 per MTok) is a one-line swap if they bite.
+fallback `google/gemini-3.1-flash-lite` (~$0.25/$1.50 per MTok) is a one-line swap if they bite.
 Model id is an env var, so switching costs nothing. Vision is a hard requirement — this ruled out
 coding-specialized models like poolside/laguna (text-only).
 
