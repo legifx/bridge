@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { cosine, bytesToVec } from "@/lib/ml/vector";
-import { embed } from "@/lib/ml/embeddings";
+import { embed, EMBEDDINGS_ENABLED } from "@/lib/ml/embeddings";
 import type { BridgeBody } from "@/lib/bridge/types";
 
 /** Best-anchor similarity — the same metric the learn session shows. */
@@ -56,9 +56,15 @@ export async function GET(req: Request) {
       panels.push({ displayName: learner.displayName, domainName: null, similarity: 0, body: null });
       continue;
     }
-    const similarity = concept.embedding
-      ? await bestAnchorSimilarity(bytesToVec(concept.embedding), bridge.domain.anchors)
-      : 0;
+    // Best-anchor similarity when embeddings are available; otherwise the stored
+    // concept<->domain cosine (serverless demo has no runtime embedding model).
+    let similarity = 0;
+    if (concept.embedding) {
+      const cvec = bytesToVec(concept.embedding);
+      similarity = EMBEDDINGS_ENABLED
+        ? await bestAnchorSimilarity(cvec, bridge.domain.anchors)
+        : Math.max(0, Math.min(1, cosine(cvec, bytesToVec(bridge.domain.embedding))));
+    }
     panels.push({
       displayName: learner.displayName,
       domainName: bridge.domain.name,

@@ -2,22 +2,34 @@
  * Local sentence embeddings via @xenova/transformers (all-MiniLM-L6-v2).
  * Runs in the Node runtime — no API key, no network, no per-token cost.
  * The model is downloaded once and cached under ./.cache on first use.
+ *
+ * The heavy dependency is loaded via dynamic import so it never bloats bundles
+ * that don't embed. On serverless hosts (read-only FS, no ONNX), set
+ * EMBEDDINGS_DISABLED=1 — the seeded read-only demo uses stored vectors instead.
  */
-import { pipeline, type FeatureExtractionPipeline } from "@xenova/transformers";
-
 export { cosine, vecToBytes, bytesToVec } from "./vector";
 
 export const EMBED_DIM = 384;
 const MODEL = "Xenova/all-MiniLM-L6-v2";
 
-let extractorPromise: Promise<FeatureExtractionPipeline> | null = null;
+export const EMBEDDINGS_ENABLED = process.env.EMBEDDINGS_DISABLED !== "1";
 
-function getExtractor(): Promise<FeatureExtractionPipeline> {
+export class EmbeddingsDisabledError extends Error {
+  constructor() {
+    super("Embeddings are disabled on this host (EMBEDDINGS_DISABLED=1).");
+    this.name = "EmbeddingsDisabledError";
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let extractorPromise: Promise<any> | null = null;
+
+async function getExtractor() {
+  if (!EMBEDDINGS_ENABLED) throw new EmbeddingsDisabledError();
   if (!extractorPromise) {
-    extractorPromise = pipeline(
-      "feature-extraction",
-      MODEL,
-    ) as Promise<FeatureExtractionPipeline>;
+    extractorPromise = import("@xenova/transformers").then(({ pipeline }) =>
+      pipeline("feature-extraction", MODEL),
+    );
   }
   return extractorPromise;
 }

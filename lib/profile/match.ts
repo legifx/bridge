@@ -7,9 +7,8 @@
  * Then, inside the chosen domain, we pick the single anchor closest to the
  * concept so the UI can show "Ionic bond <-> handshake, 0.71".
  */
-import { cosine } from "@/lib/ml/vector";
-import { embed } from "@/lib/ml/embeddings";
-import { bytesToVec } from "@/lib/ml/vector";
+import { cosine, bytesToVec } from "@/lib/ml/vector";
+import { embed, EMBEDDINGS_ENABLED } from "@/lib/ml/embeddings";
 import { sampleBeta, mulberry32, type Rng } from "@/lib/adaptive/rng";
 import type { Match } from "./types";
 
@@ -47,13 +46,17 @@ export async function matchConceptToDomains(
   if (!best) return null;
 
   // Best anchor within the chosen domain, by cosine to the concept.
-  let anchor = best.d.name;
+  // When embeddings are disabled (serverless), fall back to the stored domain
+  // vector and the first anchor — no runtime model load needed.
+  let anchor = best.d.anchors[0] ?? best.d.name;
   let similarity = cosine(conceptEmbedding, bytesToVec(best.d.embedding));
-  for (const a of best.d.anchors) {
-    const sim = cosine(conceptEmbedding, await embed(a));
-    if (sim > similarity) {
-      similarity = sim;
-      anchor = a;
+  if (EMBEDDINGS_ENABLED) {
+    for (const a of best.d.anchors) {
+      const sim = cosine(conceptEmbedding, await embed(a));
+      if (sim > similarity) {
+        similarity = sim;
+        anchor = a;
+      }
     }
   }
 

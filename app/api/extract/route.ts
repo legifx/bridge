@@ -4,6 +4,7 @@ import { extractConceptGraph } from "@/lib/extraction";
 import { saveConceptGraph } from "@/lib/extraction/persist";
 import { getOrCreateDemoLearner } from "@/lib/db/learner";
 import { isDemoMode } from "@/lib/llm/client";
+import { EMBEDDINGS_ENABLED } from "@/lib/ml/embeddings";
 
 // Embeddings + LLM need the Node runtime, not the edge runtime.
 export const runtime = "nodejs";
@@ -15,6 +16,16 @@ const BodySchema = z.object({
 });
 
 export async function POST(req: Request) {
+  if (!EMBEDDINGS_ENABLED) {
+    return NextResponse.json(
+      {
+        error:
+          "Capturing new material runs the local embedding model, which the hosted demo doesn't include. Explore the seeded profiles, or clone and run locally to add your own.",
+      },
+      { status: 503 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();

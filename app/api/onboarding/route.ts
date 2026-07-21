@@ -3,6 +3,7 @@ import { z } from "zod";
 import { buildProfile } from "@/lib/profile/build";
 import { checkInterestText } from "@/lib/profile/guard";
 import { LEARNER_COOKIE } from "@/lib/db/learner";
+import { EMBEDDINGS_ENABLED } from "@/lib/ml/embeddings";
 
 export const runtime = "nodejs";
 
@@ -14,6 +15,16 @@ const BodySchema = z.object({
 });
 
 export async function POST(req: Request) {
+  if (!EMBEDDINGS_ENABLED) {
+    return NextResponse.json(
+      {
+        error:
+          "Building a new profile runs the local embedding model, which the hosted demo doesn't include. Explore the two seeded profiles via “compare profiles”, or clone and run locally.",
+      },
+      { status: 503 },
+    );
+  }
+
   const parsed = BodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid onboarding payload." }, { status: 400 });
