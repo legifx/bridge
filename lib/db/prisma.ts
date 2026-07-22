@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaLibSQL } from "@prisma/adapter-libsql";
+import { ensureHostedSchema } from "./bootstrap";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -36,7 +37,20 @@ function makeClient(): PrismaClient {
       url: process.env.TURSO_DATABASE_URL,
       authToken: process.env.TURSO_AUTH_TOKEN,
     });
-    return new PrismaClient({ adapter });
+    const client = new PrismaClient({ adapter });
+    // Every query waits for the runtime schema bootstrap (memoized, ~one
+    // round-trip on a fresh lambda) — so a deploy can never race its own
+    // migration and 500 with "no such column".
+    return client.$extends({
+      query: {
+        $allModels: {
+          async $allOperations({ args, query }) {
+            await ensureHostedSchema();
+            return query(args);
+          },
+        },
+      },
+    }) as unknown as PrismaClient;
   }
 
   if (process.env.VERCEL) {
