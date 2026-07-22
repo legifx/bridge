@@ -32,6 +32,8 @@ export type EngineDomain = {
   id: string;
   name: string;
   anchors: string[];
+  /** Verified vocabulary tier from onboarding — steers the analogy register. */
+  depth?: string;
 };
 
 /** Flatten a structured bridge into text the verifier can read. */
@@ -54,6 +56,7 @@ async function generate(
       sourceQuote: concept.sourceQuote,
       domain: domain.name,
       anchors: domain.anchors,
+      depth: domain.depth,
       readingLevel,
       priorContradictions,
     }),

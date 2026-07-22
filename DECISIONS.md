@@ -108,6 +108,42 @@ would undermine the point; traceable numbers are the feature.
 the domain whose accepted bridge taught it — not by raw cosine (chemistry terms are semantically
 far from hobby terms; that low cosine is honest and expected).
 
+## Onboarding v3 — the adaptive interview
+
+**Why the fixed form had to go.** v2 offered 20 hard-coded options; whoever didn't fit them got
+bridges through a stranger's world, and the casual/into/deep calibration was pure self-report —
+claimed confidence, not earned. v3 inverts the flow: the learner's own seeds first, then the
+interview adapts to them.
+
+**Server-driven interactions.** The API returns typed `Interaction` objects (this-or-that,
+slider, sub-options, word magnet) and the client renders per kind — the LLM output is fenced by
+Zod at every step, and interview knowledge (tiers, decoys) never leaves the server, so the
+"quiz" cannot be read out of devtools.
+
+**The word magnet is the verification.** ~12 real terms across three tiers plus 3 invented
+decoys; one tap-through yields (a) the anchors exactly as the bridge engine consumes them,
+(b) a verified depth tier from the tier distribution, (c) a larping check — decoy hits demote
+depth and collapse evidence multiplicatively. Depth never gates a domain; it selects the
+vocabulary register the bridges may use (`DEPTH_REGISTER` in the generate prompt). A casual car
+fan gets brakes-and-fuel analogies, not gear-ratio jargon — which is also what keeps the verify
+loop's acceptance rate honest.
+
+**Quiz items go through generate→verify too.** An independent audit call reviews the generated
+magnets (fake decoys that turn out real, wrong-tier terms) — the same pattern that guards the
+bridges guards the interview. Preference cascade per domain: audited set → curated fixture →
+unaudited set → unverified default; a failed model call degrades the interview, never kills it.
+
+**Evidence seeds the bandit warm.** `depthToProfile` maps (depth, evidence) onto starting
+confidence (capped at 0.9 — total certainty from a 3-minute interview would be a lie), a warm
+Thompson prior (verified-deep starts at α=5), and second-brain weights. Unverified domains
+start light (evidence 0.25) and must mature through clicked bridges, exactly like v1 signals.
+
+**Provenance is logged like the bridges are.** Every served interaction and every answer is
+appended to `OnboardingSession.log` — how a profile came to be is inspectable, in the same
+spirit as the verification log. Re-running onboarding updates same-name domains and never
+deletes rows (bridges/reviews hang off them); the mirror screen's explicit "×" is the only
+destructive correction, scoped to that domain and its seeded brain items.
+
 ## Open / deferred
 
 - PWA icon is a single SVG (`purpose: any maskable`). Rasterized PNG fallbacks can be added later.

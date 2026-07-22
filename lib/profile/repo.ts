@@ -22,6 +22,7 @@ export async function getDomainsForMatch(learnerId: string): Promise<DomainForMa
     anchors: parseAnchors(r.anchors),
     alpha: r.alpha,
     beta: r.beta,
+    depth: r.depth,
   }));
 }
 

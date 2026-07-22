@@ -22,6 +22,26 @@ model Learner {
   sources    Source[]
   concepts   Concept[]
   brainItems BrainItem[]
+  interviews OnboardingSession[]
+}
+
+// One adaptive onboarding interview. The full state (candidate domains, served
+// questions, word-magnet tiers, picks) lives in `state`; every interaction the
+// server sent and every answer it got is appended to `log` — the profile's
+// provenance is inspectable, in the same spirit as the bridge verification log.
+model OnboardingSession {
+  id        String   @id @default(cuid())
+  learnerId String
+  status    String   @default("active") // active | done
+  phase     String   @default("drill") // drill | verify | mirror | done
+  state     String   @default("{}") // JSON InterviewState (tiers/decoys stay server-side)
+  log       String   @default("[]") // JSON array of served interactions + answers
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  learner Learner @relation(fields: [learnerId], references: [id], onDelete: Cascade)
+
+  @@index([learnerId])
 }
 
 // The learner's second brain: a per-learner vector store that grows with every
@@ -54,6 +74,7 @@ model InterestDomain {
   alpha      Float   @default(1) // Beta posterior — successes + 1
   beta       Float   @default(1) // Beta posterior — failures + 1
   confidence Float   @default(0.5)
+  depth      String  @default("hobbyist") // novice | hobbyist | deep — vocabulary tier verified at onboarding
 
   learner Learner  @relation(fields: [learnerId], references: [id], onDelete: Cascade)
   bridges Bridge[]

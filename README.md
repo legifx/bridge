@@ -40,9 +40,16 @@ flowchart LR
    (label, definition, verbatim source quote, difficulty, prerequisites). *Our own code* then
    embeds them locally, merges near-duplicates by cosine similarity, builds the prerequisite
    DAG, detects cycles, and topologically sorts them into a learning order.
-2. **`lib/profile` — Interest profile.** A short tap-based onboarding produces a **vector store**
-   of interest domains (local embeddings), not a prompt string. Matching an interest to a concept
-   is cosine similarity, shown in the UI.
+2. **`lib/profile` + `lib/onboarding` — Interest profile via adaptive interview.** Onboarding is
+   a server-driven interview, not a form: free seeds (plus a discovery grid) → LLM-generated
+   drill questions (this-or-that, sliders, sub-areas) → a **word magnet** per domain that mixes
+   real terms in three tiers with plausible decoys. What the learner actually recognizes
+   determines a *verified* vocabulary depth (`novice/hobbyist/deep`), the evidence behind it,
+   and the anchors — so confidence is **earned, not self-reported**, larping collapses on the
+   decoys, and the bridge engine later speaks in the register the learner verifiably owns. The
+   generated quiz items pass the same generate→verify pattern as the bridges. The result is a
+   **vector store** of interest domains (local embeddings), not a prompt string; a final
+   mirror screen shows what was understood, with honest confidence, and is correctable.
 3. **`lib/bridge` — Bridge engine + verification loop.** One call generates the analogical
    explanation; a second, independent call fact-checks it against the source quote and returns a
    verdict. On `revise`/`reject` it retries with the contradictions fed back, then falls back to a

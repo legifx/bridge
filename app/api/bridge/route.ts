@@ -51,7 +51,7 @@ export async function POST(req: Request) {
         definition: concept.definition,
         sourceQuote: concept.sourceQuote,
       },
-      domain: { id: chosen.id, name: chosen.name, anchors: chosen.anchors },
+      domain: { id: chosen.id, name: chosen.name, anchors: chosen.anchors, depth: chosen.depth },
       match,
       readingLevel: learner.readingLevel,
     });

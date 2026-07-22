@@ -24,12 +24,22 @@ Hard rules:
 - Use the learner's vocabulary anchors where they genuinely fit; do not force every one.
 - Match the reading level given by the user.`;
 
+/** How deep the learner verifiably is in their domain — sets the analogy's register. */
+const DEPTH_REGISTER: Record<string, string> = {
+  novice:
+    "The learner is a CASUAL fan of this domain: use the everyday words of that world and avoid insider jargon entirely.",
+  hobbyist:
+    "The learner is a hobbyist in this domain: common practitioner terms are fine, but avoid deep insider jargon.",
+  deep: "The learner is verifiably deep in this domain: precise insider vocabulary is welcome and lands best.",
+};
+
 export function generateUser(params: {
   label: string;
   definition: string;
   sourceQuote: string;
   domain: string;
   anchors: string[];
+  depth?: string;
   readingLevel: number;
   priorContradictions?: Array<{ claim: string; reason: string }>;
 }): string {
@@ -38,11 +48,12 @@ export function generateUser(params: {
         .map((c) => `- "${c.claim}" — ${c.reason}`)
         .join("\n")}`
     : "";
+  const register = params.depth ? DEPTH_REGISTER[params.depth] : undefined;
   return `Concept: ${params.label}
 Definition (authoritative, from the source): ${params.definition}
 Source quote: "${params.sourceQuote}"
 Learner's interest domain: ${params.domain}
-Usable vocabulary anchors: ${params.anchors.join(", ")}
+Usable vocabulary anchors: ${params.anchors.join(", ")}${register ? `\n${register}` : ""}
 Reading level (1 simplest .. 5 most advanced): ${params.readingLevel}${revise}`;
 }
 

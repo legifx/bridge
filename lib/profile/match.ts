@@ -19,6 +19,7 @@ export type DomainForMatch = {
   anchors: string[];
   alpha: number;
   beta: number;
+  depth: string; // novice | hobbyist | deep — verified vocabulary tier
 };
 
 /** Weight between semantic fit and learned success. */
