@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import { embed, vecToBytes } from "@/lib/ml/embeddings";
+import { recordSignal } from "@/lib/brain/record";
 import { llmJson } from "@/lib/llm/client";
 import { PROFILE_SYSTEM } from "@/lib/prompts/profile";
 import { OPTION_BY_ID } from "./questions";
@@ -72,6 +73,27 @@ export async function buildProfile(input: BuildInput): Promise<{ learnerId: stri
         embedding: vecToBytes(emb),
       },
     });
+
+    // Seed the second brain: the domain itself plus its concrete anchors.
+    await recordSignal({
+      learnerId: learner.id,
+      kind: "interest",
+      label: d.name,
+      text: `${d.name}. ${d.anchors.join(", ")}`,
+      weight: 1.2,
+      embedding: emb,
+      sourceRef: row.id,
+    });
+    for (const anchor of d.anchors.slice(0, 6)) {
+      await recordSignal({
+        learnerId: learner.id,
+        kind: "anchor",
+        label: anchor,
+        text: `${anchor} (${d.name})`,
+        weight: 0.4,
+        sourceRef: row.id,
+      });
+    }
     created.push({
       id: row.id,
       name: row.name,
