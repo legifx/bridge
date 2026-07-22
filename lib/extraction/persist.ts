@@ -25,11 +25,12 @@ export async function saveConceptGraph(params: {
     });
     source = await prisma.source.update({
       where: { id: prev.id },
-      data: { rawText: `${prev.rawText}\n\n---\n\n${rawText}` },
+      // backfill the parent subject if this folder never got one
+      data: { rawText: `${prev.rawText}\n\n---\n\n${rawText}`, subject: prev.subject ?? graph.subject },
     });
   } else {
     source = await prisma.source.create({
-      data: { learnerId, kind, rawText, imagePath, title: graph.title },
+      data: { learnerId, kind, rawText, imagePath, title: graph.title, subject: graph.subject },
     });
   }
 

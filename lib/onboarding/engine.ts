@@ -87,8 +87,8 @@ function buildDrillSteps(
 }
 
 /** Generate word magnets, store them (shuffled) in the state, return the steps. */
-async function buildVerifySteps(domains: DomainState[]): Promise<Interaction[]> {
-  const magnets = await generateMagnets(domains);
+async function buildVerifySteps(domains: DomainState[], language?: string): Promise<Interaction[]> {
+  const magnets = await generateMagnets(domains, language);
   const steps: Interaction[] = [];
   for (const d of domains) {
     const words = magnets.get(d.key);
@@ -106,7 +106,7 @@ async function buildVerifySteps(domains: DomainState[]): Promise<Interaction[]> 
   return steps;
 }
 
-async function finalize(learnerId: string, state: InterviewState): Promise<MirrorDomain[]> {
+async function finalize(learnerId: string, state: InterviewState, language?: string): Promise<MirrorDomain[]> {
   for (const d of state.domains) {
     if (d.magnet?.picked) {
       const s = scoreMagnet(d.magnet.words, d.magnet.picked);
@@ -119,7 +119,7 @@ async function finalize(learnerId: string, state: InterviewState): Promise<Mirro
       d.anchors = d.facets?.slice(0, 4) ?? [];
     }
   }
-  const synth = await synthesizeDomains(state.domains);
+  const synth = await synthesizeDomains(state.domains, language);
   const seen = new Set<string>();
   const inputs = state.domains.map((d, i) => {
     const anchors = [...(d.anchors ?? []), ...synth[i].extraAnchors]
@@ -156,8 +156,8 @@ function appendLog(logJson: string, entry: LogEntry): string {
   return JSON.stringify(log);
 }
 
-export async function startInterview(learnerId: string, seeds: string[]): Promise<StepBatch> {
-  const plan = await planInterview(seeds);
+export async function startInterview(learnerId: string, seeds: string[], language?: string): Promise<StepBatch> {
+  const plan = await planInterview(seeds, language);
   const domains: DomainState[] = plan.domains.map((p, i) => ({
     key: slugify(p.name, i),
     name: p.name,
@@ -167,7 +167,7 @@ export async function startInterview(learnerId: string, seeds: string[]): Promis
   let phase: StepBatch["phase"] = "drill";
   let steps = buildDrillSteps(domains, plan);
   if (steps.length === 0) {
-    steps = await buildVerifySteps(domains);
+    steps = await buildVerifySteps(domains, language);
     phase = "verify";
   }
 
@@ -175,7 +175,7 @@ export async function startInterview(learnerId: string, seeds: string[]): Promis
   let profile: MirrorDomain[] | undefined;
   if (steps.length === 0) {
     // Nothing to ask at all (rare) — build the best profile we can and mirror it.
-    profile = await finalize(learnerId, state);
+    profile = await finalize(learnerId, state, language);
     phase = "mirror";
   }
 
@@ -211,6 +211,7 @@ export async function continueInterview(
   learnerId: string,
   sessionId: string,
   answers: Answer[],
+  language?: string,
 ): Promise<StepBatch> {
   const session = await prisma.onboardingSession.findFirst({
     where: { id: sessionId, learnerId },
@@ -229,7 +230,7 @@ export async function continueInterview(
 
   if (state.pending.length === 0) {
     if (phase === "drill") {
-      steps = (await buildVerifySteps(state.domains)).slice(0, MAX_STEPS - state.served);
+      steps = (await buildVerifySteps(state.domains, language)).slice(0, MAX_STEPS - state.served);
       if (steps.length > 0) {
         phase = "verify";
         state.served += steps.length;
@@ -238,7 +239,7 @@ export async function continueInterview(
       }
     }
     if (steps.length === 0) {
-      profile = await finalize(learnerId, state);
+      profile = await finalize(learnerId, state, language);
       phase = "mirror";
       status = "done";
       log = appendLog(log, { t: "profile", profile });

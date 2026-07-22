@@ -59,10 +59,11 @@ function heuristicPlan(seeds: string[]): Plan {
 }
 
 /** Call A — normalize seeds into domains + drill questions. */
-export async function planInterview(seeds: string[]): Promise<Plan> {
+export async function planInterview(seeds: string[], language?: string): Promise<Plan> {
   try {
     const plan = await llmJson({
       system: PLAN_SYSTEM,
+      language,
       user: `Seeds the learner gave:\n${seeds.map((s) => `- ${s}`).join("\n")}`,
       schema: PlanSchema,
       temperature: 0.4,
@@ -86,7 +87,7 @@ function domainContext(d: DomainState): string {
 }
 
 /** Call B + independent audit B2 — word magnets per domain, keyed by domain key. */
-export async function generateMagnets(domains: DomainState[]): Promise<Map<string, MagnetWord[]>> {
+export async function generateMagnets(domains: DomainState[], language?: string): Promise<Map<string, MagnetWord[]>> {
   const out = new Map<string, MagnetWord[]>();
   let generated: { domain: string; words: MagnetWord[] }[] = [];
   let audited: { domain: string; words: MagnetWord[] }[] = [];
@@ -94,6 +95,7 @@ export async function generateMagnets(domains: DomainState[]): Promise<Map<strin
   try {
     const gen = await llmJson({
       system: MAGNET_SYSTEM,
+      language,
       user: domains.map(domainContext).join("\n"),
       schema: MagnetGenSchema,
       temperature: 0.5,
@@ -154,11 +156,12 @@ export async function generateMagnets(domains: DomainState[]): Promise<Map<strin
 }
 
 /** Call C — final naming, taglines and register-matched extra anchors. */
-export async function synthesizeDomains(domains: DomainState[]): Promise<Synthesis["domains"]> {
+export async function synthesizeDomains(domains: DomainState[], language?: string): Promise<Synthesis["domains"]> {
   const fallback = domains.map((d) => ({ name: d.name, tagline: "", extraAnchors: [] as string[] }));
   try {
     const synth = await llmJson({
       system: SYNTH_SYSTEM,
+      language,
       user: domains
         .map((d) => {
           const picked = d.anchors?.length ? d.anchors.join(", ") : "(none)";

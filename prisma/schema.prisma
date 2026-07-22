@@ -15,6 +15,7 @@ model Learner {
   displayName  String
   handle       String?  @unique // normalized sign-in name (public demo: any name is open)
   readingLevel Int      @default(3) // 1..5
+  language     String   @default("en") // main language for learner-facing AI text (set at onboarding, editable later)
   aiUnits      Int      @default(0) // AI-call units used (quota enforced on public demo only)
   createdAt    DateTime @default(now())
 
@@ -86,6 +87,7 @@ model Source {
   id        String   @id @default(cuid())
   learnerId String
   title     String? // folder name, derived from the material at capture time
+  subject   String? // broad parent topic ("Überordner"), e.g. Chemistry — groups folders on the map
   kind      String // photo | pdf | text
   rawText   String
   imagePath String?

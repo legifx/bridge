@@ -13,6 +13,7 @@ export type ExtractedConcept = z.infer<typeof ExtractedConceptSchema>;
 
 export const ExtractionResultSchema = z.object({
   title: z.string().min(1).optional(),
+  subject: z.string().min(1).optional(),
   concepts: z.array(ExtractedConceptSchema),
 });
 export type ExtractionResult = z.infer<typeof ExtractionResultSchema>;
@@ -25,6 +26,8 @@ export type GraphConcept = ExtractedConcept & {
 
 export type ConceptGraph = {
   title: string;
+  /** broad parent topic ("Überordner") used to group capture folders on the map. */
+  subject: string | null;
   concepts: GraphConcept[];
   edges: Array<{ from: string; to: string }>;
   /** topologically sorted concept ids — the learning order. */

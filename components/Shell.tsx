@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Led } from "./Led";
+import { LANGUAGES } from "@/lib/i18n";
 
 const NAV = [
   { href: "/", label: "Map" },
@@ -14,7 +15,7 @@ const NAV = [
 ];
 
 type Me = {
-  learner: { id: string; displayName: string } | null;
+  learner: { id: string; displayName: string; language?: string } | null;
   publicDemo: boolean;
   quota: { used: number; limit: number; remaining: number } | null;
 };
@@ -36,6 +37,15 @@ export function Shell({
       .catch(() => {});
   }, [path]);
 
+  async function setLanguage(code: string) {
+    setMe((m) => (m?.learner ? { ...m, learner: { ...m.learner, language: code } } : m));
+    await fetch("/api/me", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ language: code }),
+    }).catch(() => {});
+  }
+
   async function signOut() {
     await fetch("/api/signout", { method: "POST" });
     window.location.href = "/signin";
@@ -52,11 +62,27 @@ export function Shell({
           Bridge
         </Link>
         <div className="flex items-center gap-4">
-          <Link href="/compare" className="slabel text-faint transition hover:text-interest-text">
+          <Link
+            href="/compare"
+            className="slabel hidden text-faint transition hover:text-interest-text min-[440px]:inline"
+          >
             compare ↗
           </Link>
           {me?.learner && (
             <span className="flex items-center gap-2.5">
+              <select
+                aria-label="Main language"
+                value={me.learner.language ?? "en"}
+                onChange={(e) => void setLanguage(e.target.value)}
+                className="h-8 cursor-pointer appearance-none rounded-full bg-white/[0.07] px-3 text-xs font-semibold text-text outline-none transition hover:bg-white/[0.1]"
+                style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)" }}
+              >
+                {LANGUAGES.map((l) => (
+                  <option key={l.code} value={l.code} className="bg-black text-white">
+                    {l.code.toUpperCase()}
+                  </option>
+                ))}
+              </select>
               {me.quota && (
                 <span className="flex items-baseline gap-1" title="AI budget left on this demo profile">
                   <Led value={`${me.quota.remaining}`} dot={2.4} color={me.quota.remaining > 2 ? "#c9ff7a" : "#ffb877"} />
@@ -66,10 +92,10 @@ export function Shell({
               <button
                 onClick={signOut}
                 title="Sign out"
-                className="flex h-8 items-center gap-2 rounded-full px-3 text-xs font-semibold text-text transition hover:bg-white/[0.1]"
+                className="flex h-8 max-w-[110px] items-center gap-2 rounded-full px-3 text-xs font-semibold text-text transition hover:bg-white/[0.1]"
                 style={{ background: "rgba(255,255,255,0.07)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)" }}
               >
-                {me.learner.displayName}
+                <span className="truncate">{me.learner.displayName}</span>
                 <span className="text-faint">×</span>
               </button>
             </span>
@@ -101,7 +127,7 @@ export function Shell({
               <Link
                 key={n.href}
                 href={n.href}
-                className={`relative flex h-10 items-center rounded-full px-3.5 text-sm font-medium transition ${
+                className={`relative flex h-10 items-center rounded-full px-2.5 text-[13px] font-medium transition min-[400px]:px-3.5 min-[400px]:text-sm ${
                   active ? "text-text" : "text-faint hover:text-dim"
                 }`}
                 style={{ borderRadius: 999 }}

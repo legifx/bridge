@@ -17,6 +17,8 @@ import { ExtractionResultSchema, type ConceptGraph } from "./types";
 export type ExtractInput = {
   text?: string;
   images?: ImageInput[];
+  /** learner's main language — folder title/subject come back in it. */
+  language?: string;
 };
 
 export type ExtractOutput = {
@@ -35,12 +37,13 @@ export async function extractConceptGraph(input: ExtractInput): Promise<ExtractO
     input.text?.trim() ||
     "Extract the concept graph from the attached image(s) of study material.";
 
-  const { title, concepts } = await llmJson({
+  const { title, subject, concepts } = await llmJson({
     system: EXTRACT_SYSTEM,
     user: userText,
     images: input.images,
     schema: ExtractionResultSchema,
     temperature: 0.2,
+    language: input.language,
   });
 
   // Embed every raw concept (order preserved) for dedupe.
@@ -72,6 +75,7 @@ export async function extractConceptGraph(input: ExtractInput): Promise<ExtractO
   return {
     graph: {
       title: title?.trim() || merged[0]?.label || "Untitled capture",
+      subject: subject?.trim() || null,
       concepts: merged,
       edges,
       order,

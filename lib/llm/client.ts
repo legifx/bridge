@@ -8,6 +8,7 @@
  */
 import OpenAI from "openai";
 import type { ZodType } from "zod";
+import { languageName } from "@/lib/i18n";
 
 // Primary model (default: free, vision-capable). Free tiers are occasionally
 // rate-limited upstream (429), so we fall back to a cheap paid model on failure.
@@ -43,7 +44,15 @@ export type LlmCall<T> = {
   schema: ZodType<T>;
   /** Lower = more deterministic. Default 0.4. */
   temperature?: number;
+  /** Learner's main language (BCP-47-ish, e.g. "de"). Learner-facing strings are written in it. */
+  language?: string;
 };
+
+function withLanguage(system: string, language?: string): string {
+  const name = languageName(language);
+  if (!name) return system;
+  return `${system}\n\nLANGUAGE: The learner's main language is ${name} (${language}). Write every learner-facing string value (questions, explanations, titles, feedback) in ${name}. Keep JSON keys, ids, and enum values exactly as specified, in English. Keep verbatim source quotes in the source's original language.`;
+}
 
 function extractJson(text: string): unknown {
   // Models occasionally wrap JSON in prose or fences despite instructions.
@@ -70,7 +79,7 @@ export async function llmJson<T>(call: LlmCall<T>): Promise<T> {
       temperature: call.temperature ?? 0.4,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: call.system },
+        { role: "system", content: withLanguage(call.system, call.language) },
         { role: "user", content },
       ],
     });

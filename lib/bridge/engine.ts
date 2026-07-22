@@ -47,9 +47,11 @@ async function generate(
   domain: EngineDomain,
   readingLevel: number,
   priorContradictions: Verdict["contradictions"] | undefined,
+  language?: string,
 ): Promise<BridgeBody> {
   return llmJson({
     system: GENERATE_SYSTEM,
+    language,
     user: generateUser({
       label: concept.label,
       definition: concept.definition,
@@ -114,13 +116,14 @@ export async function generateVerifiedBridge(params: {
   domain: EngineDomain;
   match: Match;
   readingLevel: number;
+  language?: string;
 }): Promise<BridgeResult> {
-  const { concept, domain, match, readingLevel } = params;
+  const { concept, domain, match, readingLevel, language } = params;
   const attempts: BridgeAttempt[] = [];
   let contradictions: Verdict["contradictions"] | undefined;
 
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
-    const body = await generate(concept, domain, readingLevel, contradictions);
+    const body = await generate(concept, domain, readingLevel, contradictions, language);
     const verdict = await verify(concept, body);
     const status: "accepted" | "rejected" = verdict.verdict === "accept" ? "accepted" : "rejected";
     const row = await persist(concept, domain, body, verdict, status, attempt);

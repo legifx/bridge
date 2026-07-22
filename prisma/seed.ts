@@ -90,7 +90,13 @@ async function seedLearner(p: Profile) {
   }
 
   const source = await prisma.source.create({
-    data: { learnerId: learner.id, kind: "text", rawText: CHEM_SOURCE_TEXT, title: CHEM_EXTRACTION.title },
+    data: {
+      learnerId: learner.id,
+      kind: "text",
+      rawText: CHEM_SOURCE_TEXT,
+      title: CHEM_EXTRACTION.title,
+      subject: CHEM_EXTRACTION.subject,
+    },
   });
 
   // Concepts + embeddings + prerequisite edges.

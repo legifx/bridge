@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   const charge = await chargeAi(learner.id, 1);
   if (!charge.ok) return quotaExceededResponse(charge.quota);
 
-  const grade = await gradeFreeRecall(concept, parsed.data.freeAnswer);
+  const grade = await gradeFreeRecall(concept, parsed.data.freeAnswer, learner.language);
   const correct = grade.correct && parsed.data.mcqCorrect;
 
   const { elo, nextIntervalDays } = await recordAnswer({

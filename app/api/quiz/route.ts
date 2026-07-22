@@ -24,6 +24,6 @@ export async function POST(req: Request) {
   const charge = await chargeAi(learner.id, 1);
   if (!charge.ok) return quotaExceededResponse(charge.quota);
 
-  const quiz = await generateQuiz(concept);
+  const quiz = await generateQuiz(concept, learner.language);
   return NextResponse.json({ quiz, quota: charge.quota });
 }

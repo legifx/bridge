@@ -66,6 +66,9 @@
 html {
   background: #000;
   color-scheme: dark;
+  /* phones must never auto-inflate text or bounce-scroll the black canvas */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 body {
   min-height: 100dvh;
@@ -73,6 +76,27 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  overscroll-behavior-y: contain;
+  overflow-x: hidden;
+}
+/* app-like touch: no 300ms double-tap zoom, no grey tap flash */
+button,
+a,
+input,
+textarea,
+select {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+/* comfortable thumb targets on touch screens */
+@media (pointer: coarse) {
+  .chip {
+    min-height: 34px;
+    padding: 7px 14px;
+  }
+  .opt {
+    padding: 18px;
+  }
 }
 /* one characterful display face, used sparingly: titles and concept names */
 h1,
@@ -408,6 +432,78 @@ legend {
 @keyframes draw {
   to {
     stroke-dashoffset: 0;
+  }
+}
+
+/* ---------- thinking loader: pulsing core, expanding rings, orbiting signals ---------- */
+.think-core {
+  position: absolute;
+  inset: 50%;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-radius: 999px;
+  box-shadow: 0 0 30px rgba(59, 123, 255, 0.8);
+  animation: thinkPulse 1.8s ease-in-out infinite;
+}
+@keyframes thinkPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.85;
+  }
+}
+.think-ring {
+  position: absolute;
+  inset: 50%;
+  width: 22px;
+  height: 22px;
+  margin: -11px 0 0 -11px;
+  border-radius: 999px;
+  border: 1px solid rgba(157, 192, 255, 0.55);
+  animation: thinkRing 1.8s ease-out infinite;
+}
+@keyframes thinkRing {
+  from {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  to {
+    transform: scale(4.2);
+    opacity: 0;
+  }
+}
+.think-orbit {
+  position: absolute;
+  inset: 0;
+  animation: thinkOrbit 3s linear infinite;
+}
+.think-orbit > span {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin-left: -2px;
+}
+@keyframes thinkOrbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.think-shimmer {
+  background: linear-gradient(90deg, var(--dim) 20%, #fff 45%, var(--dim) 70%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer 1.6s linear infinite;
+}
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
   }
 }
 

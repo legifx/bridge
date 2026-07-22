@@ -14,7 +14,14 @@ export type ConceptVM = {
   dueAt: string | null; // next spaced-repetition due date, if any reviews exist
 };
 
-export type SourceVM = { id: string; title: string; kind: string; createdAt: string; count: number };
+export type SourceVM = {
+  id: string;
+  title: string;
+  subject: string | null;
+  kind: string;
+  createdAt: string;
+  count: number;
+};
 
 export type LearnerGraph = {
   concepts: ConceptVM[];
@@ -71,6 +78,7 @@ export async function getLearnerGraph(learnerId: string): Promise<LearnerGraph> 
     sources: sources.map((s) => ({
       id: s.id,
       title: s.title ?? "Untitled capture",
+      subject: s.subject,
       kind: s.kind,
       createdAt: s.createdAt.toISOString(),
       count: countBySource.get(s.id) ?? 0,

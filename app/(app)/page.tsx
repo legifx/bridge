@@ -17,7 +17,14 @@ type Concept = {
   reviewEnabled: boolean;
   dueAt: string | null;
 };
-type Source = { id: string; title: string; kind: string; createdAt: string; count: number };
+type Source = {
+  id: string;
+  title: string;
+  subject: string | null;
+  kind: string;
+  createdAt: string;
+  count: number;
+};
 type Domain = { id: string; name: string; successRate: number };
 type Data = {
   learner: { displayName: string };
@@ -63,11 +70,21 @@ export default function Home() {
     (c) => c.reviewEnabled && (!c.dueAt || new Date(c.dueAt).getTime() <= now),
   );
 
-  // group the learning order into capture folders
+  // group the learning order into capture folders…
   const folders = (data?.sources ?? [])
     .map((s) => ({ source: s, concepts: ordered.filter((c) => c.sourceId === s.id) }))
     .filter((f) => f.concepts.length > 0);
   const loose = ordered.filter((c) => !c.sourceId);
+
+  // …and folders into their parent subject ("Überordner") — one clean block per topic
+  const subjects: { subject: string; folders: typeof folders }[] = [];
+  for (const f of folders) {
+    const name = f.source.subject?.trim() || "Other topics";
+    const hit = subjects.find((s) => s.subject.toLowerCase() === name.toLowerCase());
+    if (hit) hit.folders.push(f);
+    else subjects.push({ subject: name, folders: [f] });
+  }
+  const SUBJECT_GLOWS = ["var(--curriculum)", "var(--interest)", "var(--violet)", "var(--orange)", "var(--acid)"];
 
   let seq = 0;
 
@@ -142,35 +159,60 @@ export default function Home() {
             </div>
           )}
 
-          {/* capture folders */}
-          <div className="space-y-10">
-            {folders.map((f) => (
-              <section key={f.source.id}>
-                <div className="mb-4 flex items-end justify-between gap-3 px-1">
-                  <div className="min-w-0">
-                    <p className="slabel text-faint">
-                      {f.source.kind === "photo" ? "photo capture" : "capture"} ·{" "}
-                      {fmtDate(f.source.createdAt)}
-                    </p>
-                    <h2 className="mt-1 truncate text-lg font-semibold tracking-tight text-text">
-                      {f.source.title}
-                    </h2>
+          {/* subjects ("Überordner") -> capture folders -> concepts */}
+          <div className="space-y-14">
+            {subjects.map((s, si) => {
+              const glow = SUBJECT_GLOWS[si % SUBJECT_GLOWS.length];
+              return (
+                <section key={s.subject}>
+                  {/* subject header: an unmissable topic divider */}
+                  <div className="mb-6 flex items-center gap-3">
+                    <span
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ background: glow, boxShadow: `0 0 14px ${glow}` }}
+                    />
+                    <h2 className="text-xl font-semibold tracking-tight text-text">{s.subject}</h2>
+                    <span className="slabel text-faint">
+                      {s.folders.length} folder{s.folders.length === 1 ? "" : "s"}
+                    </span>
+                    <span className="h-px flex-1 bg-hair" />
                   </div>
-                  <Link
-                    href={`/capture?source=${f.source.id}`}
-                    className="slabel shrink-0 pb-0.5 text-curriculum-text transition hover:opacity-80"
+
+                  <div
+                    className="space-y-10 border-l pl-4 min-[440px]:pl-5"
+                    style={{ borderColor: `color-mix(in oklab, ${glow} 35%, transparent)` }}
                   >
-                    + add material
-                  </Link>
-                </div>
-                <ol className="space-y-5">
-                  {f.concepts.map((c) => {
-                    seq += 1;
-                    return <ConceptCard key={c.id} c={c} index={seq} />;
-                  })}
-                </ol>
-              </section>
-            ))}
+                    {s.folders.map((f) => (
+                      <section key={f.source.id}>
+                        <div className="mb-4 flex items-end justify-between gap-3 px-1">
+                          <div className="min-w-0">
+                            <p className="slabel text-faint">
+                              {f.source.kind === "photo" ? "photo capture" : "capture"} ·{" "}
+                              {fmtDate(f.source.createdAt)}
+                            </p>
+                            <h3 className="mt-1 truncate text-lg font-semibold tracking-tight text-text">
+                              {f.source.title}
+                            </h3>
+                          </div>
+                          <Link
+                            href={`/capture?source=${f.source.id}`}
+                            className="slabel shrink-0 pb-0.5 text-curriculum-text transition hover:opacity-80"
+                          >
+                            + add material
+                          </Link>
+                        </div>
+                        <ol className="space-y-5">
+                          {f.concepts.map((c) => {
+                            seq += 1;
+                            return <ConceptCard key={c.id} c={c} index={seq} />;
+                          })}
+                        </ol>
+                      </section>
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
 
             {loose.length > 0 && (
               <section>

@@ -12,6 +12,8 @@ export const runtime = "nodejs";
 
 const StartSchema = z.object({
   seeds: z.array(z.string().min(2).max(80)).min(1).max(8),
+  // main language, chosen on the first onboarding screen (updatable later via /api/me)
+  language: z.string().min(2).max(8).optional(),
 });
 
 const ContinueSchema = z.object({
@@ -53,8 +55,14 @@ export async function POST(req: Request) {
   const charge = await chargeAi(learner.id, 3);
   if (!charge.ok) return quotaExceededResponse(charge.quota);
 
+  let language = learner.language;
+  if (parsed.data.language && parsed.data.language !== learner.language) {
+    language = parsed.data.language;
+    await prisma.learner.update({ where: { id: learner.id }, data: { language } });
+  }
+
   try {
-    const batch = await startInterview(learner.id, parsed.data.seeds);
+    const batch = await startInterview(learner.id, parsed.data.seeds, language);
     return NextResponse.json({ ...batch, quota: charge.quota });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Could not start the interview.";
@@ -88,7 +96,12 @@ export async function PATCH(req: Request) {
   }
 
   try {
-    const batch = await continueInterview(learner.id, parsed.data.sessionId, parsed.data.answers);
+    const batch = await continueInterview(
+      learner.id,
+      parsed.data.sessionId,
+      parsed.data.answers,
+      learner.language,
+    );
     return NextResponse.json(batch);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Interview step failed.";

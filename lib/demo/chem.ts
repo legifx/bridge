@@ -27,6 +27,7 @@ bonds.`;
 
 export const CHEM_EXTRACTION: ExtractionResult = {
   title: "Chemical bonding",
+  subject: "Chemistry",
   concepts: [
     {
       id: "atom",

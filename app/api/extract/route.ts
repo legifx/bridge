@@ -40,6 +40,7 @@ export async function POST(req: Request) {
     const { graph, embeddings } = await extractConceptGraph({
       text: parsed.data.text,
       images: parsed.data.images,
+      language: learner.language,
     });
 
     const { sourceId } = await saveConceptGraph({

@@ -21,12 +21,13 @@ export type Grade = z.infer<typeof GradeSchema>;
 
 type Concept = { id: string; label: string; definition: string; sourceQuote: string };
 
-export async function generateQuiz(concept: Concept): Promise<Quiz> {
+export async function generateQuiz(concept: Concept, language?: string): Promise<Quiz> {
   return llmJson({
     system: QUIZ_SYSTEM,
     user: `Concept: ${concept.label}\nDefinition: ${concept.definition}\nSource: "${concept.sourceQuote}"`,
     schema: QuizSchema,
     temperature: 0.4,
+    language,
   });
 }
 
@@ -57,13 +58,14 @@ function heuristicGrade(concept: Concept, answer: string): Grade {
   };
 }
 
-export async function gradeFreeRecall(concept: Concept, answer: string): Promise<Grade> {
+export async function gradeFreeRecall(concept: Concept, answer: string, language?: string): Promise<Grade> {
   try {
     return await llmJson({
       system: GRADE_SYSTEM,
       user: `Concept: ${concept.label}\nAuthoritative definition: ${concept.definition}\nSource: "${concept.sourceQuote}"\n\nLearner's answer: ${answer}`,
       schema: GradeSchema,
       temperature: 0,
+      language,
     });
   } catch {
     return heuristicGrade(concept, answer);

@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TickScale } from "@/components/TickScale";
 import { StepCard } from "@/components/InterviewSteps";
+import { ThinkingLoader } from "@/components/ThinkingLoader";
+import { LANGUAGES, detectLanguage } from "@/lib/i18n";
 import type { Answer, Interaction, MirrorDomain } from "@/lib/onboarding/types";
 
 /**
@@ -49,6 +51,12 @@ export default function Onboarding() {
   const [phase, setPhase] = useState<"seed" | "interview" | "mirror">("seed");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // main language — asked first, saved with the interview start, editable later
+  const [language, setLanguage] = useState("en");
+  useEffect(() => {
+    setLanguage(detectLanguage(navigator.language));
+  }, []);
 
   // seed screen
   const [broadSel, setBroadSel] = useState<Set<string>>(new Set());
@@ -145,7 +153,11 @@ export default function Onboarding() {
   }
 
   async function start() {
-    const batch = await post({ url: "/api/onboarding/session", method: "POST", body: JSON.stringify({ seeds }) });
+    const batch = await post({
+      url: "/api/onboarding/session",
+      method: "POST",
+      body: JSON.stringify({ seeds, language }),
+    });
     if (batch) applyBatch(batch);
   }
 
@@ -183,7 +195,26 @@ export default function Onboarding() {
 
   return (
     <main className="page-enter mx-auto w-full max-w-[640px] px-5 pb-56 pt-8">
-      {phase === "seed" && (
+      {phase === "seed" && busy && (
+        <>
+          <header className="mb-8">
+            <p className="eyebrow">Bridge · your world</p>
+          </header>
+          <ThinkingLoader
+            stages={[
+              { label: "Reading your seeds" },
+              { label: "Embedding each interest", detail: "local vectors — your words become geometry" },
+              { label: "Mapping interest domains" },
+              { label: "Drafting your interview", detail: "questions built only from what you said" },
+            ]}
+            items={seeds}
+            glow="var(--interest)"
+            expectedMs={9000}
+          />
+        </>
+      )}
+
+      {phase === "seed" && !busy && (
         <>
           <header className="mb-8">
             <p className="eyebrow">Bridge · your world</p>
@@ -196,6 +227,26 @@ export default function Onboarding() {
               categories, no wrong answers.
             </p>
           </header>
+
+          <div className="mb-8">
+            <p className="mb-2 text-base font-semibold tracking-tight text-text">Main language</p>
+            <p className="mb-3 text-xs leading-relaxed text-dim">
+              Questions, explanations and feedback come in this language. You can change it any
+              time from the header.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {LANGUAGES.map((l) => (
+                <button
+                  key={l.code}
+                  type="button"
+                  onClick={() => setLanguage(l.code)}
+                  className={`chip pop ring-focus ${language === l.code ? "chip-curriculum" : ""}`}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div className="mb-8">
             <label htmlFor="own" className="mb-2 block text-base font-semibold tracking-tight text-text">
@@ -278,12 +329,17 @@ export default function Onboarding() {
             </p>
           </header>
           {busy || !step ? (
-            <div className="card p-8 text-center">
-              <p className="text-base font-medium text-text">Reading your world…</p>
-              <p className="mt-1.5 text-sm text-dim">
-                Building the next questions from what you just said.
-              </p>
-            </div>
+            <ThinkingLoader
+              stages={[
+                { label: "Scoring your answers" },
+                { label: "Updating each domain", detail: "depth is verified, never self-reported" },
+                { label: "Choosing what to ask next" },
+                { label: "Calibrating confidence" },
+              ]}
+              items={[...new Set(queue.map((s) => s.domain))]}
+              glow="var(--violet)"
+              expectedMs={8000}
+            />
           ) : (
             <StepCard step={step} onAnswer={onAnswer} />
           )}

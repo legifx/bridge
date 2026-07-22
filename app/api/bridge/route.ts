@@ -54,6 +54,7 @@ export async function POST(req: Request) {
       domain: { id: chosen.id, name: chosen.name, anchors: chosen.anchors, depth: chosen.depth },
       match,
       readingLevel: learner.readingLevel,
+      language: learner.language,
     });
     return NextResponse.json({ ...result, quota: charge.quota });
   } catch (err) {

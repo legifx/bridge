@@ -4,9 +4,8 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
+import { ThinkingLoader } from "@/components/ThinkingLoader";
 import { CHEM_SOURCE_TEXT } from "@/lib/demo/chem";
-
-const STAGES = ["Reading page", "Extracting concepts", "Linking prerequisites"];
 
 async function downscale(file: File, maxEdge = 1600): Promise<string> {
   const bitmap = await createImageBitmap(file);
@@ -39,7 +38,6 @@ function CaptureForm() {
   const [text, setText] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [stage, setStage] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -56,8 +54,6 @@ function CaptureForm() {
   async function run() {
     setBusy(true);
     setError(null);
-    setStage(0);
-    const ticker = setInterval(() => setStage((s) => Math.min(s + 1, STAGES.length - 1)), 700);
     try {
       const base = preview ? { images: [{ dataUrl: preview }] } : { text };
       const body = sourceId ? { ...base, sourceId } : base;
@@ -76,7 +72,6 @@ function CaptureForm() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
-      clearInterval(ticker);
       setBusy(false);
     }
   }
@@ -158,26 +153,18 @@ function CaptureForm() {
       </button>
 
       {busy && (
-        <ol className="mt-6 space-y-2.5" aria-live="polite">
-          {STAGES.map((label, i) => (
-            <li key={label} className="flex items-center gap-3 text-sm">
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{
-                  background:
-                    i < stage
-                      ? "var(--acid)"
-                      : i === stage
-                        ? "var(--curriculum)"
-                        : "rgba(255,255,255,0.15)",
-                  boxShadow: i <= stage ? "0 0 10px currentColor" : undefined,
-                  color: i < stage ? "var(--acid)" : "var(--curriculum)",
-                }}
-              />
-              <span className={i <= stage ? "text-text" : "text-faint"}>{label}</span>
-            </li>
-          ))}
-        </ol>
+        <div className="mt-6">
+          <ThinkingLoader
+            stages={[
+              { label: "Reading the page" },
+              { label: "Extracting atomic concepts", detail: "definitions stay faithful to your source" },
+              { label: "Embedding & de-duplicating" },
+              { label: "Linking prerequisites", detail: "sparse, correct edges — your learning order" },
+            ]}
+            glow="var(--curriculum)"
+            expectedMs={12000}
+          />
+        </div>
       )}
 
       {error && (
