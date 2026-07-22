@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { Shell } from "@/components/Shell";
+import { PageHead } from "@/components/PageHead";
 import { BridgeViz } from "@/components/BridgeViz";
 
 type Body = {
@@ -25,21 +26,13 @@ export default function Compare() {
   }, [concept]);
 
   return (
-    <main className="page-enter mx-auto w-full max-w-[1000px] px-5 pb-24 pt-8">
-      <header className="mb-8 flex items-start justify-between gap-4">
-        <div>
-          <p className="eyebrow">Same concept · two worlds</p>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight text-text">One idea, two ways</h1>
-        </div>
-        <Link href="/" className="slabel pt-1 text-faint transition hover:text-text">
-          back
-        </Link>
-      </header>
+    <Shell wide>
+      <PageHead eyebrow="Same concept · two worlds" title="One idea, two ways" />
 
       {data?.error && <p className="text-sm text-faint">{data.error}</p>}
 
       {data && data.labels?.length > 0 && (
-        <div className="mb-8 flex flex-wrap gap-2.5">
+        <div className="-mt-4 mb-10 flex flex-wrap gap-2.5">
           {data.labels.map((l) => {
             const active = data.concept === l;
             return (
@@ -83,10 +76,10 @@ export default function Compare() {
         ))}
       </div>
 
-      <p className="mx-auto mt-10 max-w-xl text-center text-sm leading-relaxed text-dim">
+      <p className="mx-auto mt-12 max-w-xl text-center text-sm leading-relaxed text-dim">
         Same facts, same concept, same assessment — only the explanation is re-lit through each
         learner&rsquo;s world.
       </p>
-    </main>
+    </Shell>
   );
 }

@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Shell } from "@/components/Shell";
+import { PageHead } from "@/components/PageHead";
 import { Led } from "@/components/Led";
 
 type Row = {
@@ -23,16 +25,11 @@ export default function Teacher() {
   }, []);
 
   return (
-    <main className="page-enter mx-auto w-full max-w-[880px] px-6 pb-24 pt-12">
-      <header className="mb-8">
-        <p className="eyebrow">Teacher</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text">
-          Where the cohort struggles
-        </h1>
-      </header>
+    <Shell wide>
+      <PageHead eyebrow="Teacher" title="Where the cohort struggles" />
 
       <div
-        className="aura card mb-10 p-6"
+        className="aura card -mt-2 mb-10 p-6"
         style={
           {
             "--glow": "var(--curriculum)",
@@ -98,6 +95,6 @@ export default function Teacher() {
           ))}
         </div>
       )}
-    </main>
+    </Shell>
   );
 }

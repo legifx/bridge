@@ -10,10 +10,20 @@ const NAV = [
   { href: "/teacher", label: "Teacher" },
 ];
 
-export function Shell({ children }: { children: React.ReactNode }) {
+export function Shell({
+  children,
+  wide = false,
+}: {
+  children: React.ReactNode;
+  wide?: boolean;
+}) {
   const path = usePathname();
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-[680px] flex-col">
+    <div
+      className={`mx-auto flex min-h-dvh w-full flex-col ${
+        wide ? "max-w-[960px]" : "max-w-[680px]"
+      }`}
+    >
       <header className="flex items-center justify-between px-5 pb-3 pt-8">
         <Link href="/" className="eyebrow transition hover:text-dim">
           Bridge
