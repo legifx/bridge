@@ -1,7 +1,8 @@
 // Bridge — data model (see BUILD_PROMPT §4).
 // SQLite, one file, zero setup. Embeddings are stored as raw Float32 bytes.
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
@@ -12,7 +13,9 @@ datasource db {
 model Learner {
   id           String   @id @default(cuid())
   displayName  String
+  handle       String?  @unique // normalized sign-in name (public demo: any name is open)
   readingLevel Int      @default(3) // 1..5
+  aiUnits      Int      @default(0) // AI-call units used (quota enforced on public demo only)
   createdAt    DateTime @default(now())
 
   domains    InterestDomain[]
