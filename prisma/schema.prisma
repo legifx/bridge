@@ -15,9 +15,31 @@ model Learner {
   readingLevel Int      @default(3) // 1..5
   createdAt    DateTime @default(now())
 
-  domains  InterestDomain[]
-  sources  Source[]
-  concepts Concept[]
+  domains    InterestDomain[]
+  sources    Source[]
+  concepts   Concept[]
+  brainItems BrainItem[]
+}
+
+// The learner's second brain: a per-learner vector store that grows with every
+// signal (onboarding picks, free-text interests, "that clicked" feedback).
+// Near-duplicate signals strengthen an existing item's weight instead of
+// inserting — this is how interest detection matures over time.
+model BrainItem {
+  id        String   @id @default(cuid())
+  learnerId String
+  kind      String // interest | anchor | signal
+  label     String
+  text      String // the text that was embedded
+  embedding Bytes // Float32 vector (local all-MiniLM-L6-v2)
+  weight    Float    @default(1)
+  sourceRef String? // e.g. domainId / bridgeId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  learner Learner @relation(fields: [learnerId], references: [id], onDelete: Cascade)
+
+  @@index([learnerId])
 }
 
 model InterestDomain {
