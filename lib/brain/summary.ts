@@ -8,6 +8,8 @@ import type { BrainTree } from "./tree";
 
 export type BrainSummary = {
   headline: string;
+  /** 1-3 plain sentences, no jargon — the primary thing a learner reads. */
+  prose: string;
   lines: string[];
 };
 
@@ -21,6 +23,8 @@ export function summarizeBrain(tree: BrainTree, displayName: string): BrainSumma
   if (branches.length === 0) {
     return {
       headline: "Nothing recorded yet.",
+      prose:
+        "Bridge hasn't learned anything about you yet. Do the onboarding or learn a concept — the picture builds itself from there.",
       lines: [
         "Answer the onboarding taps or learn a concept — every signal lands here and the picture sharpens as you go.",
       ],
@@ -28,6 +32,32 @@ export function summarizeBrain(tree: BrainTree, displayName: string): BrainSumma
   }
 
   const [top, ...rest] = branches;
+  const totalW = branches.reduce((s, b) => s + b.totalWeight, 0) || 1;
+  const share = (b: (typeof branches)[number]) => Math.round((b.totalWeight / totalW) * 100);
+
+  // The human read: what you're into, in plain words.
+  const sentences: string[] = [];
+  const secondaries = rest.filter((b) => b.totalWeight >= 1).slice(0, 2);
+  if (secondaries.length === 0) {
+    sentences.push(`Right now it's really all about ${top.label} for you — pretty much everything Bridge knows about you points there.`);
+  } else {
+    sentences.push(
+      `You're mostly about ${top.label} (${share(top)}%), with ${secondaries
+        .map((b) => `${b.label} (${share(b)}%)`)
+        .join(" and ")} alongside.`,
+    );
+  }
+  if (top.successRate !== null && top.successRate > 0.55) {
+    sentences.push(`Explanations through ${top.label} genuinely land for you — most of them clicked.`);
+  }
+  const skillCount = branches.reduce((s, b) => s + b.skills.length, 0);
+  if (skillCount > 0) {
+    sentences.push(
+      `${skillCount === 1 ? "One concept has" : skillCount + " concepts have"} already stuck by riding on your own interests.`,
+    );
+  }
+  const prose = sentences.slice(0, 3).join(" ");
+
   const lines: string[] = [];
 
   const clickNote =
@@ -67,6 +97,7 @@ export function summarizeBrain(tree: BrainTree, displayName: string): BrainSumma
 
   return {
     headline: `${displayName}, Bridge currently reads you as: ${top.label}.`,
+    prose,
     lines,
   };
 }

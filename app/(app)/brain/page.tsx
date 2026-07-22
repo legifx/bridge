@@ -18,7 +18,7 @@ type Branch = {
 type Data = {
   branches: Branch[];
   stats: { signals: number; totalWeight: number; branches: number; skills: number };
-  summary: { headline: string; lines: string[] };
+  summary: { headline: string; prose: string; lines: string[] };
 };
 
 export default function Brain() {
@@ -45,7 +45,7 @@ export default function Brain() {
 
       {data && (
         <>
-          {/* the algorithm's honest read */}
+          {/* the human read: what you're into, in plain words */}
           <div
             className="aura card -mt-2 p-6"
             style={
@@ -58,19 +58,59 @@ export default function Brain() {
             }
           >
             <p className="slabel" style={{ color: "#c9b3ff" }}>
-              algorithm&rsquo;s read
+              what bridge thinks
             </p>
             <h2 className="mt-2 text-lg font-semibold tracking-tight text-text">
               {data.summary.headline}
             </h2>
-            <ul className="mt-3 space-y-2">
-              {data.summary.lines.map((l, i) => (
-                <li key={i} className="text-sm leading-relaxed text-dim">
-                  {l}
-                </li>
-              ))}
-            </ul>
+            <p className="mt-3 text-base leading-relaxed text-dim">{data.summary.prose}</p>
+
+            {/* interest split, in percent */}
+            {data.branches.length > 0 && (() => {
+              const totalW = data.branches.reduce((s, b) => s + b.totalWeight, 0) || 1;
+              return (
+                <div className="mt-6 space-y-3">
+                  {data.branches.slice(0, 5).map((b, i) => {
+                    const pct = Math.round((b.totalWeight / totalW) * 100);
+                    return (
+                      <div key={i} className="flex items-center gap-3">
+                        <span className="w-36 shrink-0 truncate text-sm font-medium text-text">
+                          {b.label}
+                        </span>
+                        <div className="h-1.5 min-w-0 flex-1 overflow-hidden rounded-full bg-white/[0.08]">
+                          <div
+                            className="h-full rounded-full"
+                            style={{
+                              width: `${pct}%`,
+                              background: i === 0 ? "var(--interest)" : "var(--violet)",
+                              boxShadow: `0 0 10px ${i === 0 ? "rgba(255,59,172,0.5)" : "rgba(139,92,255,0.4)"}`,
+                            }}
+                          />
+                        </div>
+                        <span className="flex w-14 shrink-0 justify-end">
+                          <Led value={`${pct}`} dot={2.6} color={i === 0 ? "#ffa6d8" : "#c9b3ff"} suffix="%" />
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
           </div>
+
+          {/* the numbers — secondary, for the curious */}
+          <div className="mb-2 mt-10 flex items-center gap-3">
+            <span className="h-px flex-1 bg-hair" />
+            <span className="slabel text-faint">the numbers</span>
+            <span className="h-px flex-1 bg-hair" />
+          </div>
+          <ul className="mb-5 space-y-2 px-1">
+            {data.summary.lines.map((l, i) => (
+              <li key={i} className="text-xs leading-relaxed text-faint">
+                {l}
+              </li>
+            ))}
+          </ul>
 
           {/* stats strip */}
           <div className="mt-5 grid grid-cols-3 gap-3">

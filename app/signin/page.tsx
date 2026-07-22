@@ -77,9 +77,9 @@ function SignInForm() {
           <button
             onClick={() => submit()}
             disabled={busy || username.trim().length < 2}
-            className="btn btn-primary mt-4 w-full"
+            className={`btn mt-4 w-full ${busy ? "btn-working" : "btn-primary"}`}
           >
-            {busy ? "Signing in…" : "Start learning"}
+            {busy ? "opening your profile…" : "Start learning"}
           </button>
           <p className="mt-4 text-xs leading-relaxed text-faint">
             Existing name? Signing in with it brings your profile right back.

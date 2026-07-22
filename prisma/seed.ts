@@ -90,7 +90,7 @@ async function seedLearner(p: Profile) {
   }
 
   const source = await prisma.source.create({
-    data: { learnerId: learner.id, kind: "text", rawText: CHEM_SOURCE_TEXT },
+    data: { learnerId: learner.id, kind: "text", rawText: CHEM_SOURCE_TEXT, title: CHEM_EXTRACTION.title },
   });
 
   // Concepts + embeddings + prerequisite edges.
@@ -122,7 +122,7 @@ async function seedLearner(p: Profile) {
 }
 
 async function main() {
-  console.log("Seeding demo data (DEMO_MODE)…");
+  console.log("Seeding demo data…");
   await wipe();
 
   for (const p of PROFILES) {
