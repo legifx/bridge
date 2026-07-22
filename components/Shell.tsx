@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ProfileMenu } from "./ProfileMenu";
 
 const NAV = [
   { href: "/", label: "Map" },
   { href: "/capture", label: "Capture" },
+  { href: "/brain", label: "Brain" },
   { href: "/verification", label: "Log" },
   { href: "/teacher", label: "Teacher" },
 ];
@@ -28,25 +30,28 @@ export function Shell({
         <Link href="/" className="eyebrow transition hover:text-dim">
           Bridge
         </Link>
-        <Link href="/compare" className="slabel text-faint transition hover:text-interest-text">
-          compare ↗
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/compare" className="slabel text-faint transition hover:text-interest-text">
+            compare ↗
+          </Link>
+          <ProfileMenu />
+        </div>
       </header>
 
       <div className="page-enter flex-1 px-5 pb-44 pt-3">{children}</div>
 
       <nav
-        className="fixed inset-x-0 z-40 flex justify-center px-5"
+        className="fixed inset-x-0 z-40 flex justify-center px-4"
         style={{ bottom: "max(1.1rem, env(safe-area-inset-bottom))" }}
       >
-        <div className="glass lit flex items-center gap-1 p-1.5" style={{ borderRadius: 999 }}>
+        <div className="glass lit flex items-center gap-0.5 p-1.5" style={{ borderRadius: 999 }}>
           {NAV.map((n) => {
             const active = n.href === "/" ? path === "/" : path.startsWith(n.href);
             return (
               <Link
                 key={n.href}
                 href={n.href}
-                className={`relative flex h-10 items-center rounded-full px-4 text-sm font-medium transition ${
+                className={`relative flex h-10 items-center rounded-full px-3.5 text-sm font-medium transition ${
                   active ? "text-text" : "text-faint hover:text-dim"
                 }`}
                 style={{ borderRadius: 999 }}
