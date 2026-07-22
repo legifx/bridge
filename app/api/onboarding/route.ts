@@ -6,10 +6,12 @@ import { getCurrentLearner } from "@/lib/db/learner";
 
 export const runtime = "nodejs";
 
+const IntensitySchema = z.enum(["casual", "into", "deep"]);
+
 const BodySchema = z.object({
   readingLevel: z.number().int().min(1).max(5).optional(),
-  selectionIds: z.array(z.string()).max(10),
-  freeText: z.string().max(300).optional(),
+  picks: z.array(z.object({ id: z.string(), intensity: IntensitySchema })).max(30),
+  custom: z.array(z.object({ text: z.string().min(2).max(80), intensity: IntensitySchema })).max(6),
 });
 
 export async function POST(req: Request) {
@@ -20,24 +22,29 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid onboarding payload." }, { status: 400 });
   }
-  const { readingLevel, selectionIds, freeText } = parsed.data;
+  const { readingLevel, picks, custom } = parsed.data;
 
-  // Privacy guard on free text (§7) — refuse sensitive input before storing.
-  const guard = checkInterestText(freeText ?? "");
-  if (!guard.ok) {
-    return NextResponse.json({ error: guard.message, topic: guard.topic }, { status: 422 });
+  // Privacy guard on every free-text interest (§7) — refuse sensitive input early.
+  for (const c of custom) {
+    const guard = checkInterestText(c.text);
+    if (!guard.ok) {
+      return NextResponse.json({ error: guard.message, topic: guard.topic }, { status: 422 });
+    }
   }
 
-  if (selectionIds.length === 0 && !guard.text) {
-    return NextResponse.json({ error: "Pick at least one option or tell us an interest." }, { status: 400 });
+  if (picks.length === 0 && custom.length === 0) {
+    return NextResponse.json(
+      { error: "Tap at least one thing — or add your own interest. Skipping everything tells us nothing." },
+      { status: 400 },
+    );
   }
 
   try {
     const { domains } = await buildProfile({
       learnerId: learner.id,
       readingLevel: readingLevel ?? 3,
-      selectionIds,
-      freeText: guard.text,
+      picks,
+      custom,
     });
 
     return NextResponse.json({ learnerId: learner.id, domains });
