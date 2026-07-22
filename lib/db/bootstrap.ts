@@ -25,6 +25,13 @@ const RUNTIME_MIGRATIONS: RuntimeMigration[] = [
       `ALTER TABLE "Learner" ADD COLUMN "language" TEXT NOT NULL DEFAULT 'en'`,
     ],
   },
+  {
+    // data backfill: seeded demo folders predate the subject column
+    name: "20260722190000_backfill_demo_subject",
+    statements: [
+      `UPDATE "Source" SET "subject" = 'Chemistry' WHERE "subject" IS NULL AND "title" = 'Chemical bonding'`,
+    ],
+  },
 ];
 
 async function run(): Promise<void> {
