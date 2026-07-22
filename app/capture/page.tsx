@@ -52,6 +52,10 @@ export default function Capture() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
+      if (res.status === 401) {
+        window.location.href = "/signin?expired=1";
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Extraction failed.");
       router.push("/");

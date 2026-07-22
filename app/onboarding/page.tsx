@@ -35,6 +35,10 @@ export default function Onboarding() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ selectionIds: Object.values(selected), freeText }),
       });
+      if (res.status === 401) {
+        window.location.href = "/signin?expired=1";
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not build profile.");
       router.push("/capture");

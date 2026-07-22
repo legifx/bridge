@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
-export default function SignIn() {
+function SignInForm() {
   const router = useRouter();
+  const expired = useSearchParams().get("expired") === "1";
   const [username, setUsername] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +54,13 @@ export default function SignIn() {
           }
         >
           <label htmlFor="user" className="slabel text-curriculum-text">
-            pick a name to start
+            {expired ? "session ended — sign back in" : "pick a name to start"}
           </label>
+          {expired && (
+            <p className="mt-2 text-xs leading-relaxed text-orange-text">
+              Your session ended. Enter the same name to pick up exactly where you left off.
+            </p>
+          )}
           <input
             id="user"
             value={username}
@@ -104,5 +110,13 @@ export default function SignIn() {
         </p>
       </footer>
     </main>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={null}>
+      <SignInForm />
+    </Suspense>
   );
 }

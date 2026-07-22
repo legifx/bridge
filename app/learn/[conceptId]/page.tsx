@@ -63,6 +63,10 @@ export default function Learn() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ conceptId }),
       });
+      if (res.status === 401) {
+        window.location.href = "/signin?expired=1";
+        return;
+      }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not build a bridge.");
       setBridge(data);
