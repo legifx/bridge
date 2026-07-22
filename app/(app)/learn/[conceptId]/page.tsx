@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { BridgeViz } from "@/components/BridgeViz";
-import { Led } from "@/components/Led";
 
 type Concept = { id: string; label: string; definition: string; sourceQuote: string };
 type Body = {
@@ -27,7 +26,6 @@ type Attempt = {
 };
 type Match = { domainName: string; anchor: string; similarity: number };
 type BridgeResp = { bridgeId: string; body: Body; match: Match; attempts: Attempt[]; isFallback: boolean };
-type Quiz = { free: { prompt: string }; mcq: { prompt: string; options: string[]; answerIndex: number } };
 
 export default function Learn() {
   const { conceptId } = useParams<{ conceptId: string }>();
@@ -37,15 +35,6 @@ export default function Learn() {
   const [bridge, setBridge] = useState<BridgeResp | null>(null);
   const [loadingBridge, setLoadingBridge] = useState(false);
   const [feedback, setFeedback] = useState<null | boolean>(null);
-  const [quiz, setQuiz] = useState<Quiz | null>(null);
-  const [freeAnswer, setFreeAnswer] = useState("");
-  const [mcqChoice, setMcqChoice] = useState<number | null>(null);
-  const [result, setResult] = useState<null | {
-    correct: boolean;
-    mastery: number;
-    nextIntervalDays: number;
-    grade: { feedback: string };
-  }>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -87,25 +76,7 @@ export default function Learn() {
     });
   }
 
-  async function startCheck() {
-    const res = await fetch("/api/quiz", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ conceptId }),
-    });
-    const data = await res.json();
-    setQuiz(data.quiz);
-  }
 
-  async function submitCheck() {
-    if (!quiz || mcqChoice === null) return;
-    const res = await fetch("/api/answer", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ conceptId, freeAnswer, mcqCorrect: mcqChoice === quiz.mcq.answerIndex }),
-    });
-    setResult(await res.json());
-  }
 
   if (!concept) {
     return (
@@ -138,8 +109,12 @@ export default function Learn() {
         </header>
 
         {!bridge && (
-          <button onClick={makeBridge} disabled={loadingBridge} className="btn btn-gradient w-full">
-            {loadingBridge ? "Building a bridge to your world…" : "Explain through my world"}
+          <button
+            onClick={makeBridge}
+            disabled={loadingBridge}
+            className={`btn w-full ${loadingBridge ? "btn-working" : "btn-gradient"}`}
+          >
+            {loadingBridge ? "building a bridge to your world…" : "Explain through my world"}
           </button>
         )}
         {error && (
@@ -261,83 +236,14 @@ export default function Learn() {
               </p>
             )}
 
-            {/* the check — subject vocabulary only */}
-            {feedback !== null && !quiz && (
-              <button onClick={startCheck} className="btn btn-primary w-full">
-                Check what stuck
-              </button>
-            )}
-
-            {quiz && !result && (
-              <div className="card space-y-6 p-6">
-                <p className="slabel text-curriculum-text">
-                  checked in the subject&rsquo;s own words — not the analogy
-                </p>
-                <div>
-                  <p className="text-sm font-medium text-text">{quiz.free.prompt}</p>
-                  <textarea
-                    value={freeAnswer}
-                    onChange={(e) => setFreeAnswer(e.target.value)}
-                    rows={3}
-                    placeholder="Answer in your own words…"
-                    className="input mt-2.5 resize-y text-sm"
-                  />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-text">{quiz.mcq.prompt}</p>
-                  <div className="mt-2.5 space-y-2">
-                    {quiz.mcq.options.map((o, i) => (
-                      <button
-                        key={i}
-                        onClick={() => setMcqChoice(i)}
-                        className={`opt ${mcqChoice === i ? "opt-active-blue" : ""}`}
-                      >
-                        {o}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <button
-                  onClick={submitCheck}
-                  disabled={mcqChoice === null || freeAnswer.trim().length === 0}
-                  className="btn btn-primary w-full"
-                >
-                  Submit answers
-                </button>
-              </div>
-            )}
-
-            {result && (
-              <div
-                className="aura card p-7 text-center"
-                style={
-                  {
-                    "--glow": result.correct ? "var(--acid)" : "var(--orange)",
-                    "--aura-strength": 0.5,
-                  } as React.CSSProperties
-                }
+            {/* the check lives on its own page: recall from memory, no scrolling back */}
+            {feedback !== null && (
+              <button
+                onClick={() => router.push(`/learn/${conceptId}/check`)}
+                className="btn btn-primary w-full"
               >
-                <p
-                  className={`text-lg font-semibold tracking-tight ${
-                    result.correct ? "text-acid-text" : "text-orange-text"
-                  }`}
-                >
-                  {result.correct ? "Got it." : "Not quite — worth another pass."}
-                </p>
-                <p className="mt-1.5 text-sm leading-relaxed text-dim">{result.grade.feedback}</p>
-                <div className="mt-5 flex items-center justify-center gap-3">
-                  <Led
-                    value={`${Math.round(result.mastery * 100)}`}
-                    dot={4}
-                    color={result.correct ? "#c9ff7a" : "#ffb877"}
-                    suffix="%"
-                  />
-                  <span className="slabel text-faint">mastery · next review {result.nextIntervalDays}d</span>
-                </div>
-                <button onClick={() => router.push("/")} className="btn btn-primary mt-6 w-full">
-                  Back to map
-                </button>
-              </div>
+                Check what stuck →
+              </button>
             )}
           </>
         )}
