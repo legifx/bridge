@@ -114,7 +114,7 @@ export default function Capture() {
         />
       )}
 
-      <div className="my-6 flex items-center gap-3">
+      <div className="my-8 flex items-center gap-3">
         <span className="h-px flex-1 bg-hair" />
         <span className="slabel text-faint">or paste</span>
         <span className="h-px flex-1 bg-hair" />

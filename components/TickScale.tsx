@@ -1,7 +1,12 @@
+"use client";
+
+import { useAnimatedNumber } from "./useAnimatedNumber";
+
 /**
  * A thin tick-mark gauge: 1px hairline ticks with a glowing pointer at `value`
- * (0..1). Brightness and height fall off smoothly around the pointer, like an
- * analog instrument needle field.
+ * (0..1). The pointer sweeps to its position on mount and ticks light up as it
+ * passes — brightness and height fall off smoothly around it, like an analog
+ * instrument needle field.
  */
 export function TickScale({
   value = 0.5,
@@ -14,7 +19,7 @@ export function TickScale({
   count?: number;
   className?: string;
 }) {
-  const v = Math.max(0, Math.min(1, value));
+  const v = Math.max(0, Math.min(1, useAnimatedNumber(Math.max(0, Math.min(1, value)))));
   const active = Math.round(v * (count - 1));
   return (
     <div className={`relative w-full ${className}`} style={{ height: 22 }} aria-hidden>

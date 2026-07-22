@@ -23,7 +23,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </Link>
       </header>
 
-      <div className="flex-1 px-5 pb-36">{children}</div>
+      <div className="page-enter flex-1 px-5 pb-40 pt-2">{children}</div>
 
       <nav
         className="fixed inset-x-0 z-40 flex justify-center px-5"

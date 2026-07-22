@@ -68,7 +68,7 @@ export default function Home() {
           <PageHead eyebrow="Concept map" title="Your learning order" />
 
           {/* interest domains */}
-          <div className="-mt-2 mb-6 flex flex-wrap gap-2">
+          <div className="-mt-3 mb-8 flex flex-wrap gap-2.5">
             {data.domains.map((d) => (
               <span key={d.id} className="chip chip-interest">
                 {d.name}
@@ -78,14 +78,14 @@ export default function Home() {
           </div>
 
           {/* concept instrument list */}
-          <ol className="space-y-3">
+          <ol className="space-y-4">
             {ordered.map((c, i) => {
               const pct = Math.round(c.mastery * 100);
               return (
                 <li key={c.id} className="reveal" style={{ animationDelay: `${i * 55}ms` }}>
                   <Link
                     href={`/learn/${c.id}`}
-                    className="aura card ring-focus block p-5 transition hover:bg-white/[0.06]"
+                    className="aura card card-link ring-focus block p-5 hover:bg-white/[0.06]"
                     style={
                       {
                         "--glow": masteryGlow(c.mastery),
@@ -115,7 +115,7 @@ export default function Home() {
                       value={c.mastery}
                       color={masteryGlow(c.mastery)}
                       count={44}
-                      className="mt-3.5"
+                      className="mt-4"
                     />
                   </Link>
                 </li>

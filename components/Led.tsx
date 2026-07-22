@@ -1,8 +1,13 @@
+"use client";
+
+import { useAnimatedNumber } from "./useAnimatedNumber";
+
 /**
  * Dot-matrix LED numerals — the signature readout of the instrument aesthetic.
  * Each glyph is a 5x7 dot grid: lit dots glow (one drop-shadow per glyph, cheap)
  * over a faint dot field. Pure SVG, no font dependency, scales with `dot`.
- * `suffix` renders a small mono unit ("%", "d") aligned to the numeral base.
+ * Plain numeric values count up from zero on mount, padded with unlit cells so
+ * the width never jumps. `suffix` renders a small mono unit ("%", "d").
  */
 const FONT: Record<string, string[]> = {
   "0": ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
@@ -36,7 +41,15 @@ export function Led({
   suffix?: string;
   className?: string;
 }) {
-  const chars = String(value).split("");
+  const target = String(value);
+  const numeric = /^\d+(\.\d+)?$/.test(target);
+  const decimals = (target.split(".")[1] ?? "").length;
+  const animated = useAnimatedNumber(numeric ? parseFloat(target) : NaN);
+  // Pad with spaces (unlit cells) to the final length so width stays stable.
+  const display = numeric
+    ? animated.toFixed(decimals).padStart(target.length, " ")
+    : target;
+  const chars = display.split("");
   const step = dot * 1.55;
   const r = dot / 2;
   const cellW = 5 * step;
@@ -83,7 +96,7 @@ export function Led({
         </span>
       )}
       <span className="sr-only">
-        {String(value)}
+        {target}
         {suffix ?? ""}
       </span>
     </span>

@@ -45,8 +45,8 @@ export default function Onboarding() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-[640px] px-5 pb-52 pt-8">
-      <header className="mb-8">
+    <main className="page-enter mx-auto w-full max-w-[640px] px-5 pb-56 pt-8">
+      <header className="mb-10">
         <p className="eyebrow">Bridge</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text">
           What are you into?
@@ -57,13 +57,13 @@ export default function Onboarding() {
         </p>
       </header>
 
-      <div className="space-y-8">
+      <div className="space-y-10">
         {QUESTIONS.map((q) => (
           <fieldset key={q.id}>
             <legend className="mb-3 text-base font-semibold tracking-tight text-text">
               {q.prompt}
             </legend>
-            <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               {q.options.map((o) => {
                 const active = selected[q.id] === o.id;
                 return (

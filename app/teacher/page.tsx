@@ -23,8 +23,8 @@ export default function Teacher() {
   }, []);
 
   return (
-    <main className="mx-auto w-full max-w-[880px] px-6 pb-20 pt-10">
-      <header className="mb-6">
+    <main className="page-enter mx-auto w-full max-w-[880px] px-6 pb-24 pt-12">
+      <header className="mb-8">
         <p className="eyebrow">Teacher</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text">
           Where the cohort struggles
@@ -32,7 +32,7 @@ export default function Teacher() {
       </header>
 
       <div
-        className="aura card mb-8 p-5"
+        className="aura card mb-10 p-5"
         style={
           {
             "--glow": "var(--curriculum)",

@@ -25,8 +25,8 @@ export default function Compare() {
   }, [concept]);
 
   return (
-    <main className="mx-auto w-full max-w-[1000px] px-5 pb-20 pt-8">
-      <header className="mb-6 flex items-start justify-between gap-4">
+    <main className="page-enter mx-auto w-full max-w-[1000px] px-5 pb-24 pt-8">
+      <header className="mb-8 flex items-start justify-between gap-4">
         <div>
           <p className="eyebrow">Same concept · two worlds</p>
           <h1 className="mt-2 text-2xl font-semibold tracking-tight text-text">One idea, two ways</h1>
@@ -39,7 +39,7 @@ export default function Compare() {
       {data?.error && <p className="text-sm text-faint">{data.error}</p>}
 
       {data && data.labels?.length > 0 && (
-        <div className="mb-7 flex flex-wrap gap-2">
+        <div className="mb-8 flex flex-wrap gap-2.5">
           {data.labels.map((l) => {
             const active = data.concept === l;
             return (
@@ -56,7 +56,7 @@ export default function Compare() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
         {data?.panels.map((p, i) => (
           <div key={i} className="space-y-3">
             <div className="flex h-8 items-center justify-between px-1">

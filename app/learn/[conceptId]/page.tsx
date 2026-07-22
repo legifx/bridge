@@ -115,7 +115,7 @@ export default function Learn() {
 
   return (
     <Shell>
-      <div className="space-y-4">
+      <div className="space-y-5">
         {/* concept, plain, subject vocabulary — curriculum blue */}
         <header
           className="aura card p-6"
@@ -147,16 +147,17 @@ export default function Learn() {
         {bridge && (
           <>
             {/* rejected attempts — honest, red aura */}
-            {rejected.map((a) => (
+            {rejected.map((a, idx) => (
               <div
                 key={a.attempt}
-                className="aura card p-5"
+                className="aura card reveal p-5"
                 style={
                   {
                     "--glow": "var(--reject)",
                     "--aura-x": "85%",
                     "--aura-y": "25%",
                     "--aura-strength": 0.45,
+                    animationDelay: `${idx * 90}ms`,
                   } as React.CSSProperties
                 }
               >
@@ -177,7 +178,7 @@ export default function Learn() {
               </div>
             ))}
             {rejected.length > 0 && (
-              <p className="slabel text-center text-faint">
+              <p className="slabel reveal text-center text-faint" style={{ animationDelay: "120ms" }}>
                 ↳ the fact-checker caught it — revised until accurate
               </p>
             )}
@@ -185,23 +186,28 @@ export default function Learn() {
             {/* accepted bridge — signature viz */}
             {!bridge.isFallback ? (
               <>
-                <BridgeViz
-                  conceptLabel={concept.label}
-                  domainName={bridge.match.domainName}
-                  similarity={bridge.match.similarity}
-                  correspondences={bridge.body.correspondences}
-                />
-                <p className="px-1 text-base leading-relaxed text-text">{bridge.body.opening}</p>
+                <div className="reveal" style={{ animationDelay: "180ms" }}>
+                  <BridgeViz
+                    conceptLabel={concept.label}
+                    domainName={bridge.match.domainName}
+                    similarity={bridge.match.similarity}
+                    correspondences={bridge.body.correspondences}
+                  />
+                </div>
+                <p className="reveal px-1 text-base leading-relaxed text-text" style={{ animationDelay: "280ms" }}>
+                  {bridge.body.opening}
+                </p>
 
                 {/* where it breaks down — amber */}
                 <div
-                  className="aura card p-5"
+                  className="aura card reveal p-5"
                   style={
                     {
                       "--glow": "var(--orange)",
                       "--aura-x": "85%",
                       "--aura-y": "35%",
                       "--aura-strength": 0.35,
+                      animationDelay: "360ms",
                     } as React.CSSProperties
                   }
                 >
@@ -218,13 +224,14 @@ export default function Learn() {
 
             {/* plain subject restatement */}
             <div
-              className="aura card p-5"
+              className="aura card reveal p-5"
               style={
                 {
                   "--glow": "var(--curriculum)",
                   "--aura-x": "12%",
                   "--aura-y": "50%",
                   "--aura-strength": 0.3,
+                  animationDelay: "440ms",
                 } as React.CSSProperties
               }
             >
@@ -234,7 +241,7 @@ export default function Learn() {
 
             {/* feedback -> Thompson */}
             {feedback === null ? (
-              <div className="flex gap-3">
+              <div className="reveal flex gap-3" style={{ animationDelay: "520ms" }}>
                 <button onClick={() => sendFeedback(true)} className="btn btn-acid flex-1">
                   That clicked
                 </button>

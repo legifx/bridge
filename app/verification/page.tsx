@@ -39,7 +39,7 @@ export default function Verification() {
         </p>
       )}
 
-      <ul className="space-y-3">
+      <ul className="space-y-4">
         {entries?.map((e) => {
           const rejected = e.status === "rejected";
           return (

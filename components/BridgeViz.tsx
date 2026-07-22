@@ -64,16 +64,20 @@ export function BridgeViz({
       </div>
 
       {/* similarity readout */}
-      <div className="mt-5 flex flex-col items-center">
+      <div className="mt-6 flex flex-col items-center">
         <Led value={similarity.toFixed(2)} dot={4} color="#c9d6ff" />
-        <TickScale value={similarity} color="#8b5cff" count={40} className="mt-2.5 max-w-[220px]" />
-        <span className="slabel mt-2 text-faint">semantic overlap · cosine</span>
+        <TickScale value={similarity} color="#8b5cff" count={40} className="mt-3 max-w-[220px]" />
+        <span className="slabel mt-2.5 text-faint">semantic overlap · cosine</span>
       </div>
 
       {/* correspondence rows */}
-      <div className="mt-5 overflow-hidden bg-white/[0.03]" style={{ borderRadius: "var(--r)" }}>
+      <div className="mt-6 overflow-hidden bg-white/[0.03]" style={{ borderRadius: "var(--r)" }}>
         {correspondences.map((c, i) => (
-          <div key={i} className={`px-4 py-3 ${i > 0 ? "border-t border-hair" : ""}`}>
+          <div
+            key={i}
+            className={`reveal px-4 py-3.5 ${i > 0 ? "border-t border-hair" : ""}`}
+            style={{ animationDelay: `${200 + i * 110}ms` }}
+          >
             <div className="grid grid-cols-[1fr_auto_1fr] items-baseline gap-3">
               <span className="truncate text-sm font-medium text-curriculum-text">{c.subject}</span>
               <span className="font-mono text-2xs text-faint">↔</span>
