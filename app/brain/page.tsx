@@ -26,7 +26,10 @@ export default function Brain() {
 
   useEffect(() => {
     fetch("/api/brain")
-      .then((r) => r.json())
+      .then((r) => {
+        if (r.status === 401) window.location.href = "/signin";
+        return r.json();
+      })
       .then(setData);
   }, []);
 

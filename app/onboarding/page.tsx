@@ -6,7 +6,6 @@ import { QUESTIONS, OPTION_BY_ID } from "@/lib/profile/questions";
 
 export default function Onboarding() {
   const router = useRouter();
-  const [displayName, setDisplayName] = useState("");
   const [selected, setSelected] = useState<Record<string, string>>({});
   const [freeText, setFreeText] = useState("");
   const [busy, setBusy] = useState(false);
@@ -34,7 +33,7 @@ export default function Onboarding() {
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ displayName: displayName.trim() || undefined, selectionIds: Object.values(selected), freeText }),
+        body: JSON.stringify({ selectionIds: Object.values(selected), freeText }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not build profile.");
@@ -57,20 +56,6 @@ export default function Onboarding() {
           understand — never to judge you.
         </p>
       </header>
-
-      <div className="mb-10">
-        <label htmlFor="name" className="mb-3 block text-base font-semibold tracking-tight text-text">
-          What should we call you?
-        </label>
-        <input
-          id="name"
-          value={displayName}
-          onChange={(e) => setDisplayName(e.target.value)}
-          placeholder="Your name (stays on this device)"
-          maxLength={60}
-          className="input"
-        />
-      </div>
 
       <div className="space-y-10">
         {QUESTIONS.map((q) => (

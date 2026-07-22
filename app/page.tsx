@@ -33,7 +33,10 @@ export default function Home() {
 
   useEffect(() => {
     fetch("/api/concepts")
-      .then((r) => r.json())
+      .then((r) => {
+        if (r.status === 401) window.location.href = "/signin";
+        return r.json();
+      })
       .then(setData)
       .finally(() => setLoading(false));
   }, []);
