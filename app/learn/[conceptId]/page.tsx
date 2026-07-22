@@ -13,8 +13,18 @@ type Body = {
   breaksDown: string;
   plainRestatement: string;
 };
-type Verdict = { verdict: "accept" | "revise" | "reject"; contradictions: { claim: string; reason: string }[]; analogyOverreach: boolean };
-type Attempt = { attempt: number; body: Body; verdict: Verdict; status: "accepted" | "rejected"; isFallback?: boolean };
+type Verdict = {
+  verdict: "accept" | "revise" | "reject";
+  contradictions: { claim: string; reason: string }[];
+  analogyOverreach: boolean;
+};
+type Attempt = {
+  attempt: number;
+  body: Body;
+  verdict: Verdict;
+  status: "accepted" | "rejected";
+  isFallback?: boolean;
+};
 type Match = { domainName: string; anchor: string; similarity: number };
 type BridgeResp = { bridgeId: string; body: Body; match: Match; attempts: Attempt[]; isFallback: boolean };
 type Quiz = { free: { prompt: string }; mcq: { prompt: string; options: string[]; answerIndex: number } };
@@ -30,7 +40,12 @@ export default function Learn() {
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [freeAnswer, setFreeAnswer] = useState("");
   const [mcqChoice, setMcqChoice] = useState<number | null>(null);
-  const [result, setResult] = useState<null | { correct: boolean; mastery: number; nextIntervalDays: number; grade: { feedback: string } }>(null);
+  const [result, setResult] = useState<null | {
+    correct: boolean;
+    mastery: number;
+    nextIntervalDays: number;
+    grade: { feedback: string };
+  }>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -100,28 +115,34 @@ export default function Learn() {
 
   return (
     <Shell>
-      <div className="space-y-4 px-2">
-        {/* concept, plain, subject vocabulary, curriculum blue */}
+      <div className="space-y-4">
+        {/* concept, plain, subject vocabulary — curriculum blue */}
         <header
-          className="aura glass lit rounded-[--r-lg] p-5"
-          style={{ "--glow": "var(--curriculum)", "--aura-x": "20%", "--aura-y": "30%", "--aura-strength": 0.6 } as React.CSSProperties}
+          className="aura card p-6"
+          style={
+            {
+              "--glow": "var(--curriculum)",
+              "--aura-x": "15%",
+              "--aura-y": "25%",
+              "--aura-strength": 0.5,
+            } as React.CSSProperties
+          }
         >
-          <p className="font-mono text-2xs uppercase tracking-[0.3em] text-[#9dc0ff]">concept</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight text-text">{concept.label}</h1>
+          <p className="slabel text-curriculum-text">concept</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text">{concept.label}</h1>
           <p className="mt-3 text-base leading-relaxed text-dim">{concept.definition}</p>
         </header>
 
         {!bridge && (
-          <button
-            onClick={makeBridge}
-            disabled={loadingBridge}
-            className="w-full rounded-full py-3.5 text-sm font-semibold text-white transition disabled:opacity-40"
-            style={{ background: "linear-gradient(90deg,#3b7bff,#ff3bac)", boxShadow: "0 0 30px rgba(255,59,172,0.35)" }}
-          >
+          <button onClick={makeBridge} disabled={loadingBridge} className="btn btn-gradient w-full">
             {loadingBridge ? "Building a bridge to your world…" : "Explain through my world"}
           </button>
         )}
-        {error && <p className="rounded-[--r] bg-[rgba(255,51,85,0.1)] p-3 text-sm text-reject">{error}</p>}
+        {error && (
+          <p className="bg-[rgba(255,51,85,0.1)] p-4 text-sm text-reject-text" style={{ borderRadius: "var(--r)" }}>
+            {error}
+          </p>
+        )}
 
         {bridge && (
           <>
@@ -129,19 +150,26 @@ export default function Learn() {
             {rejected.map((a) => (
               <div
                 key={a.attempt}
-                className="aura glass rounded-[--r-lg] p-4"
-                style={{ "--glow": "var(--reject)", "--aura-x": "80%", "--aura-y": "30%", "--aura-strength": 0.5 } as React.CSSProperties}
+                className="aura card p-5"
+                style={
+                  {
+                    "--glow": "var(--reject)",
+                    "--aura-x": "85%",
+                    "--aura-y": "25%",
+                    "--aura-strength": 0.45,
+                  } as React.CSSProperties
+                }
               >
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="font-mono text-2xs uppercase tracking-[0.2em] text-reject">
-                    attempt {a.attempt} · rejected
-                  </span>
+                  <span className="slabel text-reject">attempt {a.attempt} · rejected</span>
                   <span className="font-mono text-2xs text-reject">{a.verdict.verdict}</span>
                 </div>
-                <p className="text-sm text-dim line-through decoration-reject/50">{a.body.opening}</p>
-                <ul className="mt-2 space-y-1">
+                <p className="text-sm leading-relaxed text-dim line-through decoration-reject/50">
+                  {a.body.opening}
+                </p>
+                <ul className="mt-2.5 space-y-1.5">
                   {a.verdict.contradictions.map((c, i) => (
-                    <li key={i} className="text-xs text-[#ff8ba0]">
+                    <li key={i} className="text-xs leading-relaxed text-reject-text">
                       <span className="font-medium text-reject">{c.claim}</span> — {c.reason}
                     </li>
                   ))}
@@ -149,7 +177,7 @@ export default function Learn() {
               </div>
             ))}
             {rejected.length > 0 && (
-              <p className="text-center font-mono text-2xs uppercase tracking-[0.2em] text-faint">
+              <p className="slabel text-center text-faint">
                 ↳ the fact-checker caught it — revised until accurate
               </p>
             )}
@@ -167,62 +195,71 @@ export default function Learn() {
 
                 {/* where it breaks down — amber */}
                 <div
-                  className="aura glass rounded-[--r-lg] p-4"
-                  style={{ "--glow": "var(--orange)", "--aura-x": "80%", "--aura-y": "40%", "--aura-strength": 0.4 } as React.CSSProperties}
+                  className="aura card p-5"
+                  style={
+                    {
+                      "--glow": "var(--orange)",
+                      "--aura-x": "85%",
+                      "--aura-y": "35%",
+                      "--aura-strength": 0.35,
+                    } as React.CSSProperties
+                  }
                 >
-                  <p className="font-mono text-2xs uppercase tracking-[0.2em] text-[#ffb877]">where this analogy breaks down</p>
-                  <p className="mt-1.5 text-sm leading-relaxed text-dim">{bridge.body.breaksDown}</p>
+                  <p className="slabel text-orange-text">where this analogy breaks down</p>
+                  <p className="mt-2 text-sm leading-relaxed text-dim">{bridge.body.breaksDown}</p>
                 </div>
               </>
             ) : (
-              <div className="glass rounded-[--r-lg] p-5">
-                <p className="font-mono text-2xs uppercase tracking-[0.2em] text-faint">plain explanation · no analogy passed the fact-check</p>
-                <p className="mt-2 text-base text-text">{bridge.body.plainRestatement}</p>
+              <div className="card p-5">
+                <p className="slabel text-faint">plain explanation · no analogy passed the fact-check</p>
+                <p className="mt-2 text-base leading-relaxed text-text">{bridge.body.plainRestatement}</p>
               </div>
             )}
 
             {/* plain subject restatement */}
             <div
-              className="aura glass rounded-[--r] p-4"
-              style={{ "--glow": "var(--curriculum)", "--aura-x": "15%", "--aura-y": "50%", "--aura-strength": 0.35 } as React.CSSProperties}
+              className="aura card p-5"
+              style={
+                {
+                  "--glow": "var(--curriculum)",
+                  "--aura-x": "12%",
+                  "--aura-y": "50%",
+                  "--aura-strength": 0.3,
+                } as React.CSSProperties
+              }
             >
-              <p className="font-mono text-2xs uppercase tracking-[0.2em] text-[#9dc0ff]">in plain subject terms</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-dim">{bridge.body.plainRestatement}</p>
+              <p className="slabel text-curriculum-text">in plain subject terms</p>
+              <p className="mt-2 text-sm leading-relaxed text-dim">{bridge.body.plainRestatement}</p>
             </div>
 
             {/* feedback -> Thompson */}
             {feedback === null ? (
               <div className="flex gap-3">
-                <button
-                  onClick={() => sendFeedback(true)}
-                  className="flex-1 rounded-full py-3 text-sm font-semibold text-black"
-                  style={{ background: "var(--acid)", boxShadow: "0 0 24px rgba(179,255,60,0.4)" }}
-                >
+                <button onClick={() => sendFeedback(true)} className="btn btn-acid flex-1">
                   That clicked
                 </button>
-                <button
-                  onClick={() => sendFeedback(false)}
-                  className="glass flex-1 rounded-full py-3 text-sm font-semibold text-text"
-                >
+                <button onClick={() => sendFeedback(false)} className="btn btn-glass flex-1">
                   Didn&rsquo;t land
                 </button>
               </div>
             ) : (
               <p className="text-center text-xs text-faint">
-                {feedback ? "Noted — we&rsquo;ll lean on this domain more." : "Noted — we&rsquo;ll try a different domain next time."}
+                {feedback
+                  ? "Noted — we’ll lean on this domain more."
+                  : "Noted — we’ll try a different domain next time."}
               </p>
             )}
 
             {/* the check — subject vocabulary only */}
             {feedback !== null && !quiz && (
-              <button onClick={startCheck} className="w-full rounded-full bg-white py-3.5 text-sm font-semibold text-black">
+              <button onClick={startCheck} className="btn btn-primary w-full">
                 Check what stuck
               </button>
             )}
 
             {quiz && !result && (
-              <div className="glass lit space-y-4 rounded-[--r-lg] p-5">
-                <p className="font-mono text-2xs uppercase tracking-[0.2em] text-[#9dc0ff]">
+              <div className="card space-y-5 p-5">
+                <p className="slabel text-curriculum-text">
                   checked in the subject&rsquo;s own words — not the analogy
                 </p>
                 <div>
@@ -232,22 +269,17 @@ export default function Learn() {
                     onChange={(e) => setFreeAnswer(e.target.value)}
                     rows={3}
                     placeholder="Answer in your own words…"
-                    className="mt-2 w-full resize-y rounded-[--r] bg-[rgba(255,255,255,0.05)] p-3 text-sm text-text outline-none ring-focus placeholder:text-faint"
+                    className="input mt-2.5 resize-y text-sm"
                   />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-text">{quiz.mcq.prompt}</p>
-                  <div className="mt-2 space-y-2">
+                  <div className="mt-2.5 space-y-2">
                     {quiz.mcq.options.map((o, i) => (
                       <button
                         key={i}
                         onClick={() => setMcqChoice(i)}
-                        className="block w-full rounded-[--r] p-3 text-left text-sm transition"
-                        style={{
-                          background: mcqChoice === i ? "rgba(59,123,255,0.16)" : "rgba(255,255,255,0.04)",
-                          boxShadow: mcqChoice === i ? "inset 0 0 0 1px rgba(59,123,255,0.4)" : undefined,
-                          color: mcqChoice === i ? "#c9d6ff" : "var(--text)",
-                        }}
+                        className={`opt ${mcqChoice === i ? "opt-active-blue" : ""}`}
                       >
                         {o}
                       </button>
@@ -257,7 +289,7 @@ export default function Learn() {
                 <button
                   onClick={submitCheck}
                   disabled={mcqChoice === null || freeAnswer.trim().length === 0}
-                  className="w-full rounded-full bg-white py-3 text-sm font-semibold text-black disabled:opacity-30"
+                  className="btn btn-primary w-full"
                 >
                   Submit answers
                 </button>
@@ -266,21 +298,32 @@ export default function Learn() {
 
             {result && (
               <div
-                className="aura glass lit rounded-[--r-lg] p-6 text-center"
-                style={{ "--glow": result.correct ? "var(--acid)" : "var(--orange)", "--aura-strength": 0.6 } as React.CSSProperties}
+                className="aura card p-6 text-center"
+                style={
+                  {
+                    "--glow": result.correct ? "var(--acid)" : "var(--orange)",
+                    "--aura-strength": 0.5,
+                  } as React.CSSProperties
+                }
               >
-                <p className={`text-lg font-semibold ${result.correct ? "text-[#c9ff7a]" : "text-[#ffb877]"}`}>
+                <p
+                  className={`text-lg font-semibold tracking-tight ${
+                    result.correct ? "text-acid-text" : "text-orange-text"
+                  }`}
+                >
                   {result.correct ? "Got it." : "Not quite — worth another pass."}
                 </p>
-                <p className="mt-1 text-sm text-dim">{result.grade.feedback}</p>
-                <div className="mt-4 flex items-center justify-center gap-2">
-                  <Led value={`${Math.round(result.mastery * 100)}`} dot={4} color={result.correct ? "#c9ff7a" : "#ffb877"} />
-                  <span className="font-mono text-2xs text-faint">% mastery · next review {result.nextIntervalDays}d</span>
+                <p className="mt-1.5 text-sm leading-relaxed text-dim">{result.grade.feedback}</p>
+                <div className="mt-5 flex items-center justify-center gap-3">
+                  <Led
+                    value={`${Math.round(result.mastery * 100)}`}
+                    dot={4}
+                    color={result.correct ? "#c9ff7a" : "#ffb877"}
+                    suffix="%"
+                  />
+                  <span className="slabel text-faint">mastery · next review {result.nextIntervalDays}d</span>
                 </div>
-                <button
-                  onClick={() => router.push("/")}
-                  className="mt-5 w-full rounded-full bg-white py-3 text-sm font-semibold text-black"
-                >
+                <button onClick={() => router.push("/")} className="btn btn-primary mt-6 w-full">
                   Back to map
                 </button>
               </div>

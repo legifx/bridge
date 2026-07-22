@@ -2,41 +2,41 @@
 
 /*
   Bridge — "Hypercolor instrument" design system.
-  Pure-black canvas, luminous aura gradient cards that bleed beyond their edges,
-  dot-matrix LED numerals, 1px hairline tick scales, frosted glass without
-  borders, subtle film grain. Premium health-tech instrument aesthetic.
+  Pure-black canvas, luminous aura cards that bleed past their edges, dot-matrix
+  LED numerals, 1px hairline tick scales, borderless glass, film grain.
 
-  Semantic color stays load-bearing:
+  Semantic color is load-bearing:
     --curriculum = electric blue  (the subject / curriculum layer)
     --interest   = magenta        (the learner's own world)
-  so at a glance you always know which is which — now expressed as light.
+    --acid       = mastery / accepted
+    --reject     = failed fact-check
 */
 :root {
   --bg: #000000;
   --text: #f4f6fb;
-  --dim: rgba(244, 246, 251, 0.58);
-  --faint: rgba(244, 246, 251, 0.34);
-  --hair: rgba(255, 255, 255, 0.12);
-  --hair-strong: rgba(255, 255, 255, 0.22);
+  --dim: rgba(244, 246, 251, 0.6);
+  --faint: rgba(244, 246, 251, 0.35);
+  --hair: rgba(255, 255, 255, 0.1);
   --glass: rgba(255, 255, 255, 0.045);
-  --glass-2: rgba(255, 255, 255, 0.07);
 
-  /* aura hues */
-  --curriculum: #3b7bff; /* electric blue — subject */
-  --interest: #ff3bac; /* magenta — the learner's world */
-  --acid: #b3ff3c; /* acid green — mastery / accepted */
-  --orange: #ff7a1a; /* amber accent */
+  --curriculum: #3b7bff;
+  --curriculum-text: #9dc0ff;
+  --interest: #ff3bac;
+  --interest-text: #ffa6d8;
+  --acid: #b3ff3c;
+  --acid-text: #c9ff7a;
+  --orange: #ff7a1a;
+  --orange-text: #ffb877;
   --violet: #8b5cff;
-  --teal: #22e0c6;
-  --reject: #ff3355; /* rejected bridge */
+  --reject: #ff3355;
+  --reject-text: #ff8ba0;
 
-  /* superellipse-ish radii */
-  --r-sm: 16px;
-  --r: 24px;
-  --r-lg: 34px;
-  --r-xl: 44px;
+  --r-sm: 14px;
+  --r: 20px;
+  --r-lg: 30px;
+  --r-xl: 42px;
 
-  --shadow: 0 24px 60px -20px rgba(0, 0, 0, 0.8);
+  --shadow: 0 24px 60px -24px rgba(0, 0, 0, 0.85);
 }
 
 @theme inline {
@@ -46,24 +46,20 @@
   --color-faint: var(--faint);
   --color-hair: var(--hair);
   --color-curriculum: var(--curriculum);
+  --color-curriculum-text: var(--curriculum-text);
   --color-interest: var(--interest);
+  --color-interest-text: var(--interest-text);
   --color-acid: var(--acid);
+  --color-acid-text: var(--acid-text);
   --color-orange: var(--orange);
-  --color-violet: var(--violet);
-  --color-teal: var(--teal);
+  --color-orange-text: var(--orange-text);
   --color-reject: var(--reject);
+  --color-reject-text: var(--reject-text);
 
   --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-mono), ui-monospace, monospace;
 
   --text-2xs: 0.6875rem;
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
-  --text-base: 1rem;
-  --text-lg: 1.25rem;
-  --text-xl: 1.625rem;
-  --text-2xl: 2.25rem;
-  --text-3xl: 3rem;
 }
 
 html {
@@ -71,14 +67,18 @@ html {
   color-scheme: dark;
 }
 body {
+  min-height: 100dvh;
   background: #000;
   color: var(--text);
   font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
   letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+::selection {
+  background: rgba(59, 123, 255, 0.4);
 }
 
-/* ---------- film grain (fixed, over everything, non-interactive) ---------- */
+/* ---------- film grain ---------- */
 .grain::after {
   content: "";
   position: fixed;
@@ -90,20 +90,29 @@ body {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
 }
 
-/* ---------- glass surfaces (no borders) ---------- */
+/* ---------- surfaces ---------- */
 .glass {
   background: var(--glass);
-  backdrop-filter: blur(28px) saturate(1.4);
-  -webkit-backdrop-filter: blur(28px) saturate(1.4);
-  border-radius: var(--r-lg);
+  backdrop-filter: blur(26px) saturate(1.35);
+  -webkit-backdrop-filter: blur(26px) saturate(1.35);
 }
-.glass-2 {
-  background: var(--glass-2);
-  backdrop-filter: blur(20px) saturate(1.3);
-  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+.lit {
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+    var(--shadow);
+}
+/* the one card: frosted superellipse, top light, deep shadow, no border */
+.card {
+  background: var(--glass);
+  backdrop-filter: blur(26px) saturate(1.35);
+  -webkit-backdrop-filter: blur(26px) saturate(1.35);
+  border-radius: var(--r-lg);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.12),
+    var(--shadow);
 }
 
-/* ---------- aura: a soft radial glow that bleeds beyond the element ---------- */
+/* ---------- aura: soft radial glow bleeding beyond the element ---------- */
 .aura {
   position: relative;
   isolation: isolate;
@@ -111,32 +120,213 @@ body {
 .aura::before {
   content: "";
   position: absolute;
-  inset: -30%;
+  inset: -28%;
   z-index: -1;
   pointer-events: none;
   background: radial-gradient(
-    58% 58% at var(--aura-x, 50%) var(--aura-y, 38%),
+    56% 56% at var(--aura-x, 50%) var(--aura-y, 38%),
     var(--glow, var(--curriculum)) 0%,
-    color-mix(in oklab, var(--glow, var(--curriculum)) 40%, transparent) 42%,
+    color-mix(in oklab, var(--glow, var(--curriculum)) 40%, transparent) 44%,
     transparent 72%
   );
-  filter: blur(38px);
-  opacity: var(--aura-strength, 0.85);
+  filter: blur(36px);
+  opacity: var(--aura-strength, 0.6);
 }
 
-/* thin hairline */
-.hair {
-  background: var(--hair);
+/* ---------- typographic furniture ---------- */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  color: var(--faint);
+}
+.slabel {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
 }
 
-/* an inset top highlight so glass cards catch light like the refs */
-.lit {
+/* ---------- buttons: one height, one radius, four skins ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 24px;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.btn:disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+.btn:active {
+  transform: scale(0.985);
+}
+.btn-primary {
+  background: #fff;
+  color: #000;
+}
+.btn-primary:hover {
+  opacity: 0.92;
+}
+.btn-glass {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text);
+  backdrop-filter: blur(20px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.btn-glass:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+.btn-gradient {
+  background: linear-gradient(90deg, var(--curriculum), var(--interest));
+  color: #fff;
+  box-shadow: 0 0 32px rgba(255, 59, 172, 0.3);
+}
+.btn-acid {
+  background: var(--acid);
+  color: #000;
+  box-shadow: 0 0 26px rgba(179, 255, 60, 0.35);
+}
+
+/* ---------- inputs ---------- */
+.input {
+  width: 100%;
+  border-radius: var(--r);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 14px 16px;
+  font-size: 1rem;
+  color: var(--text);
+  outline: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: box-shadow 0.15s ease;
+}
+.input::placeholder {
+  color: var(--faint);
+}
+.input:focus-visible {
   box-shadow:
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
-    var(--shadow);
+    inset 0 0 0 1px color-mix(in oklab, var(--curriculum) 60%, transparent),
+    0 0 0 3px rgba(59, 123, 255, 0.14);
 }
 
-/* focus ring tuned for dark */
+/* ---------- chips ---------- */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.chip-interest {
+  background: rgba(255, 59, 172, 0.13);
+  color: var(--interest-text);
+  box-shadow: 0 0 16px rgba(255, 59, 172, 0.22);
+}
+.chip-curriculum {
+  background: rgba(59, 123, 255, 0.15);
+  color: var(--curriculum-text);
+  box-shadow: 0 0 16px rgba(59, 123, 255, 0.25);
+}
+
+/* ---------- selectable option rows (onboarding, MCQ) ---------- */
+.opt {
+  width: 100%;
+  text-align: left;
+  border-radius: var(--r);
+  padding: 14px 16px;
+  font-size: 0.875rem;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease,
+    color 0.15s ease;
+}
+.opt:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+.opt-active {
+  background: rgba(255, 59, 172, 0.13);
+  color: #ffd9ee;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 59, 172, 0.45),
+    0 0 22px rgba(255, 59, 172, 0.2);
+}
+.opt-active-blue {
+  background: rgba(59, 123, 255, 0.15);
+  color: #c9d6ff;
+  box-shadow:
+    inset 0 0 0 1px rgba(59, 123, 255, 0.45),
+    0 0 22px rgba(59, 123, 255, 0.18);
+}
+
+/* ---------- bridge nodes ---------- */
+.node {
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.node-blue {
+  background: rgba(59, 123, 255, 0.16);
+  color: var(--curriculum-text);
+  box-shadow: 0 0 20px rgba(59, 123, 255, 0.3);
+}
+.node-magenta {
+  background: rgba(255, 59, 172, 0.16);
+  color: var(--interest-text);
+  box-shadow: 0 0 20px rgba(255, 59, 172, 0.3);
+}
+
+/* ---------- motion ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: rise 0.5s ease forwards;
+}
+@keyframes rise {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.pop {
+  animation: pop 0.25s ease;
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.bridge-draw {
+  stroke-dasharray: 140;
+  stroke-dashoffset: 140;
+  animation: draw 1s ease forwards;
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 .ring-focus:focus-visible {
   outline: 2px solid color-mix(in oklab, var(--curriculum) 80%, white);
   outline-offset: 2px;
@@ -149,5 +339,12 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+  .bridge-draw {
+    stroke-dashoffset: 0;
   }
 }

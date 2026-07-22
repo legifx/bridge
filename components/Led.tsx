@@ -1,7 +1,8 @@
 /**
  * Dot-matrix LED numerals — the signature readout of the instrument aesthetic.
- * Each glyph is a 5x7 grid of dots; lit dots glow over a faint dot field, exactly
- * like the reference cards. Pure SVG, no font dependency, scales with `dot`.
+ * Each glyph is a 5x7 dot grid: lit dots glow (one drop-shadow per glyph, cheap)
+ * over a faint dot field. Pure SVG, no font dependency, scales with `dot`.
+ * `suffix` renders a small mono unit ("%", "d") aligned to the numeral base.
  */
 const FONT: Record<string, string[]> = {
   "0": ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
@@ -15,7 +16,6 @@ const FONT: Record<string, string[]> = {
   "8": ["01110", "10001", "10001", "01110", "10001", "10001", "01110"],
   "9": ["01110", "10001", "10001", "01111", "00001", "00010", "01100"],
   ".": ["00000", "00000", "00000", "00000", "00000", "01100", "01100"],
-  ",": ["00000", "00000", "00000", "00000", "01100", "01100", "11000"],
   "-": ["00000", "00000", "00000", "11111", "00000", "00000", "00000"],
   "%": ["11001", "11010", "00100", "00100", "01011", "10011", "00000"],
   "°": ["01100", "10010", "10010", "01100", "00000", "00000", "00000"],
@@ -27,15 +27,17 @@ export function Led({
   value,
   dot = 4,
   color = "currentColor",
+  suffix,
   className = "",
 }: {
   value: string | number;
-  dot?: number; // dot diameter in px
+  dot?: number;
   color?: string;
+  suffix?: string;
   className?: string;
 }) {
   const chars = String(value).split("");
-  const step = dot * 1.55; // dot pitch
+  const step = dot * 1.55;
   const r = dot / 2;
   const cellW = 5 * step;
   const cellH = 7 * step;
@@ -45,6 +47,17 @@ export function Led({
     <span className={`inline-flex items-end ${className}`} style={{ gap, color, lineHeight: 0 }}>
       {chars.map((ch, i) => {
         const grid = FONT[ch] ?? FONT[" "];
+        const off: React.ReactNode[] = [];
+        const on: React.ReactNode[] = [];
+        grid.forEach((row, y) =>
+          row.split("").forEach((bit, x) => {
+            const cx = x * step + step / 2;
+            const cy = y * step + step / 2;
+            (bit === "1" ? on : off).push(
+              <circle key={`${x}-${y}`} cx={cx} cy={cy} r={r} />,
+            );
+          }),
+        );
         return (
           <svg
             key={i}
@@ -54,25 +67,25 @@ export function Led({
             aria-hidden
             style={{ display: "block", overflow: "visible" }}
           >
-            {grid.flatMap((row, y) =>
-              row.split("").map((bit, x) => {
-                const on = bit === "1";
-                return (
-                  <circle
-                    key={`${x}-${y}`}
-                    cx={x * step + step / 2}
-                    cy={y * step + step / 2}
-                    r={r}
-                    fill={on ? color : "rgba(255,255,255,0.06)"}
-                    style={on ? { filter: `drop-shadow(0 0 ${dot}px ${color})` } : undefined}
-                  />
-                );
-              }),
-            )}
+            <g fill="rgba(255,255,255,0.06)">{off}</g>
+            <g fill={color} style={{ filter: `drop-shadow(0 0 ${dot * 1.1}px ${color})` }}>
+              {on}
+            </g>
           </svg>
         );
       })}
-      <span className="sr-only">{String(value)}</span>
+      {suffix && (
+        <span
+          className="font-mono"
+          style={{ fontSize: "0.6875rem", lineHeight: 1, color: "var(--faint)", paddingBottom: 1 }}
+        >
+          {suffix}
+        </span>
+      )}
+      <span className="sr-only">
+        {String(value)}
+        {suffix ?? ""}
+      </span>
     </span>
   );
 }

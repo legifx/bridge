@@ -13,41 +13,42 @@ const NAV = [
 export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-[720px] flex-col">
-      <header className="flex items-center justify-between px-6 pb-1 pt-6">
-        <Link href="/" className="font-mono text-2xs uppercase tracking-[0.4em] text-dim">
+    <div className="mx-auto flex min-h-dvh w-full max-w-[680px] flex-col">
+      <header className="flex items-center justify-between px-5 pb-2 pt-6">
+        <Link href="/" className="eyebrow transition hover:text-dim">
           Bridge
         </Link>
-        <Link
-          href="/compare"
-          className="font-mono text-2xs uppercase tracking-[0.25em] text-faint transition hover:text-interest"
-        >
+        <Link href="/compare" className="slabel text-faint transition hover:text-interest-text">
           compare ↗
         </Link>
       </header>
 
-      <div className="flex-1 px-4 pb-32">{children}</div>
+      <div className="flex-1 px-5 pb-36">{children}</div>
 
-      <nav className="fixed inset-x-0 bottom-5 z-40 flex justify-center px-4">
-        <div className="glass lit flex items-center gap-1 rounded-full p-1.5" style={{ borderRadius: 999 }}>
+      <nav
+        className="fixed inset-x-0 z-40 flex justify-center px-5"
+        style={{ bottom: "max(1.1rem, env(safe-area-inset-bottom))" }}
+      >
+        <div className="glass lit flex items-center gap-1 p-1.5" style={{ borderRadius: 999 }}>
           {NAV.map((n) => {
             const active = n.href === "/" ? path === "/" : path.startsWith(n.href);
             return (
               <Link
                 key={n.href}
                 href={n.href}
-                className={`relative rounded-full px-4 py-2 text-sm font-medium transition ${
+                className={`relative flex h-10 items-center rounded-full px-4 text-sm font-medium transition ${
                   active ? "text-text" : "text-faint hover:text-dim"
                 }`}
                 style={{ borderRadius: 999 }}
               >
                 {active && (
                   <span
-                    className="absolute inset-0 -z-10 rounded-full"
+                    className="absolute inset-0 -z-10"
                     style={{
                       borderRadius: 999,
-                      background: "rgba(59,123,255,0.16)",
-                      boxShadow: "inset 0 0 0 1px rgba(59,123,255,0.35), 0 0 20px rgba(59,123,255,0.35)",
+                      background: "rgba(255,255,255,0.09)",
+                      boxShadow:
+                        "inset 0 0 0 1px rgba(255,255,255,0.12), 0 0 20px rgba(59,123,255,0.3)",
                     }}
                   />
                 )}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Shell } from "@/components/Shell";
+import { PageHead } from "@/components/PageHead";
 import { Led } from "@/components/Led";
 import { TickScale } from "@/components/TickScale";
 
@@ -16,7 +17,7 @@ type Data = {
   domains: Domain[];
 };
 
-// mastery -> glow color: dim blue (new) climbing to acid green (mastered)
+// mastery -> glow: dim blue (new) climbing to acid green (mastered)
 function masteryGlow(m: number) {
   if (m >= 0.66) return "var(--acid)";
   if (m >= 0.4) return "var(--curriculum)";
@@ -63,23 +64,15 @@ export default function Home() {
       )}
 
       {!loading && data && data.domains.length > 0 && data.concepts.length > 0 && (
-        <div className="px-2">
-          <header className="mb-5 mt-2">
-            <p className="font-mono text-2xs uppercase tracking-[0.3em] text-faint">Concept map</p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-text">
-              In order, prerequisites first
-            </h1>
-          </header>
+        <>
+          <PageHead eyebrow="Concept map" title="Your learning order" />
 
           {/* interest domains */}
-          <div className="mb-6 flex flex-wrap gap-2">
+          <div className="-mt-2 mb-6 flex flex-wrap gap-2">
             {data.domains.map((d) => (
-              <span
-                key={d.id}
-                className="flex items-center gap-2 rounded-full bg-[rgba(255,59,172,0.12)] px-3 py-1.5 text-xs font-medium text-[#ffa6d8] shadow-[0_0_16px_rgba(255,59,172,0.25)]"
-              >
+              <span key={d.id} className="chip chip-interest">
                 {d.name}
-                <Led value={`${Math.round(d.successRate * 100)}`} dot={2.4} color="#ffa6d8" />
+                <Led value={`${Math.round(d.successRate * 100)}`} dot={2.4} color="#ffa6d8" suffix="%" />
               </span>
             ))}
           </div>
@@ -92,81 +85,64 @@ export default function Home() {
                 <li key={c.id} className="reveal" style={{ animationDelay: `${i * 55}ms` }}>
                   <Link
                     href={`/learn/${c.id}`}
-                    className="aura glass lit block rounded-[--r-lg] p-4 ring-focus"
+                    className="aura card ring-focus block p-5 transition hover:bg-white/[0.06]"
                     style={
                       {
                         "--glow": masteryGlow(c.mastery),
-                        "--aura-x": "18%",
+                        "--aura-x": "12%",
                         "--aura-y": "50%",
-                        "--aura-strength": 0.5 + c.mastery * 0.5,
+                        "--aura-strength": 0.3 + c.mastery * 0.45,
                       } as React.CSSProperties
                     }
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <span className="font-mono text-2xs text-faint">
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                        <h2 className="mt-0.5 text-lg font-semibold tracking-tight text-text">{c.label}</h2>
-                        <p className="mt-1 line-clamp-2 text-sm text-dim">{c.definition}</p>
+                    <div className="flex items-start gap-4">
+                      <span className="w-6 shrink-0 pt-1 font-mono text-2xs text-faint">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <h2 className="truncate text-lg font-semibold tracking-tight text-text">
+                          {c.label}
+                        </h2>
+                        <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-dim">
+                          {c.definition}
+                        </p>
                       </div>
-                      <div className="flex flex-col items-end gap-1.5 pt-1">
-                        <span className="flex items-baseline gap-1">
-                          <Led value={`${pct}`} dot={3.2} color={masteryColor(c.mastery)} />
-                          <span className="font-mono text-2xs text-faint">%</span>
-                        </span>
-                      </div>
+                      <span className="flex min-w-[56px] shrink-0 justify-end pt-1">
+                        <Led value={`${pct}`} dot={3.2} color={masteryColor(c.mastery)} suffix="%" />
+                      </span>
                     </div>
-                    <TickScale value={c.mastery} color={masteryGlow(c.mastery)} count={40} className="mt-3" />
+                    <TickScale
+                      value={c.mastery}
+                      color={masteryGlow(c.mastery)}
+                      count={44}
+                      className="mt-3.5"
+                    />
                   </Link>
                 </li>
               );
             })}
           </ol>
-        </div>
+        </>
       )}
-
-      <style jsx>{`
-        .reveal {
-          opacity: 0;
-          transform: translateY(8px);
-          animation: rise 0.5s ease forwards;
-        }
-        @keyframes rise {
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .reveal {
-            opacity: 1;
-            transform: none;
-            animation: none;
-          }
-        }
-      `}</style>
     </Shell>
   );
 }
 
 function EmptyState({ title, body, cta, href }: { title: string; body: string; cta: string; href: string }) {
   return (
-    <div className="mt-24 px-4 text-center">
+    <div className="mt-24 text-center">
       <div
-        className="mx-auto mb-8 h-40 w-40 rounded-[--r-xl]"
+        className="mx-auto mb-9 h-40 w-40"
         style={{
+          borderRadius: "var(--r-xl)",
           background:
             "radial-gradient(circle at 50% 40%, rgba(59,123,255,0.55), transparent 65%), radial-gradient(circle at 60% 70%, rgba(255,59,172,0.5), transparent 60%)",
           filter: "blur(6px)",
         }}
       />
       <h1 className="text-2xl font-semibold tracking-tight text-text">{title}</h1>
-      <p className="mx-auto mt-3 max-w-sm text-sm text-dim">{body}</p>
-      <Link
-        href={href}
-        className="mt-7 inline-block rounded-full bg-white px-6 py-3 text-sm font-semibold text-black transition hover:opacity-90"
-      >
+      <p className="mx-auto mt-3 max-w-sm text-sm leading-relaxed text-dim">{body}</p>
+      <Link href={href} className="btn btn-primary mt-8">
         {cta}
       </Link>
     </div>
