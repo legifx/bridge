@@ -1,34 +1,38 @@
 /**
  * Seeded demo (§8). Two learners with maximally different interest domains
  * (competitive gaming vs horse riding), one real chemistry chapter each, and
- * pre-generated bridges over the same concepts — so the split-screen comparison
- * and the reject -> accept beat work in 20 seconds with no camera and no API key.
+ * pre-generated bridges (including the hand-written rejected attempt for the
+ * showcase concept) — so the split-screen comparison and the reject -> accept
+ * beat are explorable instantly. Bridges come from fixtures/templates, so the
+ * seed NEVER calls the LLM and burns no API budget.
  *
- * Run: npx prisma db seed   (loads .env; forces DEMO_MODE so it never burns API)
+ * Run: npx prisma db seed
  */
-process.env.DEMO_MODE = "true";
-
 import { prisma } from "@/lib/db/prisma";
 import { embed, vecToBytes } from "@/lib/ml/embeddings";
 import { bytesToVec } from "@/lib/ml/vector";
 import { CHEM_EXTRACTION, CHEM_SOURCE_TEXT } from "@/lib/demo/chem";
 import { matchConceptToDomains } from "@/lib/profile/match";
 import { getDomainsForMatch } from "@/lib/profile/repo";
-import { generateVerifiedBridge } from "@/lib/bridge/engine";
+import { BRIDGE_FIXTURES } from "@/lib/demo/bridges";
+import { templateBody, slug } from "@/lib/bridge/template";
+import { BridgeBodySchema, VerdictSchema, type Verdict } from "@/lib/bridge/types";
 import { recordAnswer } from "@/lib/adaptive/review";
 import { recordSignal, averageVec } from "@/lib/brain/record";
 
-type Profile = { displayName: string; domain: string; anchors: string[]; readingLevel: number };
+type Profile = { displayName: string; handle: string; domain: string; anchors: string[]; readingLevel: number };
 
 const PROFILES: Profile[] = [
   {
     displayName: "Mara",
+    handle: "mara",
     domain: "competitive gaming",
     anchors: ["ranked ladder", "cooldown", "roster transfer", "team composition", "map control", "patch notes"],
     readingLevel: 3,
   },
   {
     displayName: "Theo",
+    handle: "theo",
     domain: "horse riding",
     anchors: ["gait", "grooming", "tack", "dressage", "feed schedule", "pecking order"],
     readingLevel: 3,
@@ -50,7 +54,7 @@ async function wipe() {
 
 async function seedLearner(p: Profile) {
   const learner = await prisma.learner.create({
-    data: { displayName: p.displayName, readingLevel: p.readingLevel },
+    data: { displayName: p.displayName, handle: p.handle, readingLevel: p.readingLevel },
   });
 
   const domEmb = await embed(`${p.domain}. ${p.anchors.join(", ")}`);
@@ -125,7 +129,9 @@ async function main() {
     const { learner, conceptIds } = await seedLearner(p);
     const domains = await getDomainsForMatch(learner.id);
 
-    // Pre-generate a bridge for every concept.
+    // Pre-generate a bridge for every concept — from fixtures/templates, never
+    // the LLM. The showcase concept gets its hand-written rejected attempt too.
+    const ACCEPT: Verdict = { factuallyConsistent: true, contradictions: [], analogyOverreach: false, verdict: "accept" };
     for (const conceptId of conceptIds) {
       const concept = await prisma.concept.findUniqueOrThrow({ where: { id: conceptId } });
       const conceptVec = concept.embedding
@@ -134,12 +140,51 @@ async function main() {
       const match = await matchConceptToDomains(conceptVec, domains);
       if (!match) continue;
       const chosen = domains.find((d) => d.id === match.domainId)!;
-      await generateVerifiedBridge({
-        concept: { id: concept.id, label: concept.label, definition: concept.definition, sourceQuote: concept.sourceQuote },
-        domain: { id: chosen.id, name: chosen.name, anchors: chosen.anchors },
-        match,
-        readingLevel: learner.readingLevel,
-      });
+
+      const key = `${slug(concept.label)}:${slug(chosen.name)}`;
+      const a1Body = BRIDGE_FIXTURES[`bridge:${key}:a1`];
+      const a1Verdict = BRIDGE_FIXTURES[`verify:${key}:a1`];
+      const a2Body = BRIDGE_FIXTURES[`bridge:${key}:a2`];
+
+      if (a1Body && a1Verdict && a2Body) {
+        await prisma.bridge.create({
+          data: {
+            conceptId: concept.id,
+            domainId: chosen.id,
+            body: JSON.stringify(BridgeBodySchema.parse(a1Body)),
+            status: "rejected",
+            attempt: 1,
+            verdictJson: JSON.stringify(VerdictSchema.parse(a1Verdict)),
+          },
+        });
+        await prisma.bridge.create({
+          data: {
+            conceptId: concept.id,
+            domainId: chosen.id,
+            body: JSON.stringify(BridgeBodySchema.parse(a2Body)),
+            status: "accepted",
+            attempt: 2,
+            verdictJson: JSON.stringify(ACCEPT),
+          },
+        });
+      } else {
+        const body = templateBody({
+          label: concept.label,
+          definition: concept.definition,
+          match,
+          anchors: chosen.anchors,
+        });
+        await prisma.bridge.create({
+          data: {
+            conceptId: concept.id,
+            domainId: chosen.id,
+            body: JSON.stringify(body),
+            status: "accepted",
+            attempt: 1,
+            verdictJson: JSON.stringify(ACCEPT),
+          },
+        });
+      }
     }
 
     // Simulated "that clicked" presses on the first few bridges, so the second

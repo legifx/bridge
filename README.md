@@ -2,12 +2,11 @@
 
 **Learn new material through the knowledge you already hold.**
 
-**▶ Live demo: https://bridge-livid-one.vercel.app** — explore the two seeded profiles
-(competitive gaming vs. horse riding): tap **compare profiles** to see the same concept
-explained through both worlds, or open a concept to watch a bridge get **rejected by the
-fact-checker, then accepted**. (The hosted demo runs read-only on seeded data; capturing your
-own material or onboarding a new profile runs the local embedding model, so clone and run
-locally for that.)
+**▶ Live demo: https://bridge-livid-one.vercel.app** — the real app, live. Sign in with any
+name (or open the lived-in profiles `Mara` / `Theo`), run onboarding with your own interests,
+capture material, and watch bridges get fact-checked in real time. Every demo profile carries a
+small AI budget so the shared API key survives; accounts are open by design — please don't
+enter private data.
 
 Bridge builds an **interest and prior-knowledge profile** of a learner, then re-expresses
 curriculum concepts through a domain that learner already understands deeply. The same
@@ -84,7 +83,7 @@ answer with expected score `E = 1 / (1 + 10^((R_C − R_L)/400))` and
 ## Run it (4 commands from a fresh clone)
 
 ```bash
-cp .env.example .env      # works as-is: DEMO_MODE=true, no API key needed
+cp .env.example .env      # add your OpenRouter key for live AI
 npm install
 npx prisma migrate dev
 npm run dev
@@ -96,18 +95,13 @@ Then seed two demo learners (competitive gaming vs horse riding) with pre-genera
 npm run db:seed
 ```
 
-Open http://localhost:3000. Tap **compare profiles** to see the same concept explained through
-two different worlds, open the **Brain** tab to see each seeded learner's skill tree, or hit
-**+ New profile** (avatar, top right) to go through onboarding yourself — name, five taps, one
-free-text line — and start learning with your own interests. With `DEMO_MODE=true` the AI
-responses are cached — the full flow runs with no key — while the embedding, dedupe, graph,
-Thompson, Elo, SM-2 and brain-clustering math all run for real.
-
-To use live AI: set `OPENROUTER_API_KEY` in `.env` and `DEMO_MODE=false`.
-(Provider is OpenRouter; model via `OPENROUTER_MODEL`. Default is the **free**, vision-capable
-`google/gemma-4-31b-it:free` — Apache-2.0 and not trained on your inputs, which suits a
-privacy-first education app. Paid fallback `google/gemini-3.1-flash-lite` if the free tier is
-rate-limited.)
+Open http://localhost:3000 and sign in with any name. The seeded profiles `Mara` and `Theo`
+are fully explorable without an API key (pre-generated bridges, brains, mastery data) — the
+embedding, dedupe, graph, Thompson, Elo, SM-2 and brain-clustering math all run for real. Live
+AI (capturing your own material, generating fresh bridges, quizzes) needs `OPENROUTER_API_KEY`
+in `.env`. Provider is OpenRouter; the default model is the **free**, vision-capable
+`google/gemma-4-31b-it:free` (Apache-2.0, not trained on your inputs), with automatic fallback
+to `google/gemini-3.1-flash-lite` when the free tier is rate-limited.
 
 ```bash
 npm test                  # unit tests: dedupe, cycle detection, Thompson, Elo, SM-2
@@ -129,15 +123,19 @@ Next.js 16 (App Router, TS strict) · Tailwind v4 · SQLite + Prisma 6 · OpenRo
 
 Two supported targets, same codebase:
 
-- **Persistent host (Railway / Fly.io)** — the intended production target. SQLite lives on a
-  persistent volume and the full app works, including capture and onboarding (local embeddings
-  run in the Node process).
-- **Vercel (serverless)** — the [live demo](https://bridge-livid-one.vercel.app). The app adapts
-  itself with **zero configuration**: when `process.env.VERCEL` is set it copies a seeded template
-  DB (`prisma/demo.db`) into `/tmp`, and it serves the read-only demo flows (compare, learn,
-  verification, teacher) from **stored vectors** instead of loading the 90 MB embedding model.
-  Capture/onboarding return a friendly notice pointing to a local run. No environment variables
-  are required — with no API key the app runs in `DEMO_MODE` on cached AI responses.
+- **Persistent host (Railway / Fly.io / your own box)** — SQLite on a persistent volume, the
+  full app with no demo restrictions.
+- **Vercel (public demo)** — the [live demo](https://bridge-livid-one.vercel.app). On Vercel the
+  app enters public-demo mode automatically: open username sign-in, a small AI budget per
+  profile (default 10 units: capture = 2, bridge/quiz/grading = 1 each), and the "no private
+  data" notice. The embedding model runs inside the function (linux-x64 ONNX only, cache in
+  `/tmp`). Set `OPENROUTER_API_KEY` in the Vercel project for live AI, and point
+  `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` at a (free-tier) Turso database so profiles persist —
+  Turso is hosted SQLite, so the schema and every query stay identical. Without Turso the app
+  falls back to an ephemeral `/tmp` copy of the seeded DB (fine for kicking the tires, but
+  sign-ins don't survive instance recycling). Apply the schema once with
+  `node scripts/migrate-remote.mjs`, seed with `npx prisma db seed` (both honor the Turso env
+  vars).
 
 ## What's not built yet (honest status)
 
