@@ -10,11 +10,13 @@ process.env.DEMO_MODE = "true";
 
 import { prisma } from "@/lib/db/prisma";
 import { embed, vecToBytes } from "@/lib/ml/embeddings";
+import { bytesToVec } from "@/lib/ml/vector";
 import { CHEM_EXTRACTION, CHEM_SOURCE_TEXT } from "@/lib/demo/chem";
 import { matchConceptToDomains } from "@/lib/profile/match";
 import { getDomainsForMatch } from "@/lib/profile/repo";
 import { generateVerifiedBridge } from "@/lib/bridge/engine";
 import { recordAnswer } from "@/lib/adaptive/review";
+import { recordSignal, averageVec } from "@/lib/brain/record";
 
 type Profile = { displayName: string; domain: string; anchors: string[]; readingLevel: number };
 
@@ -34,6 +36,7 @@ const PROFILES: Profile[] = [
 ];
 
 async function wipe() {
+  await prisma.brainItem.deleteMany();
   await prisma.feedback.deleteMany();
   await prisma.review.deleteMany();
   await prisma.bridge.deleteMany();
@@ -51,7 +54,7 @@ async function seedLearner(p: Profile) {
   });
 
   const domEmb = await embed(`${p.domain}. ${p.anchors.join(", ")}`);
-  await prisma.interestDomain.create({
+  const domainRow = await prisma.interestDomain.create({
     data: {
       learnerId: learner.id,
       name: p.domain,
@@ -59,6 +62,28 @@ async function seedLearner(p: Profile) {
       embedding: vecToBytes(domEmb),
     },
   });
+
+  // Second brain: the domain as a strong interest plus its anchors as leaves,
+  // with varied weights so the demo tree looks lived-in.
+  await recordSignal({
+    learnerId: learner.id,
+    kind: "interest",
+    label: p.domain,
+    text: `${p.domain}. ${p.anchors.join(", ")}`,
+    weight: 2.6,
+    embedding: domEmb,
+    sourceRef: domainRow.id,
+  });
+  for (let i = 0; i < p.anchors.length; i++) {
+    await recordSignal({
+      learnerId: learner.id,
+      kind: "anchor",
+      label: p.anchors[i],
+      text: `${p.anchors[i]} (${p.domain})`,
+      weight: 0.4 + ((p.anchors.length - i) % 3) * 0.3,
+      sourceRef: domainRow.id,
+    });
+  }
 
   const source = await prisma.source.create({
     data: { learnerId: learner.id, kind: "text", rawText: CHEM_SOURCE_TEXT },
@@ -117,6 +142,31 @@ async function main() {
       });
     }
 
+    // Simulated "that clicked" presses on the first few bridges, so the second
+    // brain shows domain x concept signals and the tree looks alive.
+    const learnerDomain = await prisma.interestDomain.findFirstOrThrow({
+      where: { learnerId: learner.id },
+    });
+    const clickedConcepts = await prisma.concept.findMany({
+      where: { learnerId: learner.id },
+      orderBy: { difficulty: "asc" },
+      take: 3,
+    });
+    for (const c of clickedConcepts) {
+      if (!c.embedding) continue;
+      await recordSignal({
+        learnerId: learner.id,
+        kind: "signal",
+        label: `${learnerDomain.name} ↔ ${c.label}`,
+        text: `${learnerDomain.name} explained ${c.label}`,
+        weight: 0.6,
+        embedding: averageVec(
+          [bytesToVec(learnerDomain.embedding), bytesToVec(c.embedding)],
+          [2, 1],
+        ),
+      });
+    }
+
     // A few answered checks so the teacher aggregate + mastery colors have data.
     // Deterministic pattern: harder concepts get more misses.
     const concepts = await prisma.concept.findMany({ where: { learnerId: learner.id }, orderBy: { difficulty: "asc" } });
@@ -135,6 +185,7 @@ async function main() {
     bridges: await prisma.bridge.count(),
     rejected: await prisma.bridge.count({ where: { status: "rejected" } }),
     reviews: await prisma.review.count(),
+    brainItems: await prisma.brainItem.count(),
   };
   console.log("Seed complete:", counts);
 }

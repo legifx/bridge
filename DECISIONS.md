@@ -80,6 +80,34 @@ handful of graded reviews so the teacher aggregate and mastery colors have data.
 **Concept map is a prerequisite-ordered vertical timeline**, not a 2-D force graph — it reads
 cleanly on a 390px viewport and films well, which is what the rubric rewards.
 
+## Second brain & skill tree
+
+**The brain is a table, not a service.** `BrainItem` is a per-learner vector store in the same
+SQLite file: kind (interest/anchor/signal), label, text, embedding, weight. No extra infra, no
+second database — "simple installation from the repo" stays true.
+
+**Maturing = merge-and-strengthen, not re-training.** A new signal within cosine ≥ 0.92 of an
+existing item adds its weight to that item instead of inserting. Repeated evidence accumulates
+into heavy items; noise stays light. This is transparent and inspectable — you can read the
+brain row by row.
+
+**Feedback signals derive their vector from stored vectors.** A "that clicked" event embeds as
+the 2:1 weighted average of the domain and concept vectors we already have — no model call, so
+the brain keeps growing even on serverless hosts where the local model is disabled.
+
+**The tree is computed on read.** Greedy weighted clustering (heaviest first, cosine ≥ 0.55 to a
+weight-weighted, re-normalized centroid) over the stored vectors, at request time. No cluster
+table to migrate or drift; the tree always reflects the current brain. Unit-tested in
+tests/braincluster.test.ts.
+
+**The summary is templated, not LLM prose.** Every sentence cites a weight, a Beta posterior, or
+a mastery score. For a feature whose pitch is "see what the algorithm thinks", generated prose
+would undermine the point; traceable numbers are the feature.
+
+**Skills hang off the branch that actually bridged them.** A concept attaches to the cluster of
+the domain whose accepted bridge taught it — not by raw cosine (chemistry terms are semantically
+far from hobby terms; that low cosine is honest and expected).
+
 ## Open / deferred
 
 - PWA icon is a single SVG (`purpose: any maskable`). Rasterized PNG fallbacks can be added later.

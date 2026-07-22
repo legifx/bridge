@@ -51,6 +51,15 @@ flowchart LR
    ones, is logged.**
 4. **`lib/adaptive` — the real ML, our own code.** Thompson sampling picks which interest domain
    to use; Elo tracks per-concept mastery; SM-2-lite schedules review.
+5. **`lib/brain` — a second brain per learner.** Every signal (onboarding taps, free-text
+   interests, every *"that clicked"*) lands in a per-learner vector store (`BrainItem`). A signal
+   whose embedding is within cosine ≥ 0.92 of an existing item **strengthens that item's weight**
+   instead of inserting — repeated signals mature into strong interests. The **Brain tab** renders
+   this store as a skill tree: greedy weighted clustering over the stored vectors (our own code,
+   unit-tested), interest branches sized by weight, learned concepts hanging off the branch whose
+   domain actually bridged them, plus a transparent summary of what the algorithm currently
+   thinks you're into — every claim backed by a weight, a posterior, or a mastery score. No LLM
+   involved; it works read-only, everywhere.
 
 ### Formulas (implemented in `lib/adaptive`, unit-tested)
 
@@ -88,9 +97,11 @@ npm run db:seed
 ```
 
 Open http://localhost:3000. Tap **compare profiles** to see the same concept explained through
-two different worlds, or start onboarding to build your own profile. With `DEMO_MODE=true` the AI
+two different worlds, open the **Brain** tab to see each seeded learner's skill tree, or hit
+**+ New profile** (avatar, top right) to go through onboarding yourself — name, five taps, one
+free-text line — and start learning with your own interests. With `DEMO_MODE=true` the AI
 responses are cached — the full flow runs with no key — while the embedding, dedupe, graph,
-Thompson, Elo, and SM-2 math all run for real.
+Thompson, Elo, SM-2 and brain-clustering math all run for real.
 
 To use live AI: set `OPENROUTER_API_KEY` in `.env` and `DEMO_MODE=false`.
 (Provider is OpenRouter; model via `OPENROUTER_MODEL`. Default is the **free**, vision-capable
@@ -104,10 +115,10 @@ npm test                  # unit tests: dedupe, cycle detection, Thompson, Elo, 
 
 ## Privacy
 
-A learner is a local profile — no accounts, no email. Learner data stays in the local database
-and is never shared between learners. The (upcoming) teacher view receives **aggregates only**:
-concept-level counts, never individuals, never interest profiles. Onboarding asks only about
-interests — never family, emotions, or health.
+A learner is a local profile — no accounts, no email. Learner data, including the second brain,
+stays in the local database and is never shared between learners. The teacher view receives
+**aggregates only**: concept-level counts, never individuals, never interest profiles. Onboarding
+asks only about interests — never family, emotions, or health.
 
 ## Stack
 
