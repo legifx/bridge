@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useT } from "./LanguageProvider";
 import type { Answer, Interaction } from "@/lib/onboarding/types";
 
 /**
@@ -64,6 +65,7 @@ function SliderStep({
   onAnswer: (a: Answer) => void;
 }) {
   const [value, setValue] = useState(50);
+  const t = useT();
   return (
     <div className="page-enter">
       <Prompt domain={step.domain} prompt={step.prompt} />
@@ -88,7 +90,7 @@ function SliderStep({
         onClick={() => onAnswer({ kind: "slider", id: step.id, value: value / 100 })}
         className="btn btn-primary mt-4 w-full"
       >
-        That&rsquo;s about right →
+        {t("steps.aboutRight")}
       </button>
     </div>
   );
@@ -101,6 +103,7 @@ function SubOptions({
   step: Extract<Interaction, { kind: "suboptions" }>;
   onAnswer: (a: Answer) => void;
 }) {
+  const t = useT();
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const toggle = (v: string) =>
     setPicked((s) => {
@@ -129,7 +132,7 @@ function SubOptions({
         onClick={() => onAnswer({ kind: "suboptions", id: step.id, values: [...picked] })}
         className="btn btn-primary mt-4 w-full"
       >
-        {picked.size === 0 ? "None of these — continue" : "Continue →"}
+        {picked.size === 0 ? t("steps.noneContinue") : t("steps.continue")}
       </button>
     </div>
   );
@@ -142,12 +145,13 @@ function WordMagnet({
   step: Extract<Interaction, { kind: "wordmagnet" }>;
   onAnswer: (a: Answer) => void;
 }) {
+  const t = useT();
   const [picked, setPicked] = useState<Set<string>>(new Set());
-  const toggle = (t: string) =>
+  const toggle = (w: string) =>
     setPicked((s) => {
       const next = new Set(s);
-      if (next.has(t)) next.delete(t);
-      else next.add(t);
+      if (next.has(w)) next.delete(w);
+      else next.add(w);
       return next;
     });
   return (
@@ -166,14 +170,14 @@ function WordMagnet({
         ))}
       </div>
       <p className="mt-3 text-xs leading-relaxed text-faint">
-        No score, no grade — unknown words are just as useful a signal as known ones.
+        {t("steps.magnetHint")}
       </p>
       <button
         type="button"
         onClick={() => onAnswer({ kind: "wordmagnet", id: step.id, picked: [...picked] })}
         className="btn btn-primary mt-4 w-full"
       >
-        {picked.size === 0 ? "None of these — continue" : `Lock in ${picked.size} →`}
+        {picked.size === 0 ? t("steps.noneContinue") : t("steps.lockIn", { n: picked.size })}
       </button>
     </div>
   );

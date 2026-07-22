@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
 import { ThinkingLoader } from "@/components/ThinkingLoader";
+import { useT } from "@/components/LanguageProvider";
 import { CHEM_SOURCE_TEXT } from "@/lib/demo/chem";
 
 async function downscale(file: File, maxEdge = 1600): Promise<string> {
@@ -20,6 +21,7 @@ async function downscale(file: File, maxEdge = 1600): Promise<string> {
 }
 
 function CaptureForm() {
+  const t = useT();
   const router = useRouter();
   const sourceId = useSearchParams().get("source");
   const [folderTitle, setFolderTitle] = useState<string | null>(null);
@@ -47,7 +49,7 @@ function CaptureForm() {
     try {
       setPreview(await downscale(file));
     } catch {
-      setError("Could not read that image. Try another.");
+      setError(t("cap.badImage"));
     }
   }
 
@@ -70,7 +72,7 @@ function CaptureForm() {
       if (!res.ok) throw new Error(data.error ?? "Extraction failed.");
       router.push("/");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setError(e instanceof Error ? e.message : t("common.somethingWrong"));
     } finally {
       setBusy(false);
     }
@@ -81,13 +83,9 @@ function CaptureForm() {
   return (
     <Shell>
       <PageHead
-        eyebrow="Capture"
-        title={folderTitle ? `Add to “${folderTitle}”` : "Add material"}
-        sub={
-          folderTitle
-            ? "New concepts land inside this folder and slot into its learning order."
-            : "Snap a page or paste text — in the subject’s own words. Every capture becomes its own folder."
-        }
+        eyebrow={t("cap.eyebrow")}
+        title={folderTitle ? t("cap.titleInto", { title: folderTitle }) : t("cap.title")}
+        sub={folderTitle ? t("cap.subInto") : t("cap.subNew")}
       />
 
       <button
@@ -109,7 +107,7 @@ function CaptureForm() {
           +
         </span>
         <span className="text-sm font-medium text-text">
-          {preview ? "Retake photo" : "Take / choose a photo"}
+          {preview ? t("cap.retake") : t("cap.takePhoto")}
         </span>
       </button>
       <input
@@ -133,14 +131,14 @@ function CaptureForm() {
 
       <div className="my-8 flex items-center gap-3">
         <span className="h-px flex-1 bg-hair" />
-        <span className="slabel text-faint">or paste</span>
+        <span className="slabel text-faint">{t("cap.orPaste")}</span>
         <span className="h-px flex-1 bg-hair" />
       </div>
 
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Paste a paragraph from your notes…"
+        placeholder={t("cap.pastePlaceholder")}
         rows={6}
         className="input resize-y"
       />
@@ -149,17 +147,17 @@ function CaptureForm() {
         disabled={busy}
         className="slabel mt-3 text-curriculum-text transition hover:opacity-80"
       >
-        use demo chapter ↗
+        {t("cap.useDemo")}
       </button>
 
       {busy && (
         <div className="mt-6">
           <ThinkingLoader
             stages={[
-              { label: "Reading the page" },
-              { label: "Extracting atomic concepts", detail: "definitions stay faithful to your source" },
-              { label: "Embedding & de-duplicating" },
-              { label: "Linking prerequisites", detail: "sparse, correct edges — your learning order" },
+              { label: t("cap.think.a") },
+              { label: t("cap.think.b"), detail: t("cap.think.bd") },
+              { label: t("cap.think.c") },
+              { label: t("cap.think.d"), detail: t("cap.think.dd") },
             ]}
             glow="var(--curriculum)"
             expectedMs={12000}
@@ -181,7 +179,7 @@ function CaptureForm() {
         disabled={!canRun}
         className={`btn mt-6 w-full ${busy ? "btn-working" : "btn-primary"}`}
       >
-        {busy ? "reading · extracting · linking…" : folderTitle ? "Add to folder" : "Build concept map"}
+        {busy ? t("cap.working") : folderTitle ? t("cap.addToFolder") : t("cap.build")}
       </button>
     </Shell>
   );

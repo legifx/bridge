@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { BridgeViz } from "@/components/BridgeViz";
+import { useT } from "@/components/LanguageProvider";
 
 type Concept = { id: string; label: string; definition: string; sourceQuote: string };
 type Body = {
@@ -28,6 +29,7 @@ type Match = { domainName: string; anchor: string; similarity: number };
 type BridgeResp = { bridgeId: string; body: Body; match: Match; attempts: Attempt[]; isFallback: boolean };
 
 export default function Learn() {
+  const t = useT();
   const { conceptId } = useParams<{ conceptId: string }>();
   const router = useRouter();
 
@@ -57,10 +59,10 @@ export default function Learn() {
         return;
       }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Could not build a bridge.");
+      if (!res.ok) throw new Error(data.error ?? t("learn.couldNotBuild"));
       setBridge(data);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setError(e instanceof Error ? e.message : t("common.somethingWrong"));
     } finally {
       setLoadingBridge(false);
     }
@@ -81,7 +83,7 @@ export default function Learn() {
   if (!concept) {
     return (
       <Shell>
-        <p className="mt-16 text-center text-sm text-faint">Loading concept…</p>
+        <p className="mt-16 text-center text-sm text-faint">{t("learn.loading")}</p>
       </Shell>
     );
   }
@@ -103,7 +105,7 @@ export default function Learn() {
             } as React.CSSProperties
           }
         >
-          <p className="slabel text-curriculum-text">concept</p>
+          <p className="slabel text-curriculum-text">{t("learn.concept")}</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text">{concept.label}</h1>
           <p className="mt-3 text-base leading-relaxed text-dim">{concept.definition}</p>
         </header>
@@ -114,7 +116,7 @@ export default function Learn() {
             disabled={loadingBridge}
             className={`btn w-full ${loadingBridge ? "btn-working" : "btn-gradient"}`}
           >
-            {loadingBridge ? "building a bridge to your world…" : "Explain through my world"}
+            {loadingBridge ? t("learn.building") : t("learn.explain")}
           </button>
         )}
         {error && (
@@ -141,7 +143,7 @@ export default function Learn() {
                 }
               >
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="slabel text-reject">attempt {a.attempt} · rejected</span>
+                  <span className="slabel text-reject">{t("learn.attempt", { n: a.attempt })}</span>
                   <span className="font-mono text-2xs text-reject">{a.verdict.verdict}</span>
                 </div>
                 <p className="text-sm leading-relaxed text-dim line-through decoration-reject/50">
@@ -158,7 +160,7 @@ export default function Learn() {
             ))}
             {rejected.length > 0 && (
               <p className="slabel reveal text-center text-faint" style={{ animationDelay: "120ms" }}>
-                ↳ the fact-checker caught it — revised until accurate
+                {t("learn.factChecker")}
               </p>
             )}
 
@@ -190,13 +192,13 @@ export default function Learn() {
                     } as React.CSSProperties
                   }
                 >
-                  <p className="slabel text-orange-text">where this analogy breaks down</p>
+                  <p className="slabel text-orange-text">{t("learn.breaksDown")}</p>
                   <p className="mt-2 text-sm leading-relaxed text-dim">{bridge.body.breaksDown}</p>
                 </div>
               </>
             ) : (
               <div className="card p-6">
-                <p className="slabel text-faint">plain explanation · no analogy passed the fact-check</p>
+                <p className="slabel text-faint">{t("learn.plainNoAnalogy")}</p>
                 <p className="mt-2 text-base leading-relaxed text-text">{bridge.body.plainRestatement}</p>
               </div>
             )}
@@ -214,7 +216,7 @@ export default function Learn() {
                 } as React.CSSProperties
               }
             >
-              <p className="slabel text-curriculum-text">in plain subject terms</p>
+              <p className="slabel text-curriculum-text">{t("learn.plainTerms")}</p>
               <p className="mt-2 text-sm leading-relaxed text-dim">{bridge.body.plainRestatement}</p>
             </div>
 
@@ -222,17 +224,15 @@ export default function Learn() {
             {feedback === null ? (
               <div className="reveal flex gap-3" style={{ animationDelay: "520ms" }}>
                 <button onClick={() => sendFeedback(true)} className="btn btn-acid flex-1">
-                  That clicked
+                  {t("learn.clicked")}
                 </button>
                 <button onClick={() => sendFeedback(false)} className="btn btn-glass flex-1">
-                  Didn&rsquo;t land
+                  {t("learn.didntLand")}
                 </button>
               </div>
             ) : (
               <p className="text-center text-xs text-faint">
-                {feedback
-                  ? "Noted — we’ll lean on this domain more."
-                  : "Noted — we’ll try a different domain next time."}
+                {feedback ? t("learn.notedLean") : t("learn.notedDifferent")}
               </p>
             )}
 
@@ -242,7 +242,7 @@ export default function Learn() {
                 onClick={() => router.push(`/learn/${conceptId}/check`)}
                 className="btn btn-primary w-full"
               >
-                Check what stuck →
+                {t("learn.check")}
               </button>
             )}
           </>

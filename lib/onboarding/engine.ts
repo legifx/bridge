@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db/prisma";
+import { st } from "@/lib/i18n";
 import { buildProfileV2 } from "@/lib/profile/build2";
 import { planInterview, generateMagnets, synthesizeDomains } from "./generate";
 import { scoreMagnet, syncScore, shuffle, UNVERIFIED, MAX_STEPS } from "./score";
@@ -99,7 +100,7 @@ async function buildVerifySteps(domains: DomainState[], language?: string): Prom
       kind: "wordmagnet",
       id: `${d.key}|magnet`,
       domain: d.name,
-      prompt: "Tap every word you actually know and use. Skip anything unfamiliar — honesty tunes your bridges.",
+      prompt: st(language, "steps.magnetPrompt"),
       words: shuffled.map((w) => w.term),
     });
   }

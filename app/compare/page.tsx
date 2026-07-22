@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
 import { BridgeViz } from "@/components/BridgeViz";
+import { useT } from "@/components/LanguageProvider";
 
 type Body = {
   opening: string;
@@ -15,6 +16,7 @@ type Panel = { displayName: string; domainName: string | null; similarity: numbe
 type Data = { concept: string; labels: string[]; panels: Panel[]; error?: string };
 
 export default function Compare() {
+  const t = useT();
   const [data, setData] = useState<Data | null>(null);
   const [concept, setConcept] = useState<string | null>(null);
 
@@ -27,7 +29,7 @@ export default function Compare() {
 
   return (
     <Shell wide>
-      <PageHead eyebrow="Same concept · two worlds" title="One idea, two ways" />
+      <PageHead eyebrow={t("cmp.eyebrow")} title={t("cmp.title")} />
 
       {data?.error && <p className="text-sm text-faint">{data.error}</p>}
 
@@ -68,17 +70,14 @@ export default function Compare() {
                 <p className="px-1 text-sm leading-relaxed text-dim">{p.body.opening}</p>
               </>
             ) : (
-              <div className="card p-6 text-sm text-faint">
-                No pre-generated bridge for this profile yet.
-              </div>
+              <div className="card p-6 text-sm text-faint">{t("cmp.noBridge")}</div>
             )}
           </div>
         ))}
       </div>
 
       <p className="mx-auto mt-12 max-w-xl text-center text-sm leading-relaxed text-dim">
-        Same facts, same concept, same assessment — only the explanation is re-lit through each
-        learner&rsquo;s world.
+        {t("cmp.footer")}
       </p>
     </Shell>
   );

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { Led } from "@/components/Led";
+import { useT } from "@/components/LanguageProvider";
 
 type Quiz = { free: { prompt: string }; mcq: { prompt: string; options: string[]; answerIndex: number } };
 type Concept = { id: string; label: string; reviewEnabled: boolean };
@@ -14,6 +15,7 @@ type Concept = { id: string; label: string; reviewEnabled: boolean };
  * shown here — just the concept name and the questions, in subject vocabulary.
  */
 export default function Check() {
+  const t = useT();
   const { conceptId } = useParams<{ conceptId: string }>();
   const router = useRouter();
 
@@ -53,7 +55,7 @@ export default function Check() {
         if (d.error) setError(d.error);
         else setQuiz(d.quiz);
       })
-      .catch(() => setError("Could not load the check."));
+      .catch(() => setError(t("check.couldNotLoad")));
   }, [conceptId]);
 
   async function submit() {
@@ -82,21 +84,18 @@ export default function Check() {
   return (
     <Shell>
       <header className="mb-8 mt-2">
-        <p className="eyebrow">Check · from memory</p>
+        <p className="eyebrow">{t("check.eyebrow")}</p>
         <h1 className="mt-2.5 text-2xl font-semibold tracking-tight text-text">
           {concept?.label ?? "…"}
         </h1>
-        <p className="mt-2.5 max-w-md text-sm leading-relaxed text-dim">
-          Answered in the subject&rsquo;s own words — the explanation stays behind on purpose.
-          Recalling it yourself is what makes it stick.
-        </p>
+        <p className="mt-2.5 max-w-md text-sm leading-relaxed text-dim">{t("check.sub")}</p>
       </header>
 
       {error && (
         <div className="card p-5">
           <p className="text-sm text-reject-text">{error}</p>
           <button onClick={() => router.back()} className="btn btn-glass mt-4 w-full">
-            Back
+            {t("common.back")}
           </button>
         </div>
       )}
@@ -104,9 +103,9 @@ export default function Check() {
       {!quiz && !error && (
         <div className="card flex flex-col items-center gap-4 p-10">
           <span className="btn btn-working pointer-events-none h-10 px-5 text-xs">
-            writing your questions…
+            {t("check.writing")}
           </span>
-          <p className="slabel text-faint">generating from the source, not the analogy</p>
+          <p className="slabel text-faint">{t("check.generating")}</p>
         </div>
       )}
 
@@ -118,7 +117,7 @@ export default function Check() {
               value={freeAnswer}
               onChange={(e) => setFreeAnswer(e.target.value)}
               rows={4}
-              placeholder="From memory, in your own words…"
+              placeholder={t("check.freePlaceholder")}
               className="input mt-3 resize-y text-sm"
             />
           </div>
@@ -141,7 +140,7 @@ export default function Check() {
             disabled={submitting || mcqChoice === null || freeAnswer.trim().length === 0}
             className={`btn btn-primary w-full ${submitting ? "btn-working" : ""}`}
           >
-            {submitting ? "grading your recall…" : "Submit answers"}
+            {submitting ? t("check.grading") : t("check.submit")}
           </button>
         </div>
       )}
@@ -161,7 +160,7 @@ export default function Check() {
               result.correct ? "text-acid-text" : "text-orange-text"
             }`}
           >
-            {result.correct ? "Got it." : "Not quite — worth another pass."}
+            {result.correct ? t("check.gotIt") : t("check.notQuite")}
           </p>
           <p className="mt-1.5 text-sm leading-relaxed text-dim">{result.grade.feedback}</p>
           <div className="mt-5 flex items-center justify-center gap-3">
@@ -171,7 +170,7 @@ export default function Check() {
               color={result.correct ? "#c9ff7a" : "#ffb877"}
               suffix="%"
             />
-            <span className="slabel text-faint">mastery · next review {result.nextIntervalDays}d</span>
+            <span className="slabel text-faint">{t("check.mastery", { d: result.nextIntervalDays })}</span>
           </div>
 
           {/* spaced repetition opt-in, per concept */}
@@ -186,18 +185,14 @@ export default function Check() {
             }}
           >
             <span className="flex items-center justify-between">
-              <span className={srs ? "text-acid-text" : "text-dim"}>
-                ↻ Keep this in review rotation
-              </span>
-              <span className="slabel text-faint">{srs ? "on" : "off"}</span>
+              <span className={srs ? "text-acid-text" : "text-dim"}>{t("check.keepRotation")}</span>
+              <span className="slabel text-faint">{srs ? t("common.on") : t("common.off")}</span>
             </span>
-            <span className="mt-1 block text-xs leading-relaxed text-faint">
-              Spaced repetition: Bridge resurfaces this concept right before you&rsquo;d forget it.
-            </span>
+            <span className="mt-1 block text-xs leading-relaxed text-faint">{t("check.srsNote")}</span>
           </button>
 
           <button onClick={() => router.push("/")} className="btn btn-primary mt-5 w-full">
-            Back to map
+            {t("check.backToMap")}
           </button>
         </div>
       )}

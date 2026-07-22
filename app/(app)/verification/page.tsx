@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
+import { useT } from "@/components/LanguageProvider";
 
 type Entry = {
   id: string;
@@ -16,6 +17,7 @@ type Entry = {
 };
 
 export default function Verification() {
+  const t = useT();
   const [entries, setEntries] = useState<Entry[] | null>(null);
 
   useEffect(() => {
@@ -29,17 +31,11 @@ export default function Verification() {
 
   return (
     <Shell>
-      <PageHead
-        eyebrow="Verification"
-        title="Every bridge, fact-checked"
-        sub="A second, independent model checks each analogy against the source. Accepted and rejected attempts are both kept — honesty is the point."
-      />
+      <PageHead eyebrow={t("verif.eyebrow")} title={t("verif.title")} sub={t("verif.sub")} />
 
-      {!entries && <p className="mt-10 text-center text-sm text-faint">Loading…</p>}
+      {!entries && <p className="mt-10 text-center text-sm text-faint">{t("common.loading")}</p>}
       {entries && entries.length === 0 && (
-        <p className="mt-10 text-center text-sm text-faint">
-          No bridges yet. Learn a concept and its attempts show up here.
-        </p>
+        <p className="mt-10 text-center text-sm text-faint">{t("verif.none")}</p>
       )}
 
       <ul className="space-y-5">
@@ -61,12 +57,12 @@ export default function Verification() {
               <div className="mb-2 flex items-baseline justify-between gap-3">
                 <span className="min-w-0 truncate text-sm font-semibold tracking-tight text-text">
                   {e.conceptLabel}{" "}
-                  <span className="font-mono text-2xs font-normal text-faint">via {e.domainName}</span>
+                  <span className="font-mono text-2xs font-normal text-faint">{t("verif.via", { domain: e.domainName })}</span>
                 </span>
                 <span
                   className={`slabel shrink-0 ${rejected ? "text-reject" : "text-acid-text"}`}
                 >
-                  {e.isFallback ? "plain" : e.status} · a{e.attempt}
+                  {e.isFallback ? t("verif.plain") : e.status === "rejected" ? t("verif.rejected") : t("verif.accepted")} · a{e.attempt}
                 </span>
               </div>
               {e.preview && <p className="text-sm leading-relaxed text-dim">{e.preview}</p>}

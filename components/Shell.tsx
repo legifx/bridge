@@ -4,15 +4,16 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Led } from "./Led";
-import { LANGUAGES } from "@/lib/i18n";
+import { LanguageSelect } from "./LanguageSelect";
+import { useT } from "./LanguageProvider";
 
 const NAV = [
-  { href: "/", label: "Map" },
-  { href: "/review", label: "Review" },
-  { href: "/capture", label: "Capture" },
-  { href: "/brain", label: "Brain" },
-  { href: "/teacher", label: "Teacher" },
-];
+  { href: "/", key: "nav.map" },
+  { href: "/review", key: "nav.review" },
+  { href: "/capture", key: "nav.capture" },
+  { href: "/brain", key: "nav.brain" },
+  { href: "/teacher", key: "nav.teacher" },
+] as const;
 
 type Me = {
   learner: { id: string; displayName: string; language?: string } | null;
@@ -28,6 +29,7 @@ export function Shell({
   wide?: boolean;
 }) {
   const path = usePathname();
+  const t = useT();
   const [me, setMe] = useState<Me | null>(null);
 
   useEffect(() => {
@@ -36,15 +38,6 @@ export function Shell({
       .then(setMe)
       .catch(() => {});
   }, [path]);
-
-  async function setLanguage(code: string) {
-    setMe((m) => (m?.learner ? { ...m, learner: { ...m.learner, language: code } } : m));
-    await fetch("/api/me", {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ language: code }),
-    }).catch(() => {});
-  }
 
   async function signOut() {
     await fetch("/api/signout", { method: "POST" });
@@ -66,32 +59,20 @@ export function Shell({
             href="/compare"
             className="slabel hidden text-faint transition hover:text-interest-text min-[440px]:inline"
           >
-            compare ↗
+            {t("nav.compare")}
           </Link>
           {me?.learner && (
             <span className="flex items-center gap-2.5">
-              <select
-                aria-label="Main language"
-                value={me.learner.language ?? "en"}
-                onChange={(e) => void setLanguage(e.target.value)}
-                className="h-8 cursor-pointer appearance-none rounded-full bg-white/[0.07] px-3 text-xs font-semibold text-text outline-none transition hover:bg-white/[0.1]"
-                style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)" }}
-              >
-                {LANGUAGES.map((l) => (
-                  <option key={l.code} value={l.code} className="bg-black text-white">
-                    {l.code.toUpperCase()}
-                  </option>
-                ))}
-              </select>
+              <LanguageSelect compact />
               {me.quota && (
-                <span className="flex items-baseline gap-1" title="AI budget left on this demo profile">
+                <span className="flex items-baseline gap-1" title={t("shell.aiBudget")}>
                   <Led value={`${me.quota.remaining}`} dot={2.4} color={me.quota.remaining > 2 ? "#c9ff7a" : "#ffb877"} />
                   <span className="font-mono text-2xs text-faint">AI</span>
                 </span>
               )}
               <button
                 onClick={signOut}
-                title="Sign out"
+                title={t("shell.signOut")}
                 className="flex h-8 max-w-[110px] items-center gap-2 rounded-full px-3 text-xs font-semibold text-text transition hover:bg-white/[0.1]"
                 style={{ background: "rgba(255,255,255,0.07)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)" }}
               >
@@ -107,10 +88,7 @@ export function Shell({
         {children}
         {me?.publicDemo && (
           <footer className="mt-14 px-2 text-center">
-            <p className="text-2xs leading-relaxed text-faint">
-              Public test demo · accounts are open (anyone who knows a name can open that profile)
-              · please don&rsquo;t enter private data · each profile carries a small AI budget.
-            </p>
+            <p className="text-2xs leading-relaxed text-faint">{t("shell.publicDemo")}</p>
           </footer>
         )}
       </div>
@@ -143,7 +121,7 @@ export function Shell({
                     }}
                   />
                 )}
-                {n.label}
+                {t(n.key)}
               </Link>
             );
           })}

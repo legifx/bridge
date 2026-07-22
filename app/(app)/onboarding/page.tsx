@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { TickScale } from "@/components/TickScale";
 import { StepCard } from "@/components/InterviewSteps";
 import { ThinkingLoader } from "@/components/ThinkingLoader";
-import { LANGUAGES, detectLanguage } from "@/lib/i18n";
+import { LanguageSelect } from "@/components/LanguageSelect";
+import { useI18n } from "@/components/LanguageProvider";
 import type { Answer, Interaction, MirrorDomain } from "@/lib/onboarding/types";
 
 /**
  * Onboarding v3 — an adaptive interview instead of a fixed form.
  *
+ * language: chosen first (clean dropdown), drives the WHOLE app — UI strings
+ *   and every AI-generated question/explanation.
  * seed: free chips + a discovery grid (broad areas that expand into specifics).
  * interview: server-driven steps (this-or-that, sliders, word magnets); the
  *   word magnet mixes real tiered terms with decoys, so depth is VERIFIED,
@@ -29,39 +32,18 @@ type Batch = {
 
 const MAX_SEEDS = 8;
 
-const DISCOVERY: { label: string; subs: string[] }[] = [
-  { label: "Gaming", subs: ["competitive shooters", "strategy games", "Minecraft & building games", "speedrunning", "game design"] },
-  { label: "Music", subs: ["playing an instrument", "music production", "DJing", "singing"] },
-  { label: "Sports & fitness", subs: ["football", "basketball", "gym & lifting", "running", "skating"] },
-  { label: "PC & tech", subs: ["building PCs", "AI & machine learning", "coding", "gadgets"] },
-  { label: "Cars & engines", subs: ["car mechanics", "tuning", "motorsport", "motorcycles"] },
-  { label: "Making & building", subs: ["woodworking", "3D printing", "LEGO & models", "electronics"] },
-  { label: "Cooking & baking", subs: ["cooking", "baking bread", "coffee brewing", "street food"] },
-  { label: "Animals & nature", subs: ["horses", "dogs", "fishing", "hiking & camping"] },
-  { label: "Art & design", subs: ["drawing", "digital art", "photography", "fashion"] },
-  { label: "Film & stories", subs: ["movies & series", "anime & manga", "books & writing"] },
-  { label: "Creating online", subs: ["YouTube & streaming", "video editing", "podcasts"] },
-  { label: "Science & space", subs: ["astronomy", "physics", "math puzzles"] },
-];
-
-const DEPTH_LABEL: Record<string, string> = { novice: "casual", hobbyist: "hobbyist", deep: "deep" };
-
 export default function Onboarding() {
   const router = useRouter();
+  const { t, dict, lang } = useI18n();
   const [phase, setPhase] = useState<"seed" | "interview" | "mirror">("seed");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // main language — asked first, saved with the interview start, editable later
-  const [language, setLanguage] = useState("en");
-  useEffect(() => {
-    setLanguage(detectLanguage(navigator.language));
-  }, []);
-
-  // seed screen
-  const [broadSel, setBroadSel] = useState<Set<string>>(new Set());
-  const [subSel, setSubSel] = useState<Set<string>>(new Set());
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  // discovery selections are keyed by grid position, so switching the
+  // language mid-selection keeps every pick (labels re-render translated)
+  const [broadSel, setBroadSel] = useState<Set<number>>(new Set());
+  const [subSel, setSubSel] = useState<Set<string>>(new Set()); // "di:si"
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
   const [customList, setCustomList] = useState<string[]>([]);
   const [customInput, setCustomInput] = useState("");
 
@@ -76,41 +58,43 @@ export default function Onboarding() {
   const [profile, setProfile] = useState<MirrorDomain[]>([]);
 
   const seeds = useMemo(() => {
-    const fromSubs = [...subSel];
-    const subOf = (broad: string) =>
-      DISCOVERY.find((d) => d.label === broad)?.subs.some((s) => subSel.has(s)) ?? false;
-    const fromBroad = [...broadSel].filter((b) => !subOf(b));
-    return [...customList, ...fromSubs, ...fromBroad].slice(0, MAX_SEEDS);
-  }, [broadSel, subSel, customList]);
+    const fromSubs = [...subSel].map((k) => {
+      const [di, si] = k.split(":").map(Number);
+      return dict.discovery[di]?.subs[si];
+    });
+    const subOf = (di: number) => [...subSel].some((k) => k.startsWith(`${di}:`));
+    const fromBroad = [...broadSel].filter((di) => !subOf(di)).map((di) => dict.discovery[di]?.label);
+    return [...customList, ...fromSubs, ...fromBroad].filter((s): s is string => Boolean(s)).slice(0, MAX_SEEDS);
+  }, [broadSel, subSel, customList, dict]);
 
-  function toggleBroad(label: string) {
+  function toggleBroad(di: number) {
     setBroadSel((s) => {
       const next = new Set(s);
-      if (next.has(label)) next.delete(label);
-      else next.add(label);
+      if (next.has(di)) next.delete(di);
+      else next.add(di);
       return next;
     });
     setExpanded((s) => {
       const next = new Set(s);
-      if (next.has(label)) next.delete(label);
-      else next.add(label);
+      if (next.has(di)) next.delete(di);
+      else next.add(di);
       return next;
     });
   }
 
-  function toggleSub(label: string) {
+  function toggleSub(key: string) {
     setSubSel((s) => {
       const next = new Set(s);
-      if (next.has(label)) next.delete(label);
-      else next.add(label);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
       return next;
     });
   }
 
   function addCustom() {
-    const t = customInput.trim();
-    if (t.length < 2 || customList.includes(t) || seeds.length >= MAX_SEEDS) return;
-    setCustomList((l) => [...l, t]);
+    const v = customInput.trim();
+    if (v.length < 2 || customList.includes(v) || seeds.length >= MAX_SEEDS) return;
+    setCustomList((l) => [...l, v]);
     setCustomInput("");
   }
 
@@ -142,10 +126,10 @@ export default function Onboarding() {
         return null;
       }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Something went wrong.");
+      if (!res.ok) throw new Error(data.error ?? t("common.somethingWrong"));
       return data as Batch;
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setError(e instanceof Error ? e.message : t("common.somethingWrong"));
       return null;
     } finally {
       setBusy(false);
@@ -156,7 +140,7 @@ export default function Onboarding() {
     const batch = await post({
       url: "/api/onboarding/session",
       method: "POST",
-      body: JSON.stringify({ seeds, language }),
+      body: JSON.stringify({ seeds, language: lang }),
     });
     if (batch) applyBatch(batch);
   }
@@ -192,20 +176,25 @@ export default function Onboarding() {
   }
 
   const step = queue[idx];
+  const depthLabel: Record<string, string> = {
+    novice: t("ob.depth.casual"),
+    hobbyist: t("ob.depth.hobbyist"),
+    deep: t("ob.depth.deep"),
+  };
 
   return (
     <main className="page-enter mx-auto w-full max-w-[640px] px-5 pb-56 pt-8">
       {phase === "seed" && busy && (
         <>
           <header className="mb-8">
-            <p className="eyebrow">Bridge · your world</p>
+            <p className="eyebrow">{t("ob.eyebrow")}</p>
           </header>
           <ThinkingLoader
             stages={[
-              { label: "Reading your seeds" },
-              { label: "Embedding each interest", detail: "local vectors — your words become geometry" },
-              { label: "Mapping interest domains" },
-              { label: "Drafting your interview", detail: "questions built only from what you said" },
+              { label: t("ob.think1.a") },
+              { label: t("ob.think1.b"), detail: t("ob.think1.bd") },
+              { label: t("ob.think1.c") },
+              { label: t("ob.think1.d"), detail: t("ob.think1.dd") },
             ]}
             items={seeds}
             glow="var(--interest)"
@@ -217,40 +206,22 @@ export default function Onboarding() {
       {phase === "seed" && !busy && (
         <>
           <header className="mb-8">
-            <p className="eyebrow">Bridge · your world</p>
+            <p className="eyebrow">{t("ob.eyebrow")}</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text">
-              What do you care about?
+              {t("ob.seedTitle")}
             </h1>
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-dim">
-              Type your own things — that&rsquo;s the strongest signal — or tap around the grid.
-              A short interview then figures out how deep each one really goes. No fixed
-              categories, no wrong answers.
-            </p>
+            <p className="mt-2 max-w-md text-sm leading-relaxed text-dim">{t("ob.seedSub")}</p>
           </header>
 
           <div className="mb-8">
-            <p className="mb-2 text-base font-semibold tracking-tight text-text">Main language</p>
-            <p className="mb-3 text-xs leading-relaxed text-dim">
-              Questions, explanations and feedback come in this language. You can change it any
-              time from the header.
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {LANGUAGES.map((l) => (
-                <button
-                  key={l.code}
-                  type="button"
-                  onClick={() => setLanguage(l.code)}
-                  className={`chip pop ring-focus ${language === l.code ? "chip-curriculum" : ""}`}
-                >
-                  {l.label}
-                </button>
-              ))}
-            </div>
+            <p className="mb-2 text-base font-semibold tracking-tight text-text">{t("ob.language")}</p>
+            <p className="mb-3 text-xs leading-relaxed text-dim">{t("ob.languageSub")}</p>
+            <LanguageSelect />
           </div>
 
           <div className="mb-8">
             <label htmlFor="own" className="mb-2 block text-base font-semibold tracking-tight text-text">
-              Your own interests
+              {t("ob.own")}
             </label>
             <div className="flex gap-2.5">
               <input
@@ -258,7 +229,7 @@ export default function Onboarding() {
                 value={customInput}
                 onChange={(e) => setCustomInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addCustom()}
-                placeholder="drum & bass production, bouldering, local LLMs…"
+                placeholder={t("ob.ownPlaceholder")}
                 maxLength={80}
                 className="input flex-1"
               />
@@ -267,51 +238,54 @@ export default function Onboarding() {
                 disabled={customInput.trim().length < 2 || seeds.length >= MAX_SEEDS}
                 className="btn btn-glass shrink-0 px-5"
               >
-                Add
+                {t("ob.add")}
               </button>
             </div>
             {customList.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
-                {customList.map((t) => (
+                {customList.map((v) => (
                   <button
-                    key={t}
-                    onClick={() => setCustomList((l) => l.filter((x) => x !== t))}
+                    key={v}
+                    onClick={() => setCustomList((l) => l.filter((x) => x !== v))}
                     className="chip chip-interest pop"
-                    title="Remove"
+                    title={t("ob.notMe")}
                   >
-                    {t} ×
+                    {v} ×
                   </button>
                 ))}
               </div>
             )}
           </div>
 
-          <p className="slabel mb-3 text-faint">or explore</p>
+          <p className="slabel mb-3 text-faint">{t("ob.orExplore")}</p>
           <div className="space-y-3">
-            {DISCOVERY.map((d) => {
-              const active = broadSel.has(d.label);
-              const open = expanded.has(d.label);
+            {dict.discovery.map((d, di) => {
+              const active = broadSel.has(di);
+              const open = expanded.has(di);
               return (
-                <div key={d.label}>
+                <div key={di}>
                   <button
                     type="button"
-                    onClick={() => toggleBroad(d.label)}
+                    onClick={() => toggleBroad(di)}
                     className={`opt ring-focus w-full text-left ${active ? "opt-active" : ""}`}
                   >
                     {d.label}
                   </button>
                   {open && (
                     <div className="mt-2 flex flex-wrap gap-2 pl-1">
-                      {d.subs.map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => toggleSub(s)}
-                          className={`chip pop ring-focus ${subSel.has(s) ? "chip-interest" : ""}`}
-                        >
-                          {s}
-                        </button>
-                      ))}
+                      {d.subs.map((sub, si) => {
+                        const key = `${di}:${si}`;
+                        return (
+                          <button
+                            key={key}
+                            type="button"
+                            onClick={() => toggleSub(key)}
+                            className={`chip pop ring-focus ${subSel.has(key) ? "chip-interest" : ""}`}
+                          >
+                            {sub}
+                          </button>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -325,16 +299,16 @@ export default function Onboarding() {
         <>
           <header className="mb-8">
             <p className="eyebrow">
-              Bridge · interview · {Math.min(idx + 1, queue.length)}/{queue.length}
+              {t("ob.interviewEyebrow")} · {Math.min(idx + 1, queue.length)}/{queue.length}
             </p>
           </header>
           {busy || !step ? (
             <ThinkingLoader
               stages={[
-                { label: "Scoring your answers" },
-                { label: "Updating each domain", detail: "depth is verified, never self-reported" },
-                { label: "Choosing what to ask next" },
-                { label: "Calibrating confidence" },
+                { label: t("ob.think2.a") },
+                { label: t("ob.think2.b"), detail: t("ob.think2.bd") },
+                { label: t("ob.think2.c") },
+                { label: t("ob.think2.d") },
               ]}
               items={[...new Set(queue.map((s) => s.domain))]}
               glow="var(--violet)"
@@ -347,7 +321,7 @@ export default function Onboarding() {
             <div className="card mt-4 p-4">
               <p className="text-xs text-reject-text">{error}</p>
               <button onClick={() => void submitAnswers(answers)} className="btn btn-glass mt-3 px-5">
-                Try again
+                {t("common.tryAgain")}
               </button>
             </div>
           )}
@@ -357,14 +331,11 @@ export default function Onboarding() {
       {phase === "mirror" && (
         <>
           <header className="mb-8">
-            <p className="eyebrow">Bridge · your brain, mirrored</p>
+            <p className="eyebrow">{t("ob.mirrorEyebrow")}</p>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text">
-              Here&rsquo;s what I understood
+              {t("ob.mirrorTitle")}
             </h1>
-            <p className="mt-2 max-w-md text-sm leading-relaxed text-dim">
-              Every confidence below was earned in the interview, not assumed. Remove anything
-              that feels wrong — the rest keeps calibrating as you learn.
-            </p>
+            <p className="mt-2 max-w-md text-sm leading-relaxed text-dim">{t("ob.mirrorSub")}</p>
           </header>
           <div className="space-y-4">
             {profile.map((d) => (
@@ -377,13 +348,13 @@ export default function Onboarding() {
                   <button
                     onClick={() => void removeDomain(d.id)}
                     className="chip pop shrink-0"
-                    title="Not me — remove"
+                    title={t("ob.notMe")}
                   >
                     ×
                   </button>
                 </div>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <span className="chip chip-curriculum">{DEPTH_LABEL[d.depth] ?? d.depth}</span>
+                  <span className="chip chip-curriculum">{depthLabel[d.depth] ?? d.depth}</span>
                   {d.anchors.slice(0, 6).map((a) => (
                     <span key={a} className="chip chip-interest">
                       {a}
@@ -392,7 +363,7 @@ export default function Onboarding() {
                 </div>
                 <div className="mt-4">
                   <div className="mb-1 flex justify-between text-2xs text-faint">
-                    <span className="slabel">confidence</span>
+                    <span className="slabel">{t("ob.confidence")}</span>
                     <span>{Math.round(d.confidence * 100)}%</span>
                   </div>
                   <TickScale value={d.confidence} color="var(--interest)" count={36} />
@@ -401,11 +372,9 @@ export default function Onboarding() {
             ))}
             {profile.length === 0 && (
               <div className="card p-6">
-                <p className="text-sm text-dim">
-                  Nothing left — restart the interview to rebuild your profile.
-                </p>
+                <p className="text-sm text-dim">{t("ob.nothingLeft")}</p>
                 <button onClick={() => window.location.reload()} className="btn btn-glass mt-3 px-5">
-                  Start over
+                  {t("ob.startOver")}
                 </button>
               </div>
             )}
@@ -421,7 +390,7 @@ export default function Onboarding() {
         <div className="nav-glass mx-auto max-w-[640px] p-4" style={{ borderRadius: "var(--r-lg)" }}>
           <div className="mb-3">
             <div className="mb-1 flex items-center justify-between">
-              <span className="slabel text-faint">brain sync</span>
+              <span className="slabel text-faint">{t("ob.brainSync")}</span>
               <span className="text-xs text-dim">{Math.round(sync * 100)}%</span>
             </div>
             <TickScale value={sync} color="var(--interest)" />
@@ -435,17 +404,15 @@ export default function Onboarding() {
                 className={`btn w-full ${busy ? "btn-working" : "btn-primary"}`}
               >
                 {busy
-                  ? "reading your world…"
+                  ? t("ob.readingWorld")
                   : seeds.length === 0
-                    ? "Add or tap at least one thing"
-                    : `Start the interview · ${seeds.length} seed${seeds.length === 1 ? "" : "s"} →`}
+                    ? t("ob.addOne")
+                    : t("ob.startInterview", { n: seeds.length })}
               </button>
             </>
           )}
           {phase === "interview" && (
-            <p className="text-center text-xs text-faint">
-              Honest answers → better bridges. There is no score.
-            </p>
+            <p className="text-center text-xs text-faint">{t("ob.honest")}</p>
           )}
           {phase === "mirror" && (
             <button
@@ -453,7 +420,7 @@ export default function Onboarding() {
               disabled={profile.length === 0}
               className="btn btn-primary w-full"
             >
-              Looks right — start learning →
+              {t("ob.looksRight")}
             </button>
           )}
         </div>

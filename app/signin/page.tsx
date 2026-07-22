@@ -2,8 +2,10 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useT } from "@/components/LanguageProvider";
 
 function SignInForm() {
+  const t = useT();
   const router = useRouter();
   const expired = useSearchParams().get("expired") === "1";
   const [username, setUsername] = useState("");
@@ -27,7 +29,7 @@ function SignInForm() {
       }
       router.push(data.hasProfile ? "/" : "/onboarding");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setError(e instanceof Error ? e.message : t("common.somethingWrong"));
       setBusy(false);
     }
   }
@@ -37,12 +39,9 @@ function SignInForm() {
       <div className="flex-1">
         <p className="eyebrow">Bridge</p>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text">
-          Learn new things through what you already know.
+          {t("signin.heroTitle")}
         </h1>
-        <p className="mt-3 text-sm leading-relaxed text-dim">
-          Bridge builds an interest profile from a few taps, then re-explains any study material
-          through your world — and fact-checks every analogy before you see it.
-        </p>
+        <p className="mt-3 text-sm leading-relaxed text-dim">{t("signin.heroSub")}</p>
 
         <div
           className="aura card mt-10 p-6"
@@ -56,19 +55,17 @@ function SignInForm() {
           }
         >
           <label htmlFor="user" className="slabel text-curriculum-text">
-            {expired ? "session ended — sign back in" : "pick a name to start"}
+            {expired ? t("signin.sessionEnded") : t("signin.pickName")}
           </label>
           {expired && (
-            <p className="mt-2 text-xs leading-relaxed text-orange-text">
-              Your session ended. Enter the same name to pick up exactly where you left off.
-            </p>
+            <p className="mt-2 text-xs leading-relaxed text-orange-text">{t("signin.expiredNote")}</p>
           )}
           <input
             id="user"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="e.g. nova, tim, käsebrot…"
+            placeholder={t("signin.placeholder")}
             maxLength={24}
             autoFocus
             className="input mt-3"
@@ -79,37 +76,29 @@ function SignInForm() {
             disabled={busy || username.trim().length < 2}
             className={`btn mt-4 w-full ${busy ? "btn-working" : "btn-primary"}`}
           >
-            {busy ? "opening your profile…" : "Start learning"}
+            {busy ? t("signin.opening") : t("signin.start")}
           </button>
-          <p className="mt-4 text-xs leading-relaxed text-faint">
-            Existing name? Signing in with it brings your profile right back.
-          </p>
+          <p className="mt-4 text-xs leading-relaxed text-faint">{t("signin.existing")}</p>
         </div>
 
         <div className="mt-6 flex items-center gap-3">
           <span className="h-px flex-1 bg-hair" />
-          <span className="slabel text-faint">or explore a lived-in profile</span>
+          <span className="slabel text-faint">{t("signin.orExplore")}</span>
           <span className="h-px flex-1 bg-hair" />
         </div>
         <div className="mt-4 flex gap-3">
           <button onClick={() => submit("Mara")} disabled={busy} className="btn btn-glass flex-1">
-            Mara · gaming
+            {t("signin.mara")}
           </button>
           <button onClick={() => submit("Theo")} disabled={busy} className="btn btn-glass flex-1">
-            Theo · horses
+            {t("signin.theo")}
           </button>
         </div>
       </div>
 
       <footer className="mt-12 space-y-2 text-center">
-        <p className="text-2xs leading-relaxed text-faint">
-          Public test demo — accounts are open: anyone who knows a name can open that profile.
-          Please don&rsquo;t enter private or personal data. Each profile has a small AI budget.
-        </p>
-        <p className="text-2xs leading-relaxed text-faint">
-          This demo exists so you can see how Bridge reads your interests — and tell us whether it
-          got you right.
-        </p>
+        <p className="text-2xs leading-relaxed text-faint">{t("signin.footer1")}</p>
+        <p className="text-2xs leading-relaxed text-faint">{t("signin.footer2")}</p>
       </footer>
     </main>
   );

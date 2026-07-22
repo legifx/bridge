@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Space_Grotesk, Instrument_Sans, IBM_Plex_Mono } from "next/font/google";
+import { LanguageProvider } from "@/components/LanguageProvider";
 import "./globals.css";
 
 const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display" });
@@ -31,7 +32,9 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable} h-full`}>
-      <body className="grain min-h-full bg-black">{children}</body>
+      <body className="grain min-h-full bg-black">
+        <LanguageProvider>{children}</LanguageProvider>
+      </body>
     </html>
   );
 }

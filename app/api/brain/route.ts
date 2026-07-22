@@ -11,6 +11,6 @@ export async function GET() {
   if (!learner) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
   const tree = await buildBrainTree(learner.id);
-  const summary = summarizeBrain(tree, learner.displayName);
+  const summary = summarizeBrain(tree, learner.displayName, learner.language);
   return NextResponse.json({ ...tree, summary });
 }

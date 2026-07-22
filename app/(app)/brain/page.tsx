@@ -6,6 +6,7 @@ import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
 import { Led } from "@/components/Led";
 import { TickScale } from "@/components/TickScale";
+import { useT } from "@/components/LanguageProvider";
 
 type Branch = {
   label: string;
@@ -22,6 +23,7 @@ type Data = {
 };
 
 export default function Brain() {
+  const t = useT();
   const [data, setData] = useState<Data | null>(null);
 
   useEffect(() => {
@@ -35,13 +37,9 @@ export default function Brain() {
 
   return (
     <Shell>
-      <PageHead
-        eyebrow="Second brain"
-        title="What Bridge thinks you're into"
-        sub="A per-learner vector store that grows with every signal. Clusters, weights and posteriors are shown as they are — nothing is guessed."
-      />
+      <PageHead eyebrow={t("brain.eyebrow")} title={t("brain.title")} sub={t("brain.sub")} />
 
-      {!data && <p className="mt-10 text-center text-sm text-faint">Loading…</p>}
+      {!data && <p className="mt-10 text-center text-sm text-faint">{t("common.loading")}</p>}
 
       {data && (
         <>
@@ -58,7 +56,7 @@ export default function Brain() {
             }
           >
             <p className="slabel" style={{ color: "#c9b3ff" }}>
-              what bridge thinks
+              {t("brain.whatThinks")}
             </p>
             <h2 className="mt-2 text-lg font-semibold tracking-tight text-text">
               {data.summary.headline}
@@ -101,7 +99,7 @@ export default function Brain() {
           {/* the numbers — secondary, for the curious */}
           <div className="mb-2 mt-10 flex items-center gap-3">
             <span className="h-px flex-1 bg-hair" />
-            <span className="slabel text-faint">the numbers</span>
+            <span className="slabel text-faint">{t("brain.numbers")}</span>
             <span className="h-px flex-1 bg-hair" />
           </div>
           <ul className="mb-5 space-y-2 px-1">
@@ -115,9 +113,9 @@ export default function Brain() {
           {/* stats strip */}
           <div className="mt-5 grid grid-cols-3 gap-3">
             {[
-              { label: "signals", value: data.stats.signals, color: "#c9b3ff" },
-              { label: "branches", value: data.stats.branches, color: "#9dc0ff" },
-              { label: "skills", value: data.stats.skills, color: "#c9ff7a" },
+              { label: t("brain.signals"), value: data.stats.signals, color: "#c9b3ff" },
+              { label: t("brain.branches"), value: data.stats.branches, color: "#9dc0ff" },
+              { label: t("brain.skills"), value: data.stats.skills, color: "#c9ff7a" },
             ].map((s) => (
               <div key={s.label} className="card flex flex-col items-center gap-1.5 p-4">
                 <Led value={`${s.value}`} dot={3.4} color={s.color} />
@@ -129,11 +127,9 @@ export default function Brain() {
           {/* the tree: a spine with branches */}
           {data.branches.length === 0 ? (
             <div className="card mt-6 p-8 text-center">
-              <p className="text-sm text-dim">
-                No signals yet. Build a profile and learn something — the tree grows on its own.
-              </p>
+              <p className="text-sm text-dim">{t("brain.noSignals")}</p>
               <Link href="/onboarding" className="btn btn-primary mt-6">
-                Build my profile
+                {t("brain.buildProfile")}
               </Link>
             </div>
           ) : (
@@ -182,15 +178,16 @@ export default function Brain() {
                         </h3>
                         <span className="flex shrink-0 items-baseline gap-2">
                           <Led value={b.totalWeight.toFixed(1)} dot={2.8} color="#ffa6d8" />
-                          <span className="slabel text-faint">wt</span>
+                          <span className="slabel text-faint">{t("brain.wt")}</span>
                         </span>
                       </div>
 
                       <div className="mt-3 flex items-center gap-3">
                         <TickScale value={b.confidence} color="var(--violet)" count={30} className="max-w-[150px]" />
                         <span className="slabel text-faint">
-                          coherence {Math.round(b.confidence * 100)}%
-                          {b.successRate !== null && ` · ${Math.round(b.successRate * 100)}% clicked`}
+                          {t("brain.coherence", { p: Math.round(b.confidence * 100) })}
+                          {b.successRate !== null &&
+                            t("brain.clicked", { p: Math.round(b.successRate * 100) })}
                         </span>
                       </div>
 
@@ -210,7 +207,7 @@ export default function Brain() {
                       {/* skills learned through this branch */}
                       {b.skills.length > 0 && (
                         <div className="mt-4 border-t border-hair pt-4">
-                          <p className="slabel mb-2.5 text-curriculum-text">skills via this interest</p>
+                          <p className="slabel mb-2.5 text-curriculum-text">{t("brain.skillsVia")}</p>
                           <div className="flex flex-wrap gap-2">
                             {b.skills.map((s) => (
                               <Link

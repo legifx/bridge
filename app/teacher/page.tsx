@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
 import { Led } from "@/components/Led";
+import { useT } from "@/components/LanguageProvider";
 
 type Row = {
   conceptLabel: string;
@@ -16,6 +17,7 @@ type Row = {
 const GRID = "grid grid-cols-[minmax(0,1fr)_56px_minmax(0,1.35fr)_72px] items-center gap-4";
 
 export default function Teacher() {
+  const t = useT();
   const [rows, setRows] = useState<Row[] | null>(null);
 
   useEffect(() => {
@@ -26,7 +28,7 @@ export default function Teacher() {
 
   return (
     <Shell wide>
-      <PageHead eyebrow="Teacher" title="Where the cohort struggles" />
+      <PageHead eyebrow={t("teach.eyebrow")} title={t("teach.title")} />
 
       <div
         className="aura card -mt-2 mb-10 p-6"
@@ -40,26 +42,23 @@ export default function Teacher() {
         }
       >
         <p className="text-sm leading-relaxed text-dim">
-          <span className="font-semibold text-text">Bridge profiles material, not children.</span>{" "}
-          Concept-level counts only — no student names, no individuals, and never anyone&rsquo;s
-          interests.
+          <span className="font-semibold text-text">{t("teach.privacyBold")}</span>
+          {t("teach.privacyRest")}
         </p>
       </div>
 
-      {!rows && <p className="text-sm text-faint">Loading…</p>}
+      {!rows && <p className="text-sm text-faint">{t("common.loading")}</p>}
       {rows && rows.length === 0 && (
-        <p className="text-sm text-faint">
-          No cohort activity yet. Once learners answer checks, hardest concepts rank here.
-        </p>
+        <p className="text-sm text-faint">{t("teach.none")}</p>
       )}
 
       {rows && rows.length > 0 && (
         <div className="card overflow-hidden">
           <div className={`${GRID} px-6 py-4`}>
-            <span className="slabel text-faint">Concept</span>
-            <span className="slabel text-right text-faint">Att</span>
-            <span className="slabel text-faint">Struggle</span>
-            <span className="slabel text-right text-faint">Mastered</span>
+            <span className="slabel text-faint">{t("teach.concept")}</span>
+            <span className="slabel text-right text-faint">{t("teach.att")}</span>
+            <span className="slabel text-faint">{t("teach.struggle")}</span>
+            <span className="slabel text-right text-faint">{t("teach.mastered")}</span>
           </div>
           {rows.map((r) => (
             <div key={r.conceptLabel} className={`${GRID} border-t border-hair px-6 py-5`}>

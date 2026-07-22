@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
 import { Led } from "@/components/Led";
+import { useT } from "@/components/LanguageProvider";
 
 type Concept = {
   id: string;
@@ -19,16 +20,6 @@ type Data = {
   concepts: Concept[];
 };
 
-function fmtDate(iso: string) {
-  const d = new Date(iso);
-  const now = new Date();
-  const diffDays = Math.round((d.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays < 0) return "overdue";
-  if (diffDays === 0) return "today";
-  if (diffDays === 1) return "tomorrow";
-  return `in ${diffDays} days`;
-}
-
 function masteryColor(m: number) {
   if (m >= 0.66) return "#c9ff7a";
   if (m >= 0.4) return "#9dc0ff";
@@ -36,7 +27,16 @@ function masteryColor(m: number) {
 }
 
 export default function Review() {
+  const t = useT();
   const [data, setData] = useState<Data | null>(null);
+  function fmtDate(iso: string) {
+    const d = new Date(iso);
+    const diffDays = Math.round((d.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return t("review.overdue");
+    if (diffDays === 0) return t("review.today");
+    if (diffDays === 1) return t("review.tomorrow");
+    return t("review.inDays", { n: diffDays });
+  }
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -63,13 +63,10 @@ export default function Review() {
 
   return (
     <Shell>
-      <PageHead
-        eyebrow="Spaced repetition"
-        title={`Review queue · ${due.length} due`}
-      />
+      <PageHead eyebrow={t("review.eyebrow")} title={t("review.title", { n: due.length })} />
 
       {loading && (
-        <p className="mt-16 text-center text-sm text-faint">Loading…</p>
+        <p className="mt-16 text-center text-sm text-faint">{t("common.loading")}</p>
       )}
 
       {!loading && due.length === 0 && (
@@ -84,12 +81,12 @@ export default function Review() {
             }}
           />
           <h2 className="text-xl font-semibold tracking-tight text-text">
-            All caught up
+            {t("review.caughtUp")}
           </h2>
           <p className="mx-auto mt-2 max-w-sm text-sm text-dim">
             {upcoming.length > 0
-              ? `Next review ${fmtDate(upcoming[0]?.dueAt ?? "")}.`
-              : "Enable spaced repetition on any concept after your first check to keep it in rotation."}
+              ? t("review.next", { when: fmtDate(upcoming[0]?.dueAt ?? "") })
+              : t("review.enableNote")}
           </p>
         </div>
       )}
@@ -98,10 +95,8 @@ export default function Review() {
       {due.length > 0 && (
         <div className="space-y-4">
           <p className="slabel text-faint">
-            due{" "}
-            <span className="font-mono text-2xs text-acid-text">
-              · {due.length} concept{due.length !== 1 ? "s" : ""}
-            </span>
+            {t("review.due")}{" "}
+            <span className="font-mono text-2xs text-acid-text">{t("review.concepts", { n: due.length })}</span>
           </p>
           {due.map((c) => {
             const pct = Math.round(c.mastery * 100);
@@ -158,7 +153,7 @@ export default function Review() {
       {upcoming.length > 0 && (
         <details className="group mt-10">
           <summary className="slabel cursor-pointer text-faint transition hover:text-dim">
-            upcoming ({upcoming.length})
+            {t("review.upcoming", { n: upcoming.length })}
           </summary>
           <div className="mt-4 space-y-3">
             {upcoming.map((c) => {
@@ -196,7 +191,7 @@ export default function Review() {
       {neverReviewed.length > 0 && (
         <details className="group mt-8">
           <summary className="slabel cursor-pointer text-faint transition hover:text-dim">
-            not in rotation ({neverReviewed.length}) — complete a check to add
+            {t("review.notInRotation", { n: neverReviewed.length })}
           </summary>
         </details>
       )}

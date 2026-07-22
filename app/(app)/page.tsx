@@ -6,6 +6,7 @@ import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
 import { Led } from "@/components/Led";
 import { TickScale } from "@/components/TickScale";
+import { useT } from "@/components/LanguageProvider";
 
 type Concept = {
   id: string;
@@ -43,12 +44,11 @@ function masteryGlow(m: number) {
 function masteryColor(m: number) {
   return m >= 0.66 ? "#c9ff7a" : "#9dc0ff";
 }
-function fmtDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-}
-
 export default function Home() {
+  const t = useT();
   const [data, setData] = useState<Data | null>(null);
+  const fmtDate = (iso: string) =>
+    new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short" });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function Home() {
   // …and folders into their parent subject ("Überordner") — one clean block per topic
   const subjects: { subject: string; folders: typeof folders }[] = [];
   for (const f of folders) {
-    const name = f.source.subject?.trim() || "Other topics";
+    const name = f.source.subject?.trim() || t("map.otherTopics");
     const hit = subjects.find((s) => s.subject.toLowerCase() === name.toLowerCase());
     if (hit) hit.folders.push(f);
     else subjects.push({ subject: name, folders: [f] });
@@ -90,29 +90,29 @@ export default function Home() {
 
   return (
     <Shell>
-      {loading && <p className="mt-16 text-center text-sm text-faint">Loading…</p>}
+      {loading && <p className="mt-16 text-center text-sm text-faint">{t("common.loading")}</p>}
 
       {!loading && data && data.domains.length === 0 && (
         <EmptyState
-          title="Start with what you already know."
-          body="A short onboarding builds your interest profile. Then every concept is re-lit through your world."
-          cta="Build my profile"
+          title={t("map.emptyProfileTitle")}
+          body={t("map.emptyProfileBody")}
+          cta={t("map.buildProfile")}
           href="/onboarding"
         />
       )}
 
       {!loading && data && data.domains.length > 0 && data.concepts.length === 0 && (
         <EmptyState
-          title="Add something to learn."
-          body="Snap a page or paste text. Bridge turns it into a concept map."
-          cta="Capture material"
+          title={t("map.emptyCaptureTitle")}
+          body={t("map.emptyCaptureBody")}
+          cta={t("map.captureCta")}
           href="/capture"
         />
       )}
 
       {!loading && data && data.domains.length > 0 && data.concepts.length > 0 && (
         <>
-          <PageHead eyebrow="Concept map" title="Your learning order" />
+          <PageHead eyebrow={t("map.eyebrow")} title={t("map.title")} />
 
           <div className="-mt-4 mb-8 flex flex-wrap gap-2.5">
             {data.domains.map((d) => (
@@ -137,7 +137,7 @@ export default function Home() {
               }
             >
               <div className="mb-3 flex items-baseline justify-between">
-                <p className="slabel text-acid-text">due for review</p>
+                <p className="slabel text-acid-text">{t("map.due")}</p>
                 <Led value={`${due.length}`} dot={3} color="#c9ff7a" />
               </div>
               <div className="flex flex-wrap gap-2">
@@ -173,7 +173,7 @@ export default function Home() {
                     />
                     <h2 className="text-xl font-semibold tracking-tight text-text">{s.subject}</h2>
                     <span className="slabel text-faint">
-                      {s.folders.length} folder{s.folders.length === 1 ? "" : "s"}
+                      {t("map.folders", { n: s.folders.length })}
                     </span>
                     <span className="h-px flex-1 bg-hair" />
                   </div>
@@ -187,7 +187,7 @@ export default function Home() {
                         <div className="mb-4 flex items-end justify-between gap-3 px-1">
                           <div className="min-w-0">
                             <p className="slabel text-faint">
-                              {f.source.kind === "photo" ? "photo capture" : "capture"} ·{" "}
+                              {f.source.kind === "photo" ? t("map.photoCapture") : t("map.capture")} ·{" "}
                               {fmtDate(f.source.createdAt)}
                             </p>
                             <h3 className="mt-1 truncate text-lg font-semibold tracking-tight text-text">
@@ -198,7 +198,7 @@ export default function Home() {
                             href={`/capture?source=${f.source.id}`}
                             className="slabel shrink-0 pb-0.5 text-curriculum-text transition hover:opacity-80"
                           >
-                            + add material
+                            {t("map.addMaterial")}
                           </Link>
                         </div>
                         <ol className="space-y-5">
@@ -216,7 +216,7 @@ export default function Home() {
 
             {loose.length > 0 && (
               <section>
-                <p className="slabel mb-4 px-1 text-faint">other concepts</p>
+                <p className="slabel mb-4 px-1 text-faint">{t("map.otherConcepts")}</p>
                 <ol className="space-y-5">
                   {loose.map((c) => {
                     seq += 1;
