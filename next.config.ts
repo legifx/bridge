@@ -1,17 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Ship the seeded template DB with the serverless functions so it can be
-  // copied into /tmp at runtime (Vercel's FS is read-only outside /tmp).
+  // Serverless (Vercel) function bundle:
+  // - ship the seeded template DB so it can be copied into /tmp at runtime
+  // - ship the embedding stack, but only the linux-x64 ONNX binary (16 MB);
+  //   the other platform binaries (~76 MB) never run in a lambda
   outputFileTracingIncludes: {
-    "/api/**": ["./prisma/demo.db"],
+    "/api/**": [
+      "./prisma/demo.db",
+      "node_modules/@xenova/transformers/**",
+      "node_modules/onnxruntime-node/bin/napi-v3/linux/x64/**",
+    ],
   },
-  // On serverless we run with EMBEDDINGS_DISABLED=1 and never load the ONNX
-  // model, so keep the heavy native deps out of the function bundle.
   outputFileTracingExcludes: {
     "*": [
-      "node_modules/@xenova/**",
-      "node_modules/onnxruntime-node/**",
+      "node_modules/onnxruntime-node/bin/napi-v3/darwin/**",
+      "node_modules/onnxruntime-node/bin/napi-v3/win32/**",
+      "node_modules/onnxruntime-node/bin/napi-v3/linux/arm64/**",
       "node_modules/sharp/**",
     ],
   },

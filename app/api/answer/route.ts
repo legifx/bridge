@@ -5,6 +5,7 @@ import { getCurrentLearner } from "@/lib/db/learner";
 import { gradeFreeRecall } from "@/lib/quiz";
 import { recordAnswer } from "@/lib/adaptive/review";
 import { eloToMastery } from "@/lib/extraction/repo";
+import { chargeAi, quotaExceededResponse } from "@/lib/quota";
 
 export const runtime = "nodejs";
 
@@ -19,10 +20,15 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Invalid answer payload." }, { status: 400 });
 
   const learner = await getCurrentLearner();
+  if (!learner) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+
   const concept = await prisma.concept.findFirst({
     where: { id: parsed.data.conceptId, learnerId: learner.id },
   });
   if (!concept) return NextResponse.json({ error: "Concept not found." }, { status: 404 });
+
+  const charge = await chargeAi(learner.id, 1);
+  if (!charge.ok) return quotaExceededResponse(charge.quota);
 
   const grade = await gradeFreeRecall(concept, parsed.data.freeAnswer);
   const correct = grade.correct && parsed.data.mcqCorrect;

@@ -7,6 +7,7 @@ import { embed } from "@/lib/ml/embeddings";
 import { getDomainsForMatch } from "@/lib/profile/repo";
 import { matchConceptToDomains } from "@/lib/profile/match";
 import { generateVerifiedBridge } from "@/lib/bridge/engine";
+import { chargeAi, quotaExceededResponse } from "@/lib/quota";
 
 export const runtime = "nodejs";
 
@@ -17,6 +18,8 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: "conceptId required." }, { status: 400 });
 
   const learner = await getCurrentLearner();
+  if (!learner) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+
   const concept = await prisma.concept.findFirst({
     where: { id: parsed.data.conceptId, learnerId: learner.id },
   });
@@ -37,6 +40,9 @@ export async function POST(req: Request) {
 
   const chosen = domains.find((d) => d.id === match.domainId)!;
 
+  const charge = await chargeAi(learner.id, 1);
+  if (!charge.ok) return quotaExceededResponse(charge.quota);
+
   try {
     const result = await generateVerifiedBridge({
       concept: {
@@ -49,7 +55,7 @@ export async function POST(req: Request) {
       match,
       readingLevel: learner.readingLevel,
     });
-    return NextResponse.json(result);
+    return NextResponse.json({ ...result, quota: charge.quota });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Bridge generation failed.";
     return NextResponse.json({ error: message }, { status: 500 });

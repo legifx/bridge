@@ -2,34 +2,25 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildProfile } from "@/lib/profile/build";
 import { checkInterestText } from "@/lib/profile/guard";
-import { LEARNER_COOKIE } from "@/lib/db/learner";
-import { EMBEDDINGS_ENABLED } from "@/lib/ml/embeddings";
+import { getCurrentLearner } from "@/lib/db/learner";
 
 export const runtime = "nodejs";
 
 const BodySchema = z.object({
-  displayName: z.string().max(60).optional(),
   readingLevel: z.number().int().min(1).max(5).optional(),
   selectionIds: z.array(z.string()).max(10),
   freeText: z.string().max(300).optional(),
 });
 
 export async function POST(req: Request) {
-  if (!EMBEDDINGS_ENABLED) {
-    return NextResponse.json(
-      {
-        error:
-          "Building a new profile runs the local embedding model, which the hosted demo doesn't include. Explore the two seeded profiles via “compare profiles”, or clone and run locally.",
-      },
-      { status: 503 },
-    );
-  }
+  const learner = await getCurrentLearner();
+  if (!learner) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
   const parsed = BodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid onboarding payload." }, { status: 400 });
   }
-  const { displayName, readingLevel, selectionIds, freeText } = parsed.data;
+  const { readingLevel, selectionIds, freeText } = parsed.data;
 
   // Privacy guard on free text (§7) — refuse sensitive input before storing.
   const guard = checkInterestText(freeText ?? "");
@@ -42,21 +33,14 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { learnerId, domains } = await buildProfile({
-      displayName: displayName ?? "You",
+    const { domains } = await buildProfile({
+      learnerId: learner.id,
       readingLevel: readingLevel ?? 3,
       selectionIds,
       freeText: guard.text,
     });
 
-    const res = NextResponse.json({ learnerId, domains });
-    res.cookies.set(LEARNER_COOKIE, learnerId, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 365,
-    });
-    return res;
+    return NextResponse.json({ learnerId: learner.id, domains });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Onboarding failed.";
     return NextResponse.json({ error: message }, { status: 500 });
