@@ -137,6 +137,9 @@ Two supported targets, same codebase:
   `node scripts/migrate-remote.mjs`, seed with `npx prisma db seed` (both honor the Turso env
   vars).
 
+  `GET /api/me` reports which datasource is live and whether it is reachable (never the secrets
+  themselves), which makes a misconfigured deployment diagnosable from outside.
+
 ## What's not built yet (honest status)
 
 - **Live vision** is wired end to end (camera + client downscale + `images[]` API), but the
