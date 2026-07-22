@@ -12,10 +12,9 @@ export { cosine, vecToBytes, bytesToVec } from "./vector";
 export const EMBED_DIM = 384;
 const MODEL = "Xenova/all-MiniLM-L6-v2";
 
-// Disabled explicitly, or automatically on serverless (Vercel) where the ONNX
-// model + read-only FS don't fit — the hosted demo uses stored vectors instead.
-export const EMBEDDINGS_ENABLED =
-  process.env.EMBEDDINGS_DISABLED !== "1" && !process.env.VERCEL;
+// Escape hatch for constrained hosts; on Vercel the model runs with its cache
+// pointed at /tmp (the only writable path), see getExtractor below.
+export const EMBEDDINGS_ENABLED = process.env.EMBEDDINGS_DISABLED !== "1";
 
 export class EmbeddingsDisabledError extends Error {
   constructor() {
@@ -30,9 +29,10 @@ let extractorPromise: Promise<any> | null = null;
 async function getExtractor() {
   if (!EMBEDDINGS_ENABLED) throw new EmbeddingsDisabledError();
   if (!extractorPromise) {
-    extractorPromise = import("@xenova/transformers").then(({ pipeline }) =>
-      pipeline("feature-extraction", MODEL),
-    );
+    extractorPromise = import("@xenova/transformers").then((m) => {
+      if (process.env.VERCEL) m.env.cacheDir = "/tmp/xenova-cache";
+      return m.pipeline("feature-extraction", MODEL);
+    });
   }
   return extractorPromise;
 }

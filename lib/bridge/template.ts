@@ -7,10 +7,10 @@ export function slug(s: string): string {
 }
 
 /**
- * Deterministic, on-topic bridge used in DEMO_MODE for any concept that has no
+ * Deterministic, on-topic bridge used by the seed for any concept that has no
  * hand-written fixture. It never invents facts — it restates the real
  * definition and maps it onto the matched anchor — so the demo stays truthful
- * even without an API key. Hand-written fixtures (the showcase concept) override this.
+ * without spending API budget. Hand-written fixtures override it where they exist.
  */
 export function templateBody(params: {
   label: string;

@@ -1,10 +1,12 @@
 /**
- * Hand-written DEMO_MODE fixtures for the showcase concept "Ionic bond",
+ * Hand-written seed fixtures for the showcase concept "Ionic bond",
  * bridged through two maximally different worlds. Each has a FLAWED first
  * attempt (a1) that the verifier rejects for a real factual reason, then a
  * corrected attempt (a2) it accepts. This drives the reject -> accept beat in
- * the demo video without an API key.
+ * the seeded profiles without an API key.
  *
+ * Used by prisma/seed.ts so the seeded profiles ship a real rejected->accepted
+ * pair without spending any API budget.
  * Keys: bridge:<conceptSlug>:<domainSlug>:a<n> and verify:<...>:a<n>.
  */
 import type { BridgeBody, Verdict } from "@/lib/bridge/types";

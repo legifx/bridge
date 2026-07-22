@@ -17,8 +17,6 @@ import { ExtractionResultSchema, type ConceptGraph } from "./types";
 export type ExtractInput = {
   text?: string;
   images?: ImageInput[];
-  /** demo cache key, e.g. "extract:chem" */
-  demoKey: string;
 };
 
 export type ExtractOutput = {
@@ -38,7 +36,6 @@ export async function extractConceptGraph(input: ExtractInput): Promise<ExtractO
     "Extract the concept graph from the attached image(s) of study material.";
 
   const { concepts } = await llmJson({
-    demoKey: input.demoKey,
     system: EXTRACT_SYSTEM,
     user: userText,
     images: input.images,

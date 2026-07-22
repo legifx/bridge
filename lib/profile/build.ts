@@ -9,7 +9,7 @@ import { FreeTextDomainSchema, type DomainVM } from "./types";
 import { successRate } from "@/lib/adaptive/thompson";
 
 type BuildInput = {
-  displayName: string;
+  learnerId: string;
   readingLevel: number;
   selectionIds: string[];
   freeText: string;
@@ -33,7 +33,6 @@ async function collectDomains(input: BuildInput): Promise<RawDomain[]> {
   if (guard.ok && guard.text) {
     try {
       const enriched = await llmJson({
-        demoKey: "profile:default",
         system: PROFILE_SYSTEM,
         user: guard.text,
         schema: FreeTextDomainSchema,
@@ -55,11 +54,10 @@ async function collectDomains(input: BuildInput): Promise<RawDomain[]> {
 export async function buildProfile(input: BuildInput): Promise<{ learnerId: string; domains: DomainVM[] }> {
   const domains = await collectDomains(input);
 
-  const learner = await prisma.learner.create({
-    data: {
-      displayName: input.displayName || "You",
-      readingLevel: Math.max(1, Math.min(5, input.readingLevel || 3)),
-    },
+  // Onboarding runs for the signed-in learner (created at sign-in).
+  const learner = await prisma.learner.update({
+    where: { id: input.learnerId },
+    data: { readingLevel: Math.max(1, Math.min(5, input.readingLevel || 3)) },
   });
 
   const created: DomainVM[] = [];

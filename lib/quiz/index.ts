@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { isDemoMode, llmJson } from "@/lib/llm/client";
-import { hasDemoResponse, getDemoResponse } from "@/lib/demo/cache";
+import { llmJson } from "@/lib/llm/client";
 import { QUIZ_SYSTEM, GRADE_SYSTEM } from "@/lib/prompts/quiz";
 
 export const QuizSchema = z.object({
@@ -22,31 +21,8 @@ export type Grade = z.infer<typeof GradeSchema>;
 
 type Concept = { id: string; label: string; definition: string; sourceQuote: string };
 
-/** Deterministic on-topic quiz used in DEMO_MODE when no fixture exists. */
-function templateQuiz(c: Concept): Quiz {
-  return {
-    free: { prompt: `In your own words, what is ${c.label.toLowerCase()}?` },
-    mcq: {
-      prompt: `Which statement best describes ${c.label.toLowerCase()}?`,
-      options: [
-        c.definition,
-        `${c.label} is unrelated to how atoms or particles interact.`,
-        `${c.label} is only a historical term with no modern use.`,
-        `${c.label} means the exact opposite of its definition.`,
-      ],
-      answerIndex: 0,
-    },
-  };
-}
-
 export async function generateQuiz(concept: Concept): Promise<Quiz> {
-  const key = `quiz:${concept.id}`;
-  if (isDemoMode()) {
-    if (hasDemoResponse(key)) return QuizSchema.parse(getDemoResponse(key));
-    return templateQuiz(concept);
-  }
   return llmJson({
-    demoKey: key,
     system: QUIZ_SYSTEM,
     user: `Concept: ${concept.label}\nDefinition: ${concept.definition}\nSource: "${concept.sourceQuote}"`,
     schema: QuizSchema,
@@ -54,7 +30,10 @@ export async function generateQuiz(concept: Concept): Promise<Quiz> {
   });
 }
 
-/** Lightweight keyword-overlap grade for DEMO_MODE (the model grades in live mode). */
+/**
+ * Resilience fallback only (NOT a demo mode): if the grading call fails,
+ * a keyword-overlap heuristic keeps the session alive instead of bricking it.
+ */
 function heuristicGrade(concept: Concept, answer: string): Grade {
   const stop = new Set(["the", "a", "an", "of", "to", "and", "is", "are", "that", "in", "it", "its", "with", "by", "as"]);
   const tokens = (s: string) =>
@@ -74,23 +53,19 @@ function heuristicGrade(concept: Concept, answer: string): Grade {
   return {
     correct,
     confident: overlap >= 0.6,
-    feedback: correct
-      ? "Good — that captures the core idea."
-      : "Close, but revisit the definition and try again.",
+    feedback: correct ? "Good — that captures the core idea." : "Close, but revisit the definition and try again.",
   };
 }
 
 export async function gradeFreeRecall(concept: Concept, answer: string): Promise<Grade> {
-  const key = `grade:${concept.id}`;
-  if (isDemoMode()) {
-    if (hasDemoResponse(key)) return GradeSchema.parse(getDemoResponse(key));
+  try {
+    return await llmJson({
+      system: GRADE_SYSTEM,
+      user: `Concept: ${concept.label}\nAuthoritative definition: ${concept.definition}\nSource: "${concept.sourceQuote}"\n\nLearner's answer: ${answer}`,
+      schema: GradeSchema,
+      temperature: 0,
+    });
+  } catch {
     return heuristicGrade(concept, answer);
   }
-  return llmJson({
-    demoKey: key,
-    system: GRADE_SYSTEM,
-    user: `Concept: ${concept.label}\nAuthoritative definition: ${concept.definition}\nSource: "${concept.sourceQuote}"\n\nLearner's answer: ${answer}`,
-    schema: GradeSchema,
-    temperature: 0,
-  });
 }

@@ -2,32 +2,31 @@
  * LLM access layer.
  *
  * One provider: OpenRouter (OpenAI-compatible). All calls return structured
- * JSON validated against a Zod schema — we never parse prose (§2).
- *
- * DEMO_MODE (or a missing key) short-circuits to cached responses so the full
- * flow works with no key and no API burn (§8).
+ * JSON validated against a Zod schema — we never parse prose (§2). Calls are
+ * always live; there is no mock layer. The public demo protects the API budget
+ * with a small per-profile quota instead (lib/quota.ts).
  */
 import OpenAI from "openai";
 import type { ZodType } from "zod";
-import { getDemoResponse } from "@/lib/demo/cache";
 
 // Primary model (default: free, vision-capable). Free tiers are occasionally
 // rate-limited upstream (429), so we fall back to a cheap paid model on failure.
 const MODEL = process.env.OPENROUTER_MODEL || "google/gemma-4-31b-it:free";
 const FALLBACK_MODEL = process.env.OPENROUTER_FALLBACK_MODEL || "google/gemini-3.1-flash-lite";
 
-export function isDemoMode(): boolean {
-  return process.env.DEMO_MODE === "true" || !process.env.OPENROUTER_API_KEY;
-}
-
 let clientSingleton: OpenAI | null = null;
 function client(): OpenAI {
+  if (!process.env.OPENROUTER_API_KEY) {
+    throw new Error(
+      "OPENROUTER_API_KEY is not set. Add it to .env (see .env.example) to enable live AI.",
+    );
+  }
   if (!clientSingleton) {
     clientSingleton = new OpenAI({
       apiKey: process.env.OPENROUTER_API_KEY,
       baseURL: "https://openrouter.ai/api/v1",
       defaultHeaders: {
-        "HTTP-Referer": "https://github.com/bridge-app",
+        "HTTP-Referer": "https://github.com/legifx/bridge",
         "X-Title": "Bridge",
       },
     });
@@ -38,8 +37,6 @@ function client(): OpenAI {
 export type ImageInput = { dataUrl: string };
 
 export type LlmCall<T> = {
-  /** Stable tag used to look up the cached demo response for this call. */
-  demoKey: string;
   system: string;
   user: string;
   images?: ImageInput[];
@@ -58,16 +55,8 @@ function extractJson(text: string): unknown {
   return JSON.parse(candidate.slice(start, end + 1));
 }
 
-/**
- * Make one JSON call. In demo mode, returns the cached response for `demoKey`.
- * The returned value is always schema-validated.
- */
+/** Make one live JSON call. The returned value is always schema-validated. */
 export async function llmJson<T>(call: LlmCall<T>): Promise<T> {
-  if (isDemoMode()) {
-    const cached = getDemoResponse(call.demoKey);
-    return call.schema.parse(cached);
-  }
-
   const content: OpenAI.Chat.Completions.ChatCompletionContentPart[] = [
     { type: "text", text: call.user },
   ];

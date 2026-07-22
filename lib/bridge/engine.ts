@@ -9,8 +9,7 @@
  * attempt is the most persuasive evidence that we take hallucination seriously.
  */
 import { prisma } from "@/lib/db/prisma";
-import { isDemoMode, llmJson } from "@/lib/llm/client";
-import { getDemoResponse, hasDemoResponse } from "@/lib/demo/cache";
+import { llmJson } from "@/lib/llm/client";
 import {
   GENERATE_SYSTEM,
   VERIFY_SYSTEM,
@@ -19,7 +18,6 @@ import {
 } from "@/lib/prompts/bridge";
 import type { Match } from "@/lib/profile/types";
 import { BridgeBodySchema, VerdictSchema, type BridgeAttempt, type BridgeBody, type Verdict } from "./types";
-import { slug, templateBody } from "./template";
 
 const MAX_RETRIES = 2; // attempts 1..3
 
@@ -45,18 +43,10 @@ export function bodyToText(b: BridgeBody): string {
 async function generate(
   concept: EngineConcept,
   domain: EngineDomain,
-  match: Match,
   readingLevel: number,
-  attempt: number,
   priorContradictions: Verdict["contradictions"] | undefined,
 ): Promise<BridgeBody> {
-  const key = `bridge:${slug(concept.label)}:${slug(domain.name)}:a${attempt}`;
-  if (isDemoMode()) {
-    if (hasDemoResponse(key)) return BridgeBodySchema.parse(getDemoResponse(key));
-    return templateBody({ label: concept.label, definition: concept.definition, match, anchors: domain.anchors });
-  }
   return llmJson({
-    demoKey: key,
     system: GENERATE_SYSTEM,
     user: generateUser({
       label: concept.label,
@@ -72,19 +62,8 @@ async function generate(
   });
 }
 
-async function verify(
-  concept: EngineConcept,
-  domain: EngineDomain,
-  body: BridgeBody,
-  attempt: number,
-): Promise<Verdict> {
-  const key = `verify:${slug(concept.label)}:${slug(domain.name)}:a${attempt}`;
-  if (isDemoMode()) {
-    if (hasDemoResponse(key)) return VerdictSchema.parse(getDemoResponse(key));
-    return { factuallyConsistent: true, contradictions: [], analogyOverreach: false, verdict: "accept" };
-  }
+async function verify(concept: EngineConcept, body: BridgeBody): Promise<Verdict> {
   return llmJson({
-    demoKey: key,
     system: VERIFY_SYSTEM,
     user: verifyUser({
       label: concept.label,
@@ -138,8 +117,8 @@ export async function generateVerifiedBridge(params: {
   let contradictions: Verdict["contradictions"] | undefined;
 
   for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
-    const body = await generate(concept, domain, match, readingLevel, attempt, contradictions);
-    const verdict = await verify(concept, domain, body, attempt);
+    const body = await generate(concept, domain, readingLevel, contradictions);
+    const verdict = await verify(concept, body);
     const status: "accepted" | "rejected" = verdict.verdict === "accept" ? "accepted" : "rejected";
     const row = await persist(concept, domain, body, verdict, status, attempt);
     attempts.push({ attempt, body, verdict, status });

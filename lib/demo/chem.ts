@@ -1,7 +1,7 @@
 /**
  * Seeded demo source: one real chemistry chapter — "Chemical bonding".
  * Subject is deliberately NOT software (§8) so the product doesn't look like it
- * only works for tech people. This is the cached Stage-1 output for DEMO_MODE.
+ * only works for tech people. Seed source for the two demo profiles.
  */
 import type { ExtractionResult } from "@/lib/extraction/types";
 
