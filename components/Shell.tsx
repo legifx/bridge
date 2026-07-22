@@ -7,11 +7,10 @@ import { Led } from "./Led";
 
 const NAV = [
   { href: "/", label: "Map" },
+  { href: "/review", label: "Review" },
   { href: "/capture", label: "Capture" },
   { href: "/brain", label: "Brain" },
-  { href: "/verification", label: "Log" },
   { href: "/teacher", label: "Teacher" },
-  { href: "/project", label: "Project" },
 ];
 
 type Me = {
