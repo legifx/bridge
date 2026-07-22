@@ -32,7 +32,7 @@ export default function Teacher() {
       </header>
 
       <div
-        className="aura card mb-10 p-5"
+        className="aura card mb-10 p-6"
         style={
           {
             "--glow": "var(--curriculum)",
@@ -58,14 +58,14 @@ export default function Teacher() {
 
       {rows && rows.length > 0 && (
         <div className="card overflow-hidden">
-          <div className={`${GRID} px-5 py-3.5`}>
+          <div className={`${GRID} px-6 py-4`}>
             <span className="slabel text-faint">Concept</span>
             <span className="slabel text-right text-faint">Att</span>
             <span className="slabel text-faint">Struggle</span>
             <span className="slabel text-right text-faint">Mastered</span>
           </div>
           {rows.map((r) => (
-            <div key={r.conceptLabel} className={`${GRID} border-t border-hair px-5 py-4`}>
+            <div key={r.conceptLabel} className={`${GRID} border-t border-hair px-6 py-5`}>
               <span className="truncate text-base font-semibold tracking-tight text-text">
                 {r.conceptLabel}
               </span>

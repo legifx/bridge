@@ -115,10 +115,10 @@ export default function Learn() {
 
   return (
     <Shell>
-      <div className="space-y-5">
+      <div className="space-y-6">
         {/* concept, plain, subject vocabulary — curriculum blue */}
         <header
-          className="aura card p-6"
+          className="aura card p-7"
           style={
             {
               "--glow": "var(--curriculum)",
@@ -150,7 +150,7 @@ export default function Learn() {
             {rejected.map((a, idx) => (
               <div
                 key={a.attempt}
-                className="aura card reveal p-5"
+                className="aura card reveal p-6"
                 style={
                   {
                     "--glow": "var(--reject)",
@@ -200,7 +200,7 @@ export default function Learn() {
 
                 {/* where it breaks down — amber */}
                 <div
-                  className="aura card reveal p-5"
+                  className="aura card reveal p-6"
                   style={
                     {
                       "--glow": "var(--orange)",
@@ -216,7 +216,7 @@ export default function Learn() {
                 </div>
               </>
             ) : (
-              <div className="card p-5">
+              <div className="card p-6">
                 <p className="slabel text-faint">plain explanation · no analogy passed the fact-check</p>
                 <p className="mt-2 text-base leading-relaxed text-text">{bridge.body.plainRestatement}</p>
               </div>
@@ -224,7 +224,7 @@ export default function Learn() {
 
             {/* plain subject restatement */}
             <div
-              className="aura card reveal p-5"
+              className="aura card reveal p-6"
               style={
                 {
                   "--glow": "var(--curriculum)",
@@ -265,7 +265,7 @@ export default function Learn() {
             )}
 
             {quiz && !result && (
-              <div className="card space-y-5 p-5">
+              <div className="card space-y-6 p-6">
                 <p className="slabel text-curriculum-text">
                   checked in the subject&rsquo;s own words — not the analogy
                 </p>
@@ -305,7 +305,7 @@ export default function Learn() {
 
             {result && (
               <div
-                className="aura card p-6 text-center"
+                className="aura card p-7 text-center"
                 style={
                   {
                     "--glow": result.correct ? "var(--acid)" : "var(--orange)",

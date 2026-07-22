@@ -39,13 +39,13 @@ export default function Verification() {
         </p>
       )}
 
-      <ul className="space-y-4">
+      <ul className="space-y-5">
         {entries?.map((e) => {
           const rejected = e.status === "rejected";
           return (
             <li
               key={e.id}
-              className="aura card p-5"
+              className="aura card p-6"
               style={
                 {
                   "--glow": rejected ? "var(--reject)" : "var(--acid)",

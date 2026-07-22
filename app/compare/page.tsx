@@ -58,7 +58,7 @@ export default function Compare() {
 
       <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
         {data?.panels.map((p, i) => (
-          <div key={i} className="space-y-3">
+          <div key={i} className="space-y-4">
             <div className="flex h-8 items-center justify-between px-1">
               <span className="text-base font-semibold tracking-tight text-text">{p.displayName}</span>
               {p.domainName && <span className="chip chip-interest">{p.domainName}</span>}
@@ -75,7 +75,7 @@ export default function Compare() {
                 <p className="px-1 text-sm leading-relaxed text-dim">{p.body.opening}</p>
               </>
             ) : (
-              <div className="card p-5 text-sm text-faint">
+              <div className="card p-6 text-sm text-faint">
                 No pre-generated bridge for this profile yet.
               </div>
             )}

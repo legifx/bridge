@@ -5,9 +5,9 @@ import { TickScale } from "./TickScale";
 
 /**
  * The signature visualization: concept node (curriculum blue) and interest node
- * (magenta), connected by a drawn glowing line; the similarity as a dot-matrix
+ * (magenta) joined by a drawn, glowing arc; the similarity as a dot-matrix
  * readout over a tick scale; the structural correspondences as hairline rows.
- * The freeze-frame of the demo.
+ * The arc lives in its own flex slot BETWEEN the pills — it never crosses text.
  */
 type Correspondence = { subject: string; yourWorld: string; explanation: string };
 
@@ -25,20 +25,23 @@ export function BridgeViz({
   animate?: boolean;
 }) {
   return (
-    <div className="card relative overflow-hidden p-5">
+    <div className="card relative overflow-hidden p-6">
       {/* dual aura wash */}
       <div
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           background:
-            "radial-gradient(52% 70% at 10% 15%, rgba(59,123,255,0.26), transparent 60%), radial-gradient(52% 70% at 90% 15%, rgba(255,59,172,0.26), transparent 60%)",
+            "radial-gradient(52% 70% at 10% 12%, rgba(59,123,255,0.24), transparent 60%), radial-gradient(52% 70% at 90% 12%, rgba(255,59,172,0.24), transparent 60%)",
         }}
       />
 
-      {/* nodes + drawn bridge */}
-      <div className="relative flex items-center justify-between gap-10">
+      {/* nodes joined by the drawn bridge — the arc has its own slot */}
+      <div className="flex items-center gap-2.5">
+        <span className="node node-blue min-w-0 max-w-[42%] flex-shrink truncate text-center">
+          {conceptLabel}
+        </span>
         <svg
-          className="pointer-events-none absolute inset-x-2 top-1/2 h-10 w-[calc(100%-16px)] -translate-y-1/2"
+          className="h-9 min-w-[44px] flex-1"
           viewBox="0 0 100 24"
           preserveAspectRatio="none"
           aria-hidden
@@ -50,42 +53,45 @@ export function BridgeViz({
             </linearGradient>
           </defs>
           <path
-            d="M8 12 Q50 -2 92 12"
+            d="M3 19 Q50 1 97 19"
             fill="none"
             stroke="url(#bridgeline)"
-            strokeWidth="1.25"
+            strokeWidth="1.5"
             strokeLinecap="round"
             className={animate ? "bridge-draw" : ""}
             style={{ filter: "drop-shadow(0 0 4px rgba(139,92,255,0.7))" }}
           />
+          <circle cx="3" cy="19" r="2.2" fill="#3b7bff" style={{ filter: "drop-shadow(0 0 3px #3b7bff)" }} />
+          <circle cx="97" cy="19" r="2.2" fill="#ff3bac" style={{ filter: "drop-shadow(0 0 3px #ff3bac)" }} />
         </svg>
-        <span className="node node-blue z-10 w-[42%] truncate text-center">{conceptLabel}</span>
-        <span className="node node-magenta z-10 w-[42%] truncate text-center">{domainName}</span>
+        <span className="node node-magenta min-w-0 max-w-[42%] flex-shrink truncate text-center">
+          {domainName}
+        </span>
       </div>
 
       {/* similarity readout */}
-      <div className="mt-6 flex flex-col items-center">
+      <div className="mt-8 flex flex-col items-center">
         <Led value={similarity.toFixed(2)} dot={4} color="#c9d6ff" />
-        <TickScale value={similarity} color="#8b5cff" count={40} className="mt-3 max-w-[220px]" />
-        <span className="slabel mt-2.5 text-faint">semantic overlap · cosine</span>
+        <TickScale value={similarity} color="#8b5cff" count={40} className="mt-3.5 max-w-[220px]" />
+        <span className="slabel mt-3 text-faint">semantic overlap · cosine</span>
       </div>
 
       {/* correspondence rows */}
-      <div className="mt-6 overflow-hidden bg-white/[0.03]" style={{ borderRadius: "var(--r)" }}>
+      <div className="mt-8 overflow-hidden bg-white/[0.03]" style={{ borderRadius: "var(--r)" }}>
         {correspondences.map((c, i) => (
           <div
             key={i}
-            className={`reveal px-4 py-3.5 ${i > 0 ? "border-t border-hair" : ""}`}
+            className={`reveal px-5 py-4 ${i > 0 ? "border-t border-hair" : ""}`}
             style={{ animationDelay: `${200 + i * 110}ms` }}
           >
-            <div className="grid grid-cols-[1fr_auto_1fr] items-baseline gap-3">
+            <div className="grid grid-cols-[1fr_auto_1fr] items-baseline gap-4">
               <span className="truncate text-sm font-medium text-curriculum-text">{c.subject}</span>
               <span className="font-mono text-2xs text-faint">↔</span>
               <span className="truncate text-right text-sm font-medium text-interest-text">
                 {c.yourWorld}
               </span>
             </div>
-            <p className="mt-1.5 text-xs leading-relaxed text-dim">{c.explanation}</p>
+            <p className="mt-2 text-xs leading-relaxed text-dim">{c.explanation}</p>
           </div>
         ))}
       </div>

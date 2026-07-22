@@ -68,7 +68,7 @@ export default function Home() {
           <PageHead eyebrow="Concept map" title="Your learning order" />
 
           {/* interest domains */}
-          <div className="-mt-3 mb-8 flex flex-wrap gap-2.5">
+          <div className="-mt-4 mb-10 flex flex-wrap gap-2.5">
             {data.domains.map((d) => (
               <span key={d.id} className="chip chip-interest">
                 {d.name}
@@ -78,14 +78,14 @@ export default function Home() {
           </div>
 
           {/* concept instrument list */}
-          <ol className="space-y-4">
+          <ol className="space-y-5">
             {ordered.map((c, i) => {
               const pct = Math.round(c.mastery * 100);
               return (
                 <li key={c.id} className="reveal" style={{ animationDelay: `${i * 55}ms` }}>
                   <Link
                     href={`/learn/${c.id}`}
-                    className="aura card card-link ring-focus block p-5 hover:bg-white/[0.06]"
+                    className="aura card card-link ring-focus block p-6 hover:bg-white/[0.06]"
                     style={
                       {
                         "--glow": masteryGlow(c.mastery),
@@ -95,7 +95,7 @@ export default function Home() {
                       } as React.CSSProperties
                     }
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-5">
                       <span className="w-6 shrink-0 pt-1 font-mono text-2xs text-faint">
                         {String(i + 1).padStart(2, "0")}
                       </span>
@@ -115,7 +115,7 @@ export default function Home() {
                       value={c.mastery}
                       color={masteryGlow(c.mastery)}
                       count={44}
-                      className="mt-4"
+                      className="mt-5"
                     />
                   </Link>
                 </li>

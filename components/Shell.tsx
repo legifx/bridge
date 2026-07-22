@@ -14,7 +14,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-[680px] flex-col">
-      <header className="flex items-center justify-between px-5 pb-2 pt-6">
+      <header className="flex items-center justify-between px-5 pb-3 pt-8">
         <Link href="/" className="eyebrow transition hover:text-dim">
           Bridge
         </Link>
@@ -23,7 +23,7 @@ export function Shell({ children }: { children: React.ReactNode }) {
         </Link>
       </header>
 
-      <div className="page-enter flex-1 px-5 pb-40 pt-2">{children}</div>
+      <div className="page-enter flex-1 px-5 pb-44 pt-3">{children}</div>
 
       <nav
         className="fixed inset-x-0 z-40 flex justify-center px-5"
