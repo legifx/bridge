@@ -21,8 +21,10 @@ function SignInForm() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ username: value }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Sign-in failed.");
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data) {
+        throw new Error(data?.error ?? `Sign-in failed (server responded ${res.status}).`);
+      }
       router.push(data.hasProfile ? "/" : "/onboarding");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");

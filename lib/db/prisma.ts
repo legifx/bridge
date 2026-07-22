@@ -19,6 +19,17 @@ export function dbMode(): "turso" | "tmp" | "local" {
   return "local";
 }
 
+/** Config sanity for diagnosis — never exposes the secrets themselves. */
+export function dbConfig() {
+  const token = process.env.TURSO_AUTH_TOKEN ?? "";
+  return {
+    mode: dbMode(),
+    tursoUrlSet: Boolean(process.env.TURSO_DATABASE_URL),
+    tursoTokenSet: token.length > 0,
+    tursoTokenLength: token.length,
+  };
+}
+
 function makeClient(): PrismaClient {
   if (process.env.TURSO_DATABASE_URL) {
     const adapter = new PrismaLibSQL({

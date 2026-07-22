@@ -23,5 +23,12 @@ export async function getCurrentLearner() {
   const jar = await cookies();
   const id = jar.get(LEARNER_COOKIE)?.value;
   if (!id) return null;
-  return prisma.learner.findUnique({ where: { id } });
+  try {
+    return await prisma.learner.findUnique({ where: { id } });
+  } catch (err) {
+    // Treat an unreachable database as "signed out" rather than crashing every
+    // guarded page with a 500.
+    console.error("getCurrentLearner: database unavailable", err);
+    return null;
+  }
 }

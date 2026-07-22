@@ -24,13 +24,24 @@ export async function POST(req: Request) {
   const displayName = parsed.data.username.trim().replace(/\s+/g, " ");
   const handle = normalizeHandle(displayName);
 
-  let learner = await prisma.learner.findUnique({
-    where: { handle },
-    include: { _count: { select: { domains: true } } },
-  });
-  if (!learner) {
-    const created = await prisma.learner.create({ data: { displayName, handle } });
-    learner = { ...created, _count: { domains: 0 } };
+  let learner;
+  try {
+    learner = await prisma.learner.findUnique({
+      where: { handle },
+      include: { _count: { select: { domains: true } } },
+    });
+    if (!learner) {
+      const created = await prisma.learner.create({ data: { displayName, handle } });
+      learner = { ...created, _count: { domains: 0 } };
+    }
+  } catch (err) {
+    // Never fall through with an empty body: the client would only see
+    // "Unexpected end of JSON input" instead of what actually broke.
+    console.error("signin: database unavailable", err);
+    return NextResponse.json(
+      { error: "The database is unavailable right now. Please try again in a moment." },
+      { status: 503 },
+    );
   }
 
   const res = NextResponse.json({
