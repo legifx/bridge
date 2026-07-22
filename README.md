@@ -1,33 +1,54 @@
-# Bridge
+<h1 align="center">Bridge</h1>
 
-**Learn new material through the knowledge you already hold.**
+<p align="center"><strong>Learn new material through the knowledge you already hold.</strong></p>
 
-**▶ Live demo: https://bridge-livid-one.vercel.app** — the real app, live. Sign in with any
-name (or open the lived-in profiles `Mara` / `Theo`), run onboarding with your own interests,
-capture material, and watch bridges get fact-checked in real time. Every demo profile carries a
-small AI budget so the shared API key survives; accounts are open by design — please don't
-enter private data.
-
-Bridge builds an **interest and prior-knowledge profile** of a learner, then re-expresses
-curriculum concepts through a domain that learner already understands deeply. The same
-chemistry chapter is explained to a competitive-gaming student and to a horse-riding student
-through *their* world — while the facts, the vocabulary being learned, and every assessment
-stay identical. New knowledge sticks when it attaches to knowledge that is already firmly held;
-Bridge builds that attachment automatically.
-
-This is **prior-knowledge anchoring / analogical transfer**, a real and well-supported effect —
-not "learning styles," which is discredited. Analogies are used only for *explanation*; all
-*assessment* is in the subject's own vocabulary, so a student can never end up learning the
-analogy instead of the subject.
+<p align="center">
+  <a href="https://bridge-livid-one.vercel.app"><b>▶ Live demo</b></a> — no sign-up, no API key needed ·
+  open the lived-in profiles <code>Mara</code> or <code>Theo</code>, or sign in with any name
+</p>
 
 ---
+
+A chemistry teacher explains ionic bonds. One student — the one who spends every evening in
+ranked matches — hears nothing but noise. Tell *that* student an ionic bond works like a roster
+transfer between two esports orgs — one player handed over, two teams bound by the deal — and it
+clicks instantly. Great teachers improvise these bridges for one classroom. **Bridge builds them
+automatically, for every learner, from whatever they already love — and fact-checks every single
+one before it reaches the student.**
+
+<p align="center">
+  <img src="docs/screens/compare.png" alt="The same concept, Atom, explained through competitive gaming for Mara and through horse riding for Theo — with the real cosine similarity shown for each bridge" width="900">
+  <br><em>One idea, two ways: the same chemistry chapter, re-expressed per learner — same facts, same vocabulary, same assessment.</em>
+</p>
+
+The mechanism is **prior-knowledge anchoring / analogical transfer**, a real and well-supported
+effect — not "learning styles," which is discredited. Analogies are used only for *explanation*;
+all *assessment* stays in the subject's own vocabulary, so a student can never end up learning
+the analogy instead of the subject.
+
+## The part we're proudest of: it rejects its own analogies
+
+Every generated bridge is fact-checked by a second, independent model call against the source
+material. A wrong analogy is worse than no analogy — so when verification fails, Bridge retries
+with the contradictions fed back, and falls back to a plain explanation rather than shipping
+something false. **Every attempt is kept, including the rejected ones.** The Verification tab
+shows the system catching its own mistake:
+
+<p align="center">
+  <img src="docs/screens/verification.png" alt="Verification log: a bridge for Ionic bond is REJECTED because 'two atoms share electrons equally' describes a covalent bond — the corrected attempt below is accepted" width="900">
+  <br><em>Attempt 1 claimed ionic bonds "share electrons equally" — that's a covalent bond. Rejected, corrected, re-verified, accepted.</em>
+</p>
+
+Honesty is a design principle throughout: similarity scores are shown as raw cosine values (even
+when they're unflatteringly low), the learner profile displays only what was actually inferred
+and why, and the teacher view receives aggregates only.
 
 ## The four AI/ML stages
 
 ```mermaid
 flowchart LR
     A[Photo / text<br/>study material] -->|Stage 1<br/>lib/extraction| B[Concept graph<br/>dedupe + DAG + topo sort]
-    P[5 taps + 1 free text] -->|Stage 2<br/>lib/profile| Q[Interest profile<br/>local embedding vectors]
+    P[Adaptive interview] -->|Stage 2<br/>lib/profile| Q[Interest profile<br/>local embedding vectors]
     B --> C
     Q --> C
     C[Stage 3 · lib/bridge<br/>generate then verify] -->|accept / revise / reject| D[Bridge explanation<br/>+ where it breaks down]
@@ -36,56 +57,50 @@ flowchart LR
     E -->|schedules| B
 ```
 
-1. **`lib/extraction` — Vision → Concept Graph.** The model returns structured concepts
-   (label, definition, verbatim source quote, difficulty, prerequisites). *Our own code* then
-   embeds them locally, merges near-duplicates by cosine similarity, builds the prerequisite
-   DAG, detects cycles, and topologically sorts them into a learning order.
+1. **`lib/extraction` — Vision → Concept Graph.** The model returns structured concepts (label,
+   definition, verbatim source quote, difficulty, prerequisites). *Our own code* then embeds them
+   locally, merges near-duplicates by cosine similarity, builds the prerequisite DAG, detects
+   cycles, and topologically sorts them into a learning order.
 2. **`lib/profile` + `lib/onboarding` — Interest profile via adaptive interview.** Onboarding is
-   a server-driven interview, not a form: free seeds (plus a discovery grid) → LLM-generated
-   drill questions (this-or-that, sliders, sub-areas) → a **word magnet** per domain that mixes
-   real terms in three tiers with plausible decoys. What the learner actually recognizes
-   determines a *verified* vocabulary depth (`novice/hobbyist/deep`), the evidence behind it,
-   and the anchors — so confidence is **earned, not self-reported**, larping collapses on the
-   decoys, and the bridge engine later speaks in the register the learner verifiably owns. The
-   generated quiz items pass the same generate→verify pattern as the bridges. The result is a
-   **vector store** of interest domains (local embeddings), not a prompt string; a final
-   mirror screen shows what was understood, with honest confidence, and is correctable.
+   a server-driven interview, not a form: free seeds → LLM-generated drill questions → a **word
+   magnet** per domain that mixes real terms in three tiers with plausible decoys. What the
+   learner actually recognizes determines a *verified* vocabulary depth (`novice/hobbyist/deep`)
+   — confidence is **earned, not self-reported**, and larping collapses on the decoys. The result
+   is a **vector store** of interest domains (local embeddings), not a prompt string.
 3. **`lib/bridge` — Bridge engine + verification loop.** One call generates the analogical
-   explanation; a second, independent call fact-checks it against the source quote and returns a
-   verdict. On `revise`/`reject` it retries with the contradictions fed back, then falls back to a
-   plain explanation rather than shipping something wrong. **Every attempt, including rejected
-   ones, is logged.**
+   explanation; a second, independent call fact-checks it against the source quote. On
+   `revise`/`reject` it retries with the contradictions fed back, then falls back to a plain
+   explanation. Every attempt is logged (see above).
 4. **`lib/adaptive` — the real ML, our own code.** Thompson sampling picks which interest domain
-   to use; Elo tracks per-concept mastery; SM-2-lite schedules review.
-5. **`lib/brain` — a second brain per learner.** Every signal (onboarding taps, free-text
-   interests, every *"that clicked"*) lands in a per-learner vector store (`BrainItem`). A signal
-   whose embedding is within cosine ≥ 0.92 of an existing item **strengthens that item's weight**
-   instead of inserting — repeated signals mature into strong interests. The **Brain tab** renders
-   this store as a skill tree: greedy weighted clustering over the stored vectors (our own code,
-   unit-tested), interest branches sized by weight, learned concepts hanging off the branch whose
-   domain actually bridged them, plus a transparent summary of what the algorithm currently
-   thinks you're into — every claim backed by a weight, a posterior, or a mastery score. No LLM
-   involved; it works read-only, everywhere.
+   to use; Elo tracks per-concept mastery; SM-2-lite schedules spaced review — all unit-tested:
 
-### Formulas (implemented in `lib/adaptive`, unit-tested)
+   - **Thompson sampling** — each domain holds a Beta(α, β) posterior over "did this analogy
+     work?"; sample `θ_d ~ Beta(α_d, β_d)`, pick the max; *clicked* → `α+1`, *didn't land* → `β+1`.
+   - **Elo mastery** — `E = 1 / (1 + 10^((R_C − R_L)/400))`, `R_L ← R_L + K·(S − E)` with `K ≈ 24`.
+   - **SM-2-lite** — intervals grow `1 → 6 → interval·EF` days,
+     `EF ← max(1.3, EF + (0.1 − (5−q)·(0.08 + (5−q)·0.02)))`; a miss resets to 1.
 
-**Thompson sampling (domain selection).** Each interest domain holds a Beta(α, β) posterior over
-"did this analogy work?". To choose, sample `θ_d ~ Beta(α_d, β_d)` for each domain and pick the max.
-After feedback: `α ← α + 1` on *clicked*, `β ← β + 1` on *didn't land*.
+5. **`lib/brain` — a second brain per learner.** Every signal lands in a per-learner vector
+   store; near-duplicate signals (cosine ≥ 0.92) strengthen an item's weight instead of
+   inserting, so repeated signals mature into strong interests. The Brain tab renders the store
+   as a skill tree — greedy weighted clustering over the stored vectors, our own unit-tested
+   code, no LLM involved — with a transparent summary where every claim is backed by a weight, a
+   posterior, or a mastery score.
 
-**Elo (per-concept mastery).** Learner ability `R_L` and concept difficulty `R_C` update after each
-answer with expected score `E = 1 / (1 + 10^((R_C − R_L)/400))` and
-`R_L ← R_L + K·(S − E)`, where `S = 1` if correct else `0` (`K ≈ 24`).
+<p align="center">
+  <img src="docs/screens/concept-map.png" alt="Concept map: prerequisite-ordered learning order for a captured chemistry chapter, with dot-matrix mastery percentages per concept" width="430">
+  <img src="docs/screens/brain.png" alt="Second brain: what Bridge currently thinks the learner is into, with weights and click-through rates shown as they are" width="430">
+  <br><em>Left: the prerequisite-sorted learning order with live mastery. Right: what Bridge thinks you're into — nothing is guessed, everything is accounted for.</em>
+</p>
 
-**SM-2-lite (spaced repetition).** On a correct review, `interval` grows
-`1 → 6 → interval·easeFactor` days; the ease factor adjusts by recall quality
-`EF ← max(1.3, EF + (0.1 − (5−q)·(0.08 + (5−q)·0.02)))`; a miss resets the interval to 1.
+## Judging criteria, mapped
 
-> Status: all four stages are built and working end to end, with the full learner flow
-> (onboarding → capture → concept map → learn session → retrieval check), a verification log,
-> an aggregate-only teacher view, a split-screen profile comparison, and seeded demo data.
-
----
+| Criterion | Where it lives in Bridge |
+|---|---|
+| **Educational Impact** | Personalization grounded in evidence (prior-knowledge anchoring, *not* learning-styles); assessment never drifts into the analogy (anti-cheat guardrail); spaced repetition + mastery tracking close the loop; teacher view (aggregates only) makes it classroom-usable. |
+| **Creative Use of AI/ML** | AI checks AI: independent generate→verify loop with visible rejections; interview-style onboarding with decoy-based vocabulary probes; hybrid design — LLM for language, *our own* embedding/graph/bandit/Elo/SM-2 code for everything measurable. |
+| **Technical Execution** | Four stages working end to end; unit tests on the math (dedupe, cycle detection, Thompson, Elo, SM-2, clustering — `npm test`); TS strict; structured-JSON LLM layer; local embeddings (no second API dependency); [`DECISIONS.md`](./DECISIONS.md) documents every trade-off. |
+| **Pitch / Demo** | [Live deployment](https://bridge-livid-one.vercel.app) with zero-friction sign-in and seeded, explorable profiles; the money shot (reject→accept) is reproducible in the Verification tab in under a minute. |
 
 ## Run it (4 commands from a fresh clone)
 
@@ -103,15 +118,14 @@ npm run db:seed
 ```
 
 Open http://localhost:3000 and sign in with any name. The seeded profiles `Mara` and `Theo`
-are fully explorable without an API key (pre-generated bridges, brains, mastery data) — the
-embedding, dedupe, graph, Thompson, Elo, SM-2 and brain-clustering math all run for real. Live
-AI (capturing your own material, generating fresh bridges, quizzes) needs `OPENROUTER_API_KEY`
-in `.env`. Provider is OpenRouter; the default model is the **free**, vision-capable
-`google/gemma-4-31b-it:free` (Apache-2.0, not trained on your inputs), with automatic fallback
-to `google/gemini-3.1-flash-lite` when the free tier is rate-limited.
+are fully explorable **without an API key** — the embedding, dedupe, graph, Thompson, Elo, SM-2
+and brain-clustering math all run for real. Live AI (capturing your own material, generating
+fresh bridges) needs `OPENROUTER_API_KEY` in `.env`; the default model is the free,
+vision-capable `google/gemma-4-31b-it:free` (Apache-2.0, not trained on your inputs), with
+automatic fallback to `google/gemini-3.1-flash-lite` when the free tier is rate-limited.
 
 ```bash
-npm test                  # unit tests: dedupe, cycle detection, Thompson, Elo, SM-2
+npm test                  # unit tests: dedupe, cycle detection, Thompson, Elo, SM-2, clustering
 ```
 
 ## Privacy
@@ -126,7 +140,8 @@ asks only about interests — never family, emotions, or health.
 Next.js 16 (App Router, TS strict) · Tailwind v4 · SQLite + Prisma 6 · OpenRouter (structured JSON)
 · local `@xenova/transformers` embeddings (`all-MiniLM-L6-v2`) · PWA (installable).
 
-## Deploy
+<details>
+<summary><b>Deploy</b> — persistent host or Vercel public-demo mode</summary>
 
 Two supported targets, same codebase:
 
@@ -139,20 +154,18 @@ Two supported targets, same codebase:
   `/tmp`). Set `OPENROUTER_API_KEY` in the Vercel project for live AI, and point
   `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` at a (free-tier) Turso database so profiles persist —
   Turso is hosted SQLite, so the schema and every query stay identical. Without Turso the app
-  falls back to an ephemeral `/tmp` copy of the seeded DB (fine for kicking the tires, but
-  sign-ins don't survive instance recycling). Apply the schema once with
+  falls back to an ephemeral `/tmp` copy of the seeded DB. Apply the schema once with
   `node scripts/migrate-remote.mjs`, seed with `npx prisma db seed` (both honor the Turso env
-  vars).
+  vars). `GET /api/me` reports which datasource is live and whether it is reachable (never the
+  secrets themselves), which makes a misconfigured deployment diagnosable from outside.
 
-  `GET /api/me` reports which datasource is live and whether it is reachable (never the secrets
-  themselves), which makes a misconfigured deployment diagnosable from outside.
+</details>
 
 ## What's not built yet (honest status)
 
 - **Live vision** is wired end to end (camera + client downscale + `images[]` API), but the
   bundled demo data is text-sourced; scanning a real handwritten page needs a live API key.
 - The concept map is a linear, prerequisite-ordered timeline rather than a free-form 2-D graph.
-- SM-2 scheduling stores state per review but there is no "due today" review queue screen yet.
 - No PNG icon rasterization (the PWA ships a single maskable SVG icon).
 
 See [`DECISIONS.md`](./DECISIONS.md) for the reasoning behind each technical choice.
