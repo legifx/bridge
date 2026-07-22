@@ -45,3 +45,6 @@ next-env.d.ts
 /prisma/dev.db-journal
 .env
 !.env.example
+
+# design reference images (not part of the app)
+UI/
