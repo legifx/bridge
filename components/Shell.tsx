@@ -90,11 +90,12 @@ export function Shell({
         )}
       </div>
 
+      <div className="fade-bottom" aria-hidden />
       <nav
         className="fixed inset-x-0 z-40 flex justify-center px-4"
         style={{ bottom: "max(1.1rem, env(safe-area-inset-bottom))" }}
       >
-        <div className="glass lit flex items-center gap-0.5 p-1.5" style={{ borderRadius: 999 }}>
+        <div className="nav-glass flex items-center gap-0.5 p-1.5" style={{ borderRadius: 999 }}>
           {NAV.map((n) => {
             const active = n.href === "/" ? path === "/" : path.startsWith(n.href);
             return (
