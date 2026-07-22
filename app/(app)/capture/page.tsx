@@ -1,7 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
 import { CHEM_SOURCE_TEXT } from "@/lib/demo/chem";
@@ -20,8 +20,21 @@ async function downscale(file: File, maxEdge = 1600): Promise<string> {
   return canvas.toDataURL("image/jpeg", 0.85);
 }
 
-export default function Capture() {
+function CaptureForm() {
   const router = useRouter();
+  const sourceId = useSearchParams().get("source");
+  const [folderTitle, setFolderTitle] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!sourceId) return;
+    fetch("/api/concepts")
+      .then((r) => r.json())
+      .then((d) => {
+        const src = d.sources?.find((s: { id: string }) => s.id === sourceId);
+        if (src) setFolderTitle(src.title);
+      })
+      .catch(() => {});
+  }, [sourceId]);
   const fileRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
@@ -46,7 +59,8 @@ export default function Capture() {
     setStage(0);
     const ticker = setInterval(() => setStage((s) => Math.min(s + 1, STAGES.length - 1)), 700);
     try {
-      const body = preview ? { images: [{ dataUrl: preview }] } : { text };
+      const base = preview ? { images: [{ dataUrl: preview }] } : { text };
+      const body = sourceId ? { ...base, sourceId } : base;
       const res = await fetch("/api/extract", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -73,8 +87,12 @@ export default function Capture() {
     <Shell>
       <PageHead
         eyebrow="Capture"
-        title="Add material"
-        sub="Snap a page or paste text — in the subject’s own words."
+        title={folderTitle ? `Add to “${folderTitle}”` : "Add material"}
+        sub={
+          folderTitle
+            ? "New concepts land inside this folder and slot into its learning order."
+            : "Snap a page or paste text — in the subject’s own words. Every capture becomes its own folder."
+        }
       />
 
       <button
@@ -171,9 +189,21 @@ export default function Capture() {
         </p>
       )}
 
-      <button onClick={run} disabled={!canRun} className="btn btn-primary mt-6 w-full">
-        {busy ? "Working…" : "Build concept map"}
+      <button
+        onClick={run}
+        disabled={!canRun}
+        className={`btn mt-6 w-full ${busy ? "btn-working" : "btn-primary"}`}
+      >
+        {busy ? "reading · extracting · linking…" : folderTitle ? "Add to folder" : "Build concept map"}
       </button>
     </Shell>
+  );
+}
+
+export default function Capture() {
+  return (
+    <Suspense fallback={null}>
+      <CaptureForm />
+    </Suspense>
   );
 }

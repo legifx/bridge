@@ -12,6 +12,8 @@ const BodySchema = z.object({
   text: z.string().min(1).max(20000).optional(),
   // data URLs of already-downscaled images (client caps the long edge at 1600px).
   images: z.array(z.object({ dataUrl: z.string().startsWith("data:") })).optional(),
+  // append into an existing capture folder instead of creating a new one
+  sourceId: z.string().optional(),
 });
 
 export async function POST(req: Request) {
@@ -46,6 +48,7 @@ export async function POST(req: Request) {
       rawText: parsed.data.text ?? "(image source)",
       graph,
       embeddings,
+      existingSourceId: parsed.data.sourceId,
     });
 
     return NextResponse.json({ sourceId, graph, quota: charge.quota });

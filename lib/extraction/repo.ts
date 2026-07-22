@@ -9,10 +9,16 @@ export type ConceptVM = {
   difficulty: number;
   elo: number;
   mastery: number; // 0..1, for coloring nodes
+  sourceId: string | null;
+  reviewEnabled: boolean;
+  dueAt: string | null; // next spaced-repetition due date, if any reviews exist
 };
+
+export type SourceVM = { id: string; title: string; kind: string; createdAt: string; count: number };
 
 export type LearnerGraph = {
   concepts: ConceptVM[];
+  sources: SourceVM[];
   edges: Edge[];
   order: string[]; // concept ids in learning order
 };
@@ -26,6 +32,11 @@ export async function getLearnerGraph(learnerId: string): Promise<LearnerGraph> 
   const concepts = await prisma.concept.findMany({
     where: { learnerId },
     orderBy: { id: "asc" },
+    include: { reviews: { orderBy: { answeredAt: "desc" }, take: 1 } },
+  });
+  const sources = await prisma.source.findMany({
+    where: { learnerId },
+    orderBy: { createdAt: "asc" },
   });
   const ids = concepts.map((c) => c.id);
   const idSet = new Set(ids);
@@ -39,6 +50,11 @@ export async function getLearnerGraph(learnerId: string): Promise<LearnerGraph> 
 
   const { order } = topologicalSort(ids, edges);
 
+  const countBySource = new Map<string, number>();
+  for (const c of concepts) {
+    if (c.sourceId) countBySource.set(c.sourceId, (countBySource.get(c.sourceId) ?? 0) + 1);
+  }
+
   return {
     concepts: concepts.map((c) => ({
       id: c.id,
@@ -48,6 +64,16 @@ export async function getLearnerGraph(learnerId: string): Promise<LearnerGraph> 
       difficulty: c.difficulty,
       elo: c.elo,
       mastery: eloToMastery(c.elo),
+      sourceId: c.sourceId,
+      reviewEnabled: c.reviewEnabled,
+      dueAt: c.reviews[0]?.nextDueAt.toISOString() ?? null,
+    })),
+    sources: sources.map((s) => ({
+      id: s.id,
+      title: s.title ?? "Untitled capture",
+      kind: s.kind,
+      createdAt: s.createdAt.toISOString(),
+      count: countBySource.get(s.id) ?? 0,
     })),
     edges,
     order,

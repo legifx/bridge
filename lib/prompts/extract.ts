@@ -6,6 +6,7 @@ export const EXTRACT_SYSTEM = `You extract a CONCEPT GRAPH from study material. 
 
 Return ONLY a JSON object of this exact shape:
 {
+  "title": "a short 2-5 word name for this material, e.g. Chemical bonding",
   "concepts": [
     {
       "id": "kebab-case-stable-id",

@@ -13,12 +13,25 @@ export async function saveConceptGraph(params: {
   imagePath?: string;
   graph: ConceptGraph;
   embeddings: Map<string, Float32Array>;
+  /** append into an existing capture folder instead of creating a new one */
+  existingSourceId?: string;
 }): Promise<{ sourceId: string; conceptIdByLabelId: Map<string, string> }> {
-  const { learnerId, kind, rawText, imagePath, graph, embeddings } = params;
+  const { learnerId, kind, rawText, imagePath, graph, embeddings, existingSourceId } = params;
 
-  const source = await prisma.source.create({
-    data: { learnerId, kind, rawText, imagePath },
-  });
+  let source;
+  if (existingSourceId) {
+    const prev = await prisma.source.findFirstOrThrow({
+      where: { id: existingSourceId, learnerId },
+    });
+    source = await prisma.source.update({
+      where: { id: prev.id },
+      data: { rawText: `${prev.rawText}\n\n---\n\n${rawText}` },
+    });
+  } else {
+    source = await prisma.source.create({
+      data: { learnerId, kind, rawText, imagePath, title: graph.title },
+    });
+  }
 
   // Create concepts, mapping each extraction id -> DB cuid.
   const idMap = new Map<string, string>();

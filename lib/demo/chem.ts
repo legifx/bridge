@@ -26,6 +26,7 @@ and the resulting particle is a molecule. Water is a molecule held together by c
 bonds.`;
 
 export const CHEM_EXTRACTION: ExtractionResult = {
+  title: "Chemical bonding",
   concepts: [
     {
       id: "atom",

@@ -7,17 +7,27 @@ import { PageHead } from "@/components/PageHead";
 import { Led } from "@/components/Led";
 import { TickScale } from "@/components/TickScale";
 
-type Concept = { id: string; label: string; definition: string; difficulty: number; mastery: number };
+type Concept = {
+  id: string;
+  label: string;
+  definition: string;
+  difficulty: number;
+  mastery: number;
+  sourceId: string | null;
+  reviewEnabled: boolean;
+  dueAt: string | null;
+};
+type Source = { id: string; title: string; kind: string; createdAt: string; count: number };
 type Domain = { id: string; name: string; successRate: number };
 type Data = {
   learner: { displayName: string };
   concepts: Concept[];
+  sources: Source[];
   edges: { from: string; to: string }[];
   order: string[];
   domains: Domain[];
 };
 
-// mastery -> glow: dim blue (new) climbing to acid green (mastered)
 function masteryGlow(m: number) {
   if (m >= 0.66) return "var(--acid)";
   if (m >= 0.4) return "var(--curriculum)";
@@ -25,6 +35,9 @@ function masteryGlow(m: number) {
 }
 function masteryColor(m: number) {
   return m >= 0.66 ? "#c9ff7a" : "#9dc0ff";
+}
+function fmtDate(iso: string) {
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
 export default function Home() {
@@ -44,6 +57,20 @@ export default function Home() {
   const byId = new Map(data?.concepts.map((c) => [c.id, c]) ?? []);
   const ordered = data ? data.order.map((id) => byId.get(id)!).filter(Boolean) : [];
 
+  // spaced repetition: opted-in concepts whose next review is due (or unstarted)
+  const now = Date.now();
+  const due = ordered.filter(
+    (c) => c.reviewEnabled && (!c.dueAt || new Date(c.dueAt).getTime() <= now),
+  );
+
+  // group the learning order into capture folders
+  const folders = (data?.sources ?? [])
+    .map((s) => ({ source: s, concepts: ordered.filter((c) => c.sourceId === s.id) }))
+    .filter((f) => f.concepts.length > 0);
+  const loose = ordered.filter((c) => !c.sourceId);
+
+  let seq = 0;
+
   return (
     <Shell>
       {loading && <p className="mt-16 text-center text-sm text-faint">Loading…</p>}
@@ -51,7 +78,7 @@ export default function Home() {
       {!loading && data && data.domains.length === 0 && (
         <EmptyState
           title="Start with what you already know."
-          body="Five taps builds your interest profile. Then every concept is re-lit through your world."
+          body="A short onboarding builds your interest profile. Then every concept is re-lit through your world."
           cta="Build my profile"
           href="/onboarding"
         />
@@ -70,8 +97,7 @@ export default function Home() {
         <>
           <PageHead eyebrow="Concept map" title="Your learning order" />
 
-          {/* interest domains */}
-          <div className="-mt-4 mb-10 flex flex-wrap gap-2.5">
+          <div className="-mt-4 mb-8 flex flex-wrap gap-2.5">
             {data.domains.map((d) => (
               <span key={d.id} className="chip chip-interest">
                 {d.name}
@@ -80,54 +106,126 @@ export default function Home() {
             ))}
           </div>
 
-          {/* concept instrument list */}
-          <ol className="space-y-5">
-            {ordered.map((c, i) => {
-              const pct = Math.round(c.mastery * 100);
-              return (
-                <li key={c.id} className="reveal" style={{ animationDelay: `${i * 55}ms` }}>
+          {/* due for review — the spaced-repetition queue */}
+          {due.length > 0 && (
+            <div
+              className="aura card mb-8 p-5"
+              style={
+                {
+                  "--glow": "var(--acid)",
+                  "--aura-x": "10%",
+                  "--aura-y": "30%",
+                  "--aura-strength": 0.45,
+                } as React.CSSProperties
+              }
+            >
+              <div className="mb-3 flex items-baseline justify-between">
+                <p className="slabel text-acid-text">due for review</p>
+                <Led value={`${due.length}`} dot={3} color="#c9ff7a" />
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {due.map((c) => (
                   <Link
-                    href={`/learn/${c.id}`}
-                    className="aura card card-link ring-focus block p-6 hover:bg-white/[0.06]"
-                    style={
-                      {
-                        "--glow": masteryGlow(c.mastery),
-                        "--aura-x": "12%",
-                        "--aura-y": "50%",
-                        "--aura-strength": 0.3 + c.mastery * 0.45,
-                      } as React.CSSProperties
-                    }
+                    key={c.id}
+                    href={`/learn/${c.id}/check`}
+                    className="chip"
+                    style={{
+                      background: "rgba(179,255,60,0.12)",
+                      color: "var(--acid-text)",
+                      boxShadow: "0 0 16px rgba(179,255,60,0.2)",
+                    }}
                   >
-                    <div className="flex items-start gap-5">
-                      <span className="w-6 shrink-0 pt-1 font-mono text-2xs text-faint">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <h2 className="truncate text-lg font-semibold tracking-tight text-text">
-                          {c.label}
-                        </h2>
-                        <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-dim">
-                          {c.definition}
-                        </p>
-                      </div>
-                      <span className="flex min-w-[56px] shrink-0 justify-end pt-1">
-                        <Led value={`${pct}`} dot={3.2} color={masteryColor(c.mastery)} suffix="%" />
-                      </span>
-                    </div>
-                    <TickScale
-                      value={c.mastery}
-                      color={masteryGlow(c.mastery)}
-                      count={44}
-                      className="mt-5"
-                    />
+                    {c.label} ↗
                   </Link>
-                </li>
-              );
-            })}
-          </ol>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* capture folders */}
+          <div className="space-y-10">
+            {folders.map((f) => (
+              <section key={f.source.id}>
+                <div className="mb-4 flex items-end justify-between gap-3 px-1">
+                  <div className="min-w-0">
+                    <p className="slabel text-faint">
+                      {f.source.kind === "photo" ? "photo capture" : "capture"} ·{" "}
+                      {fmtDate(f.source.createdAt)}
+                    </p>
+                    <h2 className="mt-1 truncate text-lg font-semibold tracking-tight text-text">
+                      {f.source.title}
+                    </h2>
+                  </div>
+                  <Link
+                    href={`/capture?source=${f.source.id}`}
+                    className="slabel shrink-0 pb-0.5 text-curriculum-text transition hover:opacity-80"
+                  >
+                    + add material
+                  </Link>
+                </div>
+                <ol className="space-y-5">
+                  {f.concepts.map((c) => {
+                    seq += 1;
+                    return <ConceptCard key={c.id} c={c} index={seq} />;
+                  })}
+                </ol>
+              </section>
+            ))}
+
+            {loose.length > 0 && (
+              <section>
+                <p className="slabel mb-4 px-1 text-faint">other concepts</p>
+                <ol className="space-y-5">
+                  {loose.map((c) => {
+                    seq += 1;
+                    return <ConceptCard key={c.id} c={c} index={seq} />;
+                  })}
+                </ol>
+              </section>
+            )}
+          </div>
         </>
       )}
     </Shell>
+  );
+}
+
+function ConceptCard({ c, index }: { c: Concept; index: number }) {
+  const pct = Math.round(c.mastery * 100);
+  return (
+    <li className="reveal" style={{ animationDelay: `${Math.min(index * 45, 500)}ms` }}>
+      <Link
+        href={`/learn/${c.id}`}
+        className="aura card card-link ring-focus block p-6 hover:bg-white/[0.06]"
+        style={
+          {
+            "--glow": masteryGlow(c.mastery),
+            "--aura-x": "12%",
+            "--aura-y": "50%",
+            "--aura-strength": 0.3 + c.mastery * 0.45,
+          } as React.CSSProperties
+        }
+      >
+        <div className="flex items-start gap-5">
+          <span className="w-6 shrink-0 pt-1 font-mono text-2xs text-faint">
+            {String(index).padStart(2, "0")}
+          </span>
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-lg font-semibold tracking-tight text-text">{c.label}</h3>
+            <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-dim">{c.definition}</p>
+          </div>
+          <span className="flex min-w-[56px] shrink-0 flex-col items-end gap-1 pt-1">
+            <Led value={`${pct}`} dot={3.2} color={masteryColor(c.mastery)} suffix="%" />
+            {c.reviewEnabled && (
+              <span className="slabel" style={{ color: "var(--acid-text)", fontSize: "0.5625rem" }}>
+                ↻ srs
+              </span>
+            )}
+          </span>
+        </div>
+        <TickScale value={c.mastery} color={masteryGlow(c.mastery)} count={44} className="mt-5" />
+      </Link>
+    </li>
   );
 }
 

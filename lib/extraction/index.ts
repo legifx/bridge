@@ -35,7 +35,7 @@ export async function extractConceptGraph(input: ExtractInput): Promise<ExtractO
     input.text?.trim() ||
     "Extract the concept graph from the attached image(s) of study material.";
 
-  const { concepts } = await llmJson({
+  const { title, concepts } = await llmJson({
     system: EXTRACT_SYSTEM,
     user: userText,
     images: input.images,
@@ -70,7 +70,13 @@ export async function extractConceptGraph(input: ExtractInput): Promise<ExtractO
   const { order, hadCycle } = topologicalSort(ids, edges);
 
   return {
-    graph: { concepts: merged, edges, order, hadCycle },
+    graph: {
+      title: title?.trim() || merged[0]?.label || "Untitled capture",
+      concepts: merged,
+      edges,
+      order,
+      hadCycle,
+    },
     embeddings,
   };
 }
