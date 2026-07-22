@@ -12,6 +12,13 @@ import path from "node:path";
  *    /tmp (the only writable path). Works, but ephemeral per instance.
  * 3. Locally                 -> DATABASE_URL from .env (file:./dev.db).
  */
+/** Which datasource strategy is active — surfaced by /api/me for diagnosis. */
+export function dbMode(): "turso" | "tmp" | "local" {
+  if (process.env.TURSO_DATABASE_URL) return "turso";
+  if (process.env.VERCEL) return "tmp";
+  return "local";
+}
+
 function makeClient(): PrismaClient {
   if (process.env.TURSO_DATABASE_URL) {
     const adapter = new PrismaLibSQL({

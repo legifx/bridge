@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentLearner } from "@/lib/db/learner";
 import { isPublicDemo, quotaState } from "@/lib/quota";
+import { dbMode } from "@/lib/db/prisma";
 
 export const runtime = "nodejs";
 
@@ -10,6 +11,7 @@ export async function GET() {
   return NextResponse.json({
     learner: learner ? { id: learner.id, displayName: learner.displayName } : null,
     publicDemo: isPublicDemo(),
+    db: dbMode(),
     quota: learner ? quotaState(learner.aiUnits) : null,
   });
 }
