@@ -191,6 +191,7 @@ export const tr: Dict = {
   "review.concepts": "· {n} kavram",
   "review.upcoming": "yaklaşan ({n})",
   "review.notInRotation": "rotasyonda değil ({n}) — eklemek için bir sınama tamamla",
+  "review.startLearning": "öğren →",
   "review.overdue": "gecikmiş",
   "review.today": "bugün",
   "review.tomorrow": "yarın",

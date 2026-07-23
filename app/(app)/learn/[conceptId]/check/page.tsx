@@ -69,7 +69,12 @@ export default function Check() {
     const data = await res.json();
     setSubmitting(false);
     if (data.error) setError(data.error);
-    else setResult(data);
+    else {
+      setResult(data);
+      // Answering auto-enrolls the concept in the rotation (server-side); mirror
+      // that in the toggle so it reflects reality.
+      if (typeof data.reviewEnabled === "boolean") setSrs(data.reviewEnabled);
+    }
   }
 
   async function toggleSrs(enabled: boolean) {

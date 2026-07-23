@@ -191,6 +191,7 @@ export const pl: Dict = {
   "review.concepts": "· {n} pojęcie/a",
   "review.upcoming": "nadchodzące ({n})",
   "review.notInRotation": "poza rotacją ({n}) — ukończ sprawdzian, aby dodać",
+  "review.startLearning": "ucz się →",
   "review.overdue": "zaległe",
   "review.today": "dzisiaj",
   "review.tomorrow": "jutro",

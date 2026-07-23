@@ -187,12 +187,24 @@ export default function Review() {
         </details>
       )}
 
-      {/* not in rotation */}
+      {/* not in rotation — captured but never checked yet */}
       {neverReviewed.length > 0 && (
         <details className="group mt-8">
           <summary className="slabel cursor-pointer text-faint transition hover:text-dim">
             {t("review.notInRotation", { n: neverReviewed.length })}
           </summary>
+          <div className="mt-4 space-y-3">
+            {neverReviewed.map((c) => (
+              <Link
+                key={c.id}
+                href={`/learn/${c.id}`}
+                className="card card-link flex items-center justify-between gap-3 p-4 transition hover:bg-white/[0.04]"
+              >
+                <p className="min-w-0 truncate text-sm font-medium text-text">{c.label}</p>
+                <span className="slabel shrink-0 text-acid-text">{t("review.startLearning")}</span>
+              </Link>
+            ))}
+          </div>
         </details>
       )}
     </Shell>

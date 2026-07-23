@@ -191,6 +191,7 @@ export const ar: Dict = {
   "review.concepts": "· {n} مفهوم",
   "review.upcoming": "قادمة ({n})",
   "review.notInRotation": "خارج الدورة ({n}) — أكمل اختبارًا لإضافتها",
+  "review.startLearning": "تعلّم →",
   "review.overdue": "متأخر",
   "review.today": "اليوم",
   "review.tomorrow": "غدًا",

@@ -210,6 +210,7 @@ export const en = {
   "review.concepts": "· {n} concept(s)",
   "review.upcoming": "upcoming ({n})",
   "review.notInRotation": "not in rotation ({n}) — complete a check to add",
+  "review.startLearning": "learn →",
   "review.overdue": "overdue",
   "review.today": "today",
   "review.tomorrow": "tomorrow",

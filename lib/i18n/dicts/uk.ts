@@ -191,6 +191,7 @@ export const uk: Dict = {
   "review.concepts": "· {n} понять",
   "review.upcoming": "попереду ({n})",
   "review.notInRotation": "поза ротацією ({n}) — заверши перевірку, щоб додати",
+  "review.startLearning": "вчити →",
   "review.overdue": "прострочено",
   "review.today": "сьогодні",
   "review.tomorrow": "завтра",

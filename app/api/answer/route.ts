@@ -39,5 +39,15 @@ export async function POST(req: Request) {
     confident: grade.confident && parsed.data.mcqCorrect,
   });
 
-  return NextResponse.json({ grade, correct, mastery: eloToMastery(elo), nextIntervalDays });
+  // Once a concept has actually been recalled, it belongs in the spaced-
+  // repetition rotation by default — otherwise the whole review flow only works
+  // if the learner remembers to flip a toggle. They can still opt out on the
+  // check screen (reviewEnabled=false), which we then respect.
+  let reviewEnabled = concept.reviewEnabled;
+  if (!reviewEnabled) {
+    await prisma.concept.update({ where: { id: concept.id }, data: { reviewEnabled: true } });
+    reviewEnabled = true;
+  }
+
+  return NextResponse.json({ grade, correct, mastery: eloToMastery(elo), nextIntervalDays, reviewEnabled });
 }
