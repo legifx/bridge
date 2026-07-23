@@ -12,7 +12,8 @@ const NAV = [
   { href: "/review", key: "nav.review" },
   { href: "/capture", key: "nav.capture" },
   { href: "/brain", key: "nav.brain" },
-  { href: "/teacher", key: "nav.teacher" },
+  // Teacher stays out of the nav until the feature is production-ready
+  // (premium/future) — the route itself redirects home, see app/teacher.
 ] as const;
 
 type Me = {
@@ -55,12 +56,6 @@ export function Shell({
           Bridge
         </Link>
         <div className="flex items-center gap-4">
-          <Link
-            href="/compare"
-            className="slabel hidden text-faint transition hover:text-interest-text min-[440px]:inline"
-          >
-            {t("nav.compare")}
-          </Link>
           {me?.learner && (
             <span className="flex items-center gap-2.5">
               <LanguageSelect compact />
