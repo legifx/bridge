@@ -141,9 +141,14 @@ export async function POST(req: Request) {
     displayName: learner.displayName,
     hasProfile: learner._count.domains > 0,
   });
+  // secure only over HTTPS — so the local HTTP dev server still receives the
+  // cookie, while the hosted (TLS) deployment gets the hardened flag.
+  const isHttps =
+    req.headers.get("x-forwarded-proto") === "https" || new URL(req.url).protocol === "https:";
   res.cookies.set(LEARNER_COOKIE, learner.id, {
     httpOnly: true,
     sameSite: "lax",
+    secure: isHttps,
     path: "/",
     maxAge: 60 * 60 * 24 * 365,
   });
