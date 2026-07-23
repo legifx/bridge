@@ -5,8 +5,8 @@ import { prisma } from "@/lib/db/prisma";
 import { bytesToVec } from "@/lib/ml/vector";
 import { embed } from "@/lib/ml/embeddings";
 import { getDomainsForMatch } from "@/lib/profile/repo";
-import { matchConceptToDomains } from "@/lib/profile/match";
-import { generateVerifiedBridge } from "@/lib/bridge/engine";
+import { rankDomainsForConcept, buildMatch } from "@/lib/profile/match";
+import { generateBestBridge } from "@/lib/bridge/engine";
 import { chargeAi, quotaExceededResponse } from "@/lib/quota";
 
 export const runtime = "nodejs";
@@ -35,24 +35,31 @@ export async function POST(req: Request) {
     ? bytesToVec(concept.embedding)
     : await embed(`${concept.label}. ${concept.definition}`);
 
-  const match = await matchConceptToDomains(conceptVec, domains);
-  if (!match) return NextResponse.json({ error: "Could not match a domain." }, { status: 500 });
-
-  const chosen = domains.find((d) => d.id === match.domainId)!;
+  // Rank domains and prepare the top few as candidates. If the best domain's
+  // analogies all get rejected by the verifier, the engine tries the next one
+  // before ever falling back to a plain, non-analogical explanation.
+  const ranked = rankDomainsForConcept(conceptVec, domains);
+  if (ranked.length === 0) return NextResponse.json({ error: "Could not match a domain." }, { status: 500 });
+  const top = ranked.slice(0, 2);
+  const candidates = await Promise.all(
+    top.map(async ({ domain, bandit }) => ({
+      domain: { id: domain.id, name: domain.name, anchors: domain.anchors, depth: domain.depth },
+      match: await buildMatch(conceptVec, domain, bandit),
+    })),
+  );
 
   const charge = await chargeAi(learner.id, 1);
   if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
   try {
-    const result = await generateVerifiedBridge({
+    const result = await generateBestBridge({
       concept: {
         id: concept.id,
         label: concept.label,
         definition: concept.definition,
         sourceQuote: concept.sourceQuote,
       },
-      domain: { id: chosen.id, name: chosen.name, anchors: chosen.anchors, depth: chosen.depth },
-      match,
+      candidates,
       readingLevel: learner.readingLevel,
       language: learner.language,
     });

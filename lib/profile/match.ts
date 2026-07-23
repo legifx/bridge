@@ -30,29 +30,35 @@ const BANDIT_WEIGHT = 0.5;
  * Choose the best domain for a concept and the best anchor within it.
  * `rng` is injectable for deterministic behavior; defaults to a per-call seed.
  */
-export async function matchConceptToDomains(
+/** Rank every domain for a concept (best first) by cosine + bandit score. */
+export function rankDomainsForConcept(
   conceptEmbedding: Float32Array,
   domains: DomainForMatch[],
   rng: Rng = mulberry32(((conceptEmbedding[0] * 1e6) | 0) >>> 0),
-): Promise<Match | null> {
-  if (domains.length === 0) return null;
+): { domain: DomainForMatch; bandit: number }[] {
+  return domains
+    .map((d) => {
+      const domCos = cosine(conceptEmbedding, bytesToVec(d.embedding));
+      const bandit = sampleBeta(d.alpha, d.beta, rng);
+      return { domain: d, bandit, score: COSINE_WEIGHT * domCos + BANDIT_WEIGHT * bandit };
+    })
+    .sort((a, b) => b.score - a.score)
+    .map(({ domain, bandit }) => ({ domain, bandit }));
+}
 
-  let best: { d: DomainForMatch; score: number; bandit: number } | null = null;
-  for (const d of domains) {
-    const domCos = cosine(conceptEmbedding, bytesToVec(d.embedding));
-    const bandit = sampleBeta(d.alpha, d.beta, rng);
-    const score = COSINE_WEIGHT * domCos + BANDIT_WEIGHT * bandit;
-    if (!best || score > best.score) best = { d, score, bandit };
-  }
-  if (!best) return null;
-
-  // Best anchor within the chosen domain, by cosine to the concept.
-  // When embeddings are disabled (serverless), fall back to the stored domain
-  // vector and the first anchor — no runtime model load needed.
-  let anchor = best.d.anchors[0] ?? best.d.name;
-  let similarity = cosine(conceptEmbedding, bytesToVec(best.d.embedding));
+/** Build the Match (best anchor + similarity) for one already-chosen domain. */
+export async function buildMatch(
+  conceptEmbedding: Float32Array,
+  domain: DomainForMatch,
+  banditScore: number,
+): Promise<Match> {
+  // Best anchor within the domain, by cosine to the concept. When embeddings are
+  // disabled (serverless), fall back to the stored domain vector and the first
+  // anchor — no runtime model load needed.
+  let anchor = domain.anchors[0] ?? domain.name;
+  let similarity = cosine(conceptEmbedding, bytesToVec(domain.embedding));
   if (EMBEDDINGS_ENABLED) {
-    for (const a of best.d.anchors) {
+    for (const a of domain.anchors) {
       const sim = cosine(conceptEmbedding, await embed(a));
       if (sim > similarity) {
         similarity = sim;
@@ -60,12 +66,21 @@ export async function matchConceptToDomains(
       }
     }
   }
-
   return {
-    domainId: best.d.id,
-    domainName: best.d.name,
+    domainId: domain.id,
+    domainName: domain.name,
     anchor,
     similarity: Math.max(0, Math.min(1, similarity)),
-    banditScore: best.bandit,
+    banditScore,
   };
+}
+
+export async function matchConceptToDomains(
+  conceptEmbedding: Float32Array,
+  domains: DomainForMatch[],
+  rng: Rng = mulberry32(((conceptEmbedding[0] * 1e6) | 0) >>> 0),
+): Promise<Match | null> {
+  const ranked = rankDomainsForConcept(conceptEmbedding, domains, rng);
+  if (ranked.length === 0) return null;
+  return buildMatch(conceptEmbedding, ranked[0].domain, ranked[0].bandit);
 }

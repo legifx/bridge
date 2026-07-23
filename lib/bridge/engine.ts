@@ -111,7 +111,30 @@ export type BridgeResult = {
   isFallback: boolean;
 };
 
-/** Run the full generate/verify loop and persist every attempt. */
+/** Try one domain: generate→verify up to MAX_RETRIES+1 times. Persists every
+ *  attempt (accepted or rejected). Returns the accepted bridge, or null when all
+ *  attempts were rejected (so the caller can try another domain before plain). */
+async function tryDomain(
+  concept: EngineConcept,
+  domain: EngineDomain,
+  readingLevel: number,
+  language: string | undefined,
+  attempts: BridgeAttempt[],
+): Promise<{ bridgeId: string; body: BridgeBody } | null> {
+  let contradictions: Verdict["contradictions"] | undefined;
+  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
+    const body = await generate(concept, domain, readingLevel, contradictions, language);
+    const verdict = await verify(concept, body);
+    const status: "accepted" | "rejected" = verdict.verdict === "accept" ? "accepted" : "rejected";
+    const row = await persist(concept, domain, body, verdict, status, attempt);
+    attempts.push({ attempt, body, verdict, status });
+    if (status === "accepted") return { bridgeId: row.id, body };
+    contradictions = verdict.contradictions;
+  }
+  return null;
+}
+
+/** Run the full generate/verify loop for a single domain (kept for compat). */
 export async function generateVerifiedBridge(params: {
   concept: EngineConcept;
   domain: EngineDomain;
@@ -119,24 +142,38 @@ export async function generateVerifiedBridge(params: {
   readingLevel: number;
   language?: string;
 }): Promise<BridgeResult> {
-  const { concept, domain, match, readingLevel, language } = params;
+  return generateBestBridge({
+    concept: params.concept,
+    candidates: [{ domain: params.domain, match: params.match }],
+    readingLevel: params.readingLevel,
+    language: params.language,
+  });
+}
+
+/**
+ * Try each candidate domain (best first) until one produces a verified analogy.
+ * Only if EVERY candidate's attempts are rejected do we ship a plain, non-
+ * analogical explanation — so a single weak domain match no longer silently
+ * drops the learner to "no analogy" when another interest would have worked.
+ */
+export async function generateBestBridge(params: {
+  concept: EngineConcept;
+  candidates: { domain: EngineDomain; match: Match }[];
+  readingLevel: number;
+  language?: string;
+}): Promise<BridgeResult> {
+  const { concept, candidates, readingLevel, language } = params;
   const attempts: BridgeAttempt[] = [];
-  let contradictions: Verdict["contradictions"] | undefined;
 
-  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
-    const body = await generate(concept, domain, readingLevel, contradictions, language);
-    const verdict = await verify(concept, body);
-    const status: "accepted" | "rejected" = verdict.verdict === "accept" ? "accepted" : "rejected";
-    const row = await persist(concept, domain, body, verdict, status, attempt);
-    attempts.push({ attempt, body, verdict, status });
-
-    if (status === "accepted") {
-      return { bridgeId: row.id, body, match, attempts, isFallback: false };
+  for (const { domain, match } of candidates) {
+    const accepted = await tryDomain(concept, domain, readingLevel, language, attempts);
+    if (accepted) {
+      return { bridgeId: accepted.bridgeId, body: accepted.body, match, attempts, isFallback: false };
     }
-    contradictions = verdict.contradictions;
   }
 
-  // Fallback: a plain, non-analogical explanation rather than shipping something wrong.
+  // Every candidate failed → plain fallback, attributed to the best (first) match.
+  const first = candidates[0];
   const plain: BridgeBody = {
     opening: st(language, "engine.plainOpening", { label: concept.label }),
     correspondences: [],
@@ -149,9 +186,7 @@ export async function generateVerifiedBridge(params: {
     analogyOverreach: false,
     verdict: "accept",
   };
-  const row = await persist(concept, domain, plain, verdict, "accepted", MAX_RETRIES + 2, {
-    fallback: true,
-  });
-  attempts.push({ attempt: MAX_RETRIES + 2, body: plain, verdict, status: "accepted", isFallback: true });
-  return { bridgeId: row.id, body: plain, match, attempts, isFallback: true };
+  const row = await persist(concept, first.domain, plain, verdict, "accepted", 99, { fallback: true });
+  attempts.push({ attempt: 99, body: plain, verdict, status: "accepted", isFallback: true });
+  return { bridgeId: row.id, body: plain, match: first.match, attempts, isFallback: true };
 }
