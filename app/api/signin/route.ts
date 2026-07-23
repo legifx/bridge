@@ -35,7 +35,11 @@ export async function POST(req: Request) {
       include: { _count: { select: { domains: true } } },
     });
     if (!learner) {
-      const created = await prisma.learner.create({ data: { displayName, handle } });
+      // Seed the learner's language from the UI immediately, so the very first
+      // brain/summary render is already in their language (not English).
+      const created = await prisma.learner.create({
+        data: { displayName, handle, ...(lang ? { language: lang } : {}) },
+      });
       learner = { ...created, _count: { domains: 0 } };
     }
   } catch (err) {
