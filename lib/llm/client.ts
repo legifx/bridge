@@ -10,10 +10,11 @@ import OpenAI from "openai";
 import type { ZodType } from "zod";
 import { languageName } from "@/lib/i18n";
 
-// Primary model (default: free, vision-capable). Free tiers are occasionally
-// rate-limited upstream (429), so we fall back to a cheap paid model on failure.
-const MODEL = process.env.OPENROUTER_MODEL || "google/gemma-4-31b-it:free";
-const FALLBACK_MODEL = process.env.OPENROUTER_FALLBACK_MODEL || "google/gemini-3.1-flash-lite";
+// Primary model: cheap paid, vision-capable, reliable multilingual output.
+// Free-tier models proved unreliable here (rate limits + broken German), so
+// they are opt-in via env only. On failure we retry with a stronger model.
+const MODEL = process.env.OPENROUTER_MODEL || "google/gemini-3.1-flash-lite";
+const FALLBACK_MODEL = process.env.OPENROUTER_FALLBACK_MODEL || "google/gemini-3.5-flash";
 
 let clientSingleton: OpenAI | null = null;
 function client(): OpenAI {
@@ -51,7 +52,7 @@ export type LlmCall<T> = {
 function withLanguage(system: string, language?: string): string {
   const name = languageName(language);
   if (!name) return system;
-  return `${system}\n\nLANGUAGE: The learner's main language is ${name} (${language}). Write every learner-facing string value (questions, explanations, titles, feedback) in ${name}. Keep JSON keys, ids, and enum values exactly as specified, in English. Keep verbatim source quotes in the source's original language.`;
+  return `${system}\n\nLANGUAGE: The learner's main language is ${name} (${language}). Write every learner-facing string value (questions, explanations, titles, feedback) in ${name}, with flawless spelling and grammar — proofread each string before emitting it. Never mix in English words unless the English term is the established technical term with no common ${name} equivalent. Keep JSON keys, ids, and enum values exactly as specified, in English. Keep verbatim source quotes in the source's original language.`;
 }
 
 function extractJson(text: string): unknown {

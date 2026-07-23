@@ -40,7 +40,7 @@ function guardedPlan(plan: Plan): Plan {
   return { domains };
 }
 
-function heuristicPlan(seeds: string[]): Plan {
+function heuristicPlan(seeds: string[], language?: string): Plan {
   const seen = new Set<string>();
   const unique = seeds.filter((s) => {
     const k = norm(s);
@@ -51,8 +51,8 @@ function heuristicPlan(seeds: string[]): Plan {
   return {
     domains: unique.slice(0, MAX_DOMAINS).map((seed) => ({
       name: seed.slice(0, 48),
-      roleQuestion: fallbackRoleQuestion(seed),
-      slider: fallbackSlider(seed),
+      roleQuestion: fallbackRoleQuestion(seed, language),
+      slider: fallbackSlider(seed, language),
       subQuestion: null,
     })),
   };
@@ -73,7 +73,7 @@ export async function planInterview(seeds: string[], language?: string): Promise
   } catch {
     // fall through to the heuristic
   }
-  return heuristicPlan(seeds);
+  return heuristicPlan(seeds, language);
 }
 
 function domainContext(d: DomainState): string {

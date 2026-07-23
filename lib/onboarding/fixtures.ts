@@ -1,3 +1,4 @@
+import { st } from "@/lib/i18n";
 import type { MagnetWord } from "./types";
 
 /**
@@ -97,18 +98,18 @@ export function findFixtureMagnet(domainName: string): MagnetWord[] | null {
 }
 
 /** Generic drill templates used when the plan call fails or returns nothing. */
-export function fallbackRoleQuestion(name: string) {
+export function fallbackRoleQuestion(name: string, language?: string) {
   return {
-    prompt: `${name} — which is closer to you?`,
-    left: "I watch / follow it",
-    right: "I do it myself",
+    prompt: st(language, "ob.fbRolePrompt", { name }),
+    left: st(language, "ob.fbRoleLeft"),
+    right: st(language, "ob.fbRoleRight"),
   };
 }
 
-export function fallbackSlider(name: string) {
+export function fallbackSlider(name: string, language?: string) {
   return {
-    prompt: `When you spend time on ${name}, it's mostly…`,
-    leftLabel: "relaxing / casual",
-    rightLabel: "learning / improving",
+    prompt: st(language, "ob.fbSliderPrompt", { name }),
+    leftLabel: st(language, "ob.fbSliderLeft"),
+    rightLabel: st(language, "ob.fbSliderRight"),
   };
 }
