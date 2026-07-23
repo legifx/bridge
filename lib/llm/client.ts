@@ -10,16 +10,25 @@ import OpenAI from "openai";
 import type { ZodType } from "zod";
 import { languageName } from "@/lib/i18n";
 
-// Primary model: cheap paid, vision-capable, reliable multilingual output.
-// Free-tier models proved unreliable here (rate limits + broken German), so
-// they are opt-in via env only. On failure we retry with a stronger model.
-const MODEL = process.env.OPENROUTER_MODEL || "google/gemini-3.1-flash-lite";
-const FALLBACK_MODEL = process.env.OPENROUTER_FALLBACK_MODEL || "google/gemini-3.5-flash";
-
-// Capture (document understanding) uses a stronger model than chat-sized
-// calls: reading a full notebook page / PDF faithfully is the one step where
-// accuracy is worth paying for.
-export const CAPTURE_MODEL = process.env.OPENROUTER_CAPTURE_MODEL || "google/gemini-3.5-flash";
+// Per-task model routing — each task runs on the model that is best-in-class
+// for it AND cheap, instead of one expensive generalist (measured 2026-07-23
+// against the live OpenRouter catalogue, real German + JSON + OCR test calls):
+//
+//   MODEL   — all learner-facing text (interview, bridges, quiz, grading).
+//     Mistral Small 3.2 24B: the strongest, most idiomatic German of the cheap
+//     tier, token-efficient output, solid JSON mode. ~4x cheaper than the old
+//     gemini-3.1-flash-lite default.
+//   CAPTURE_MODEL — document understanding (vision OCR + full transcription).
+//     Qwen3-VL 32B: the document/OCR master class (read "ü"/"→" correctly where
+//     others didn't) and, thanks to lean output, ~75x cheaper per capture than
+//     gemini-3.5-flash on the same page.
+//   FALLBACK_MODEL — retry target on 429/5xx. gemini-2.5-flash-lite: reliable,
+//     multimodal, cheap — works as a fallback for both text and capture calls.
+//
+// Free-tier models are opt-in via env only (rate limits + broken German).
+const MODEL = process.env.OPENROUTER_MODEL || "mistralai/mistral-small-3.2-24b-instruct";
+const FALLBACK_MODEL = process.env.OPENROUTER_FALLBACK_MODEL || "google/gemini-2.5-flash-lite";
+export const CAPTURE_MODEL = process.env.OPENROUTER_CAPTURE_MODEL || "qwen/qwen3-vl-32b-instruct";
 
 let clientSingleton: OpenAI | null = null;
 function client(): OpenAI {
