@@ -133,11 +133,17 @@ export async function generateMagnets(domains: DomainState[], language?: string)
   const forDomain = (sets: { domain: string; words: MagnetWord[] }[], name: string) =>
     sets.find((g) => norm(g.domain) === norm(name) || norm(g.domain).includes(norm(name)));
 
+  // The curated fixtures are English (subject jargon). Showing them to a
+  // non-English learner reproduces exactly the "English word cloud" bug, so
+  // fixtures are only a fallback for English — other languages rely on the LLM
+  // (now retried on the fallback model) or leave the domain unverified.
+  const fixturesAllowed = !language || language === "en";
+
   for (const d of domains) {
     // Preference cascade: audited LLM set -> curated fixture -> unaudited LLM
     // set. An empty audited set usually means the audit was over-aggressive,
     // not that the domain is unverifiable — some verification beats none.
-    const fixture = findFixtureMagnet(d.name);
+    const fixture = fixturesAllowed ? findFixtureMagnet(d.name) : null;
     const candidates = [
       forDomain(audited, d.name)?.words,
       fixture ?? undefined,
