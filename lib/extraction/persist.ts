@@ -8,7 +8,7 @@ import type { ConceptGraph } from "./types";
  */
 export async function saveConceptGraph(params: {
   learnerId: string;
-  kind: "photo" | "pdf" | "text";
+  kind: "photo" | "pdf" | "docx" | "text";
   rawText: string;
   imagePath?: string;
   graph: ConceptGraph;

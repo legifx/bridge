@@ -7,18 +7,9 @@ import { PageHead } from "@/components/PageHead";
 import { ThinkingLoader } from "@/components/ThinkingLoader";
 import { useT } from "@/components/LanguageProvider";
 import { CHEM_SOURCE_TEXT } from "@/lib/demo/chem";
+import type { ReadResult } from "@/lib/capture/readFile";
 
-async function downscale(file: File, maxEdge = 1600): Promise<string> {
-  const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
-  const w = Math.round(bitmap.width * scale);
-  const h = Math.round(bitmap.height * scale);
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  canvas.getContext("2d")!.drawImage(bitmap, 0, 0, w, h);
-  return canvas.toDataURL("image/jpeg", 0.85);
-}
+type Attachment = ReadResult & { fileName: string };
 
 function CaptureForm() {
   const t = useT();
@@ -38,7 +29,7 @@ function CaptureForm() {
   }, [sourceId]);
   const fileRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState("");
-  const [preview, setPreview] = useState<string | null>(null);
+  const [attachment, setAttachment] = useState<Attachment | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,10 +37,14 @@ function CaptureForm() {
     const file = e.target.files?.[0];
     if (!file) return;
     setError(null);
+    setAttachment(null);
     try {
-      setPreview(await downscale(file));
+      // pdfjs/mammoth are heavy — loaded only once a file is actually picked.
+      const { readCaptureFile } = await import("@/lib/capture/readFile");
+      const result = await readCaptureFile(file);
+      setAttachment({ ...result, fileName: file.name });
     } catch {
-      setError(t("cap.badImage"));
+      setError(file.type.startsWith("image/") ? t("cap.badImage") : t("cap.badFile"));
     }
   }
 
@@ -57,7 +52,14 @@ function CaptureForm() {
     setBusy(true);
     setError(null);
     try {
-      const base = preview ? { images: [{ dataUrl: preview }] } : { text };
+      const base = attachment
+        ? {
+            kind: attachment.kind,
+            fileName: attachment.fileName,
+            text: attachment.text,
+            images: attachment.images?.map((dataUrl) => ({ dataUrl })),
+          }
+        : { text };
       const body = sourceId ? { ...base, sourceId } : base;
       const res = await fetch("/api/extract", {
         method: "POST",
@@ -78,7 +80,8 @@ function CaptureForm() {
     }
   }
 
-  const canRun = !busy && (preview !== null || text.trim().length > 0);
+  const canRun = !busy && (attachment !== null || text.trim().length > 0);
+  const photoPreview = attachment?.kind === "photo" ? attachment.images?.[0] : null;
 
   return (
     <Shell>
@@ -107,26 +110,42 @@ function CaptureForm() {
           +
         </span>
         <span className="text-sm font-medium text-text">
-          {preview ? t("cap.retake") : t("cap.takePhoto")}
+          {attachment ? t("cap.retake") : t("cap.takePhoto")}
         </span>
       </button>
       <input
         ref={fileRef}
         type="file"
-        accept="image/*"
-        capture="environment"
+        accept="image/*,application/pdf,.pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         onChange={onFile}
         className="hidden"
       />
 
-      {preview && (
+      {photoPreview && (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={preview}
+          src={photoPreview}
           alt="captured page"
           className="mt-4 w-full"
           style={{ borderRadius: "var(--r-lg)" }}
         />
+      )}
+
+      {attachment && attachment.kind !== "photo" && (
+        <div
+          className="mt-4 bg-white/[0.05] p-4 text-sm text-text"
+          style={{ borderRadius: "var(--r)" }}
+        >
+          <p className="font-medium">{t("cap.fileReady", { name: attachment.fileName })}</p>
+          {attachment.pages && attachment.pages.used < attachment.pages.total && (
+            <p className="mt-1 text-xs text-faint">
+              {t("cap.pagesPartial", {
+                used: attachment.pages.used,
+                total: attachment.pages.total,
+              })}
+            </p>
+          )}
+        </div>
       )}
 
       <div className="my-8 flex items-center gap-3">

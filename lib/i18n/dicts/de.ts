@@ -130,8 +130,11 @@ export const de: Dict = {
   "cap.subNew":
     "Fotografiere eine Seite oder füge Text ein — in der Sprache des Fachs. Jede Aufnahme wird ihr eigener Ordner.",
   "cap.subInto": "Neue Konzepte landen in diesem Ordner und reihen sich in seine Lernreihenfolge ein.",
-  "cap.takePhoto": "Foto aufnehmen / auswählen",
+  "cap.takePhoto": "Foto aufnehmen oder PDF / Word-Datei auswählen",
   "cap.retake": "Foto neu aufnehmen",
+  "cap.fileReady": "„{name}“ ist bereit",
+  "cap.pagesPartial": "Langes Dokument: die ersten {used} von {total} Seiten werden gelesen.",
+  "cap.badFile": "Datei konnte nicht gelesen werden. Versuch eine andere.",
   "cap.badImage": "Bild konnte nicht gelesen werden. Versuch ein anderes.",
   "cap.orPaste": "oder einfügen",
   "cap.pastePlaceholder": "Füge einen Absatz aus deinen Notizen ein…",

@@ -7,7 +7,7 @@
  *
  * The LLM only returns concepts. All graph logic is our own code.
  */
-import { llmJson, type ImageInput } from "@/lib/llm/client";
+import { llmJson, CAPTURE_MODEL, type ImageInput } from "@/lib/llm/client";
 import { embed } from "@/lib/ml/embeddings";
 import { EXTRACT_SYSTEM } from "@/lib/prompts/extract";
 import { dedupeConcepts } from "./dedupe";
@@ -25,6 +25,8 @@ export type ExtractOutput = {
   graph: ConceptGraph;
   /** canonical concept id -> embedding, for persistence and Stage-3 matching. */
   embeddings: Map<string, Float32Array>;
+  /** faithful Markdown transcription of the material (stored instead of the binary). */
+  markdown: string | null;
 };
 
 /** Text used to embed a concept — label carries the most signal, definition disambiguates. */
@@ -37,13 +39,15 @@ export async function extractConceptGraph(input: ExtractInput): Promise<ExtractO
     input.text?.trim() ||
     "Extract the concept graph from the attached image(s) of study material.";
 
-  const { title, subject, concepts } = await llmJson({
+  const { title, subject, markdown, concepts } = await llmJson({
     system: EXTRACT_SYSTEM,
     user: userText,
     images: input.images,
     schema: ExtractionResultSchema,
     temperature: 0.2,
     language: input.language,
+    // Document understanding is the accuracy-critical call — dedicated model.
+    model: CAPTURE_MODEL,
   });
 
   // Embed every raw concept (order preserved) for dedupe.
@@ -82,5 +86,6 @@ export async function extractConceptGraph(input: ExtractInput): Promise<ExtractO
       hadCycle,
     },
     embeddings,
+    markdown: markdown?.trim() || null,
   };
 }

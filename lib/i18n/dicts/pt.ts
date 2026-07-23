@@ -130,8 +130,11 @@ export const pt: Dict = {
   "cap.subNew":
     "Fotografa uma página ou cola texto — na linguagem da disciplina. Cada captura torna-se a sua própria pasta.",
   "cap.subInto": "Os novos conceitos entram nesta pasta e encaixam na sua ordem de aprendizagem.",
-  "cap.takePhoto": "Tirar / escolher uma foto",
+  "cap.takePhoto": "Tire uma foto ou escolha um PDF / arquivo Word",
   "cap.retake": "Repetir a foto",
+  "cap.fileReady": "“{name}” está pronto",
+  "cap.pagesPartial": "Documento longo: serão lidas as primeiras {used} de {total} páginas.",
+  "cap.badFile": "Não foi possível ler o arquivo. Tente outro.",
   "cap.badImage": "Não foi possível ler essa imagem. Tenta outra.",
   "cap.orPaste": "ou cola",
   "cap.pastePlaceholder": "Cola um parágrafo dos teus apontamentos…",

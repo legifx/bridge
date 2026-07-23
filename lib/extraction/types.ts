@@ -14,6 +14,8 @@ export type ExtractedConcept = z.infer<typeof ExtractedConceptSchema>;
 export const ExtractionResultSchema = z.object({
   title: z.string().min(1).optional(),
   subject: z.string().min(1).optional(),
+  /** faithful full-Markdown transcription of the material — becomes the stored copy. */
+  markdown: z.string().optional(),
   concepts: z.array(ExtractedConceptSchema),
 });
 export type ExtractionResult = z.infer<typeof ExtractionResultSchema>;

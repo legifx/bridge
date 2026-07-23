@@ -130,8 +130,11 @@ export const tr: Dict = {
   "cap.subNew":
     "Bir sayfanın fotoğrafını çek ya da metin yapıştır — dersin kendi diliyle. Her yakalama kendi klasörü olur.",
   "cap.subInto": "Yeni kavramlar bu klasöre girer ve onun öğrenme sırasına yerleşir.",
-  "cap.takePhoto": "Fotoğraf çek / seç",
+  "cap.takePhoto": "Fotoğraf çek veya PDF / Word dosyası seç",
   "cap.retake": "Fotoğrafı yeniden çek",
+  "cap.fileReady": "“{name}” hazır",
+  "cap.pagesPartial": "Uzun belge: {total} sayfadan ilk {used} sayfa okunacak.",
+  "cap.badFile": "Dosya okunamadı. Başka bir tane dene.",
   "cap.badImage": "Bu görsel okunamadı. Başka bir tane dene.",
   "cap.orPaste": "veya yapıştır",
   "cap.pastePlaceholder": "Notlarından bir paragraf yapıştır…",

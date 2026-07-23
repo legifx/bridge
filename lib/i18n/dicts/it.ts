@@ -130,8 +130,11 @@ export const it: Dict = {
   "cap.subNew":
     "Fotografa una pagina o incolla del testo — nel linguaggio della materia. Ogni cattura diventa una cartella a sé.",
   "cap.subInto": "I nuovi concetti entrano in questa cartella e si inseriscono nel suo ordine di apprendimento.",
-  "cap.takePhoto": "Scatta / scegli una foto",
+  "cap.takePhoto": "Scatta una foto o scegli un PDF / file Word",
   "cap.retake": "Rifai la foto",
+  "cap.fileReady": "“{name}” è pronto",
+  "cap.pagesPartial": "Documento lungo: verranno lette le prime {used} pagine su {total}.",
+  "cap.badFile": "Impossibile leggere il file. Provane un altro.",
   "cap.badImage": "Impossibile leggere quell'immagine. Provane un'altra.",
   "cap.orPaste": "oppure incolla",
   "cap.pastePlaceholder": "Incolla un paragrafo dai tuoi appunti…",

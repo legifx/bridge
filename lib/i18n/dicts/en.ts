@@ -146,8 +146,11 @@ export const en = {
   "cap.subNew":
     "Snap a page or paste text — in the subject's own words. Every capture becomes its own folder.",
   "cap.subInto": "New concepts land inside this folder and slot into its learning order.",
-  "cap.takePhoto": "Take / choose a photo",
+  "cap.takePhoto": "Take a photo or pick a PDF / Word file",
   "cap.retake": "Retake photo",
+  "cap.fileReady": "“{name}” is ready",
+  "cap.pagesPartial": "Long document: reading the first {used} of {total} pages.",
+  "cap.badFile": "Couldn't read that file. Try another one.",
   "cap.badImage": "Could not read that image. Try another.",
   "cap.orPaste": "or paste",
   "cap.pastePlaceholder": "Paste a paragraph from your notes…",

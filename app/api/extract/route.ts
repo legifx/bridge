@@ -4,14 +4,20 @@ import { extractConceptGraph } from "@/lib/extraction";
 import { saveConceptGraph } from "@/lib/extraction/persist";
 import { getCurrentLearner } from "@/lib/db/learner";
 import { chargeAi, quotaExceededResponse } from "@/lib/quota";
+import { recordSignal, averageVec } from "@/lib/brain/record";
 
 // Embeddings + LLM need the Node runtime, not the edge runtime.
 export const runtime = "nodejs";
 
 const BodySchema = z.object({
-  text: z.string().min(1).max(20000).optional(),
+  // PDFs/DOCX can carry far more text than a pasted paragraph.
+  text: z.string().min(1).max(120000).optional(),
   // data URLs of already-downscaled images (client caps the long edge at 1600px).
-  images: z.array(z.object({ dataUrl: z.string().startsWith("data:") })).optional(),
+  // Multi-page captures (scanned PDFs) send one image per page.
+  images: z.array(z.object({ dataUrl: z.string().startsWith("data:") })).max(16).optional(),
+  // what the material originally was — the binary itself is never uploaded.
+  kind: z.enum(["photo", "pdf", "docx", "text"]).optional(),
+  fileName: z.string().max(200).optional(),
   // append into an existing capture folder instead of creating a new one
   sourceId: z.string().optional(),
 });
@@ -37,20 +43,53 @@ export async function POST(req: Request) {
   if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
   try {
-    const { graph, embeddings } = await extractConceptGraph({
+    const { graph, embeddings, markdown } = await extractConceptGraph({
       text: parsed.data.text,
       images: parsed.data.images,
       language: learner.language,
     });
 
+    const kind =
+      parsed.data.kind ?? (parsed.data.images?.length ? "photo" : "text");
+
+    // Storage stays lightweight: the learner's permanent copy is the Markdown
+    // transcription (plus any pasted text) — never the image/PDF/DOCX binary.
+    const header = parsed.data.fileName ? `<!-- source: ${parsed.data.fileName} -->\n\n` : "";
+    const rawText =
+      kind === "text"
+        ? parsed.data.text ?? ""
+        : header + (markdown ?? parsed.data.text ?? "(no transcription)");
+
     const { sourceId } = await saveConceptGraph({
       learnerId: learner.id,
-      kind: parsed.data.images?.length ? "photo" : "text",
-      rawText: parsed.data.text ?? "(image source)",
+      kind,
+      rawText,
       graph,
       embeddings,
       existingSourceId: parsed.data.sourceId,
     });
+
+    // Feed the second brain: what a learner captures is itself a signal. The
+    // embedding is averaged from the concept vectors we just computed, so this
+    // also works where the local model is unavailable (serverless).
+    try {
+      const vecs = [...embeddings.values()];
+      if (vecs.length > 0) {
+        await recordSignal({
+          learnerId: learner.id,
+          kind: "signal",
+          label: graph.title,
+          text: `${graph.title}${graph.subject ? ` (${graph.subject})` : ""}: ${graph.concepts
+            .map((c) => c.label)
+            .join(", ")}`,
+          weight: 2,
+          embedding: averageVec(vecs),
+          sourceRef: sourceId,
+        });
+      }
+    } catch (err) {
+      console.warn("extract: brain signal failed (non-fatal)", err);
+    }
 
     return NextResponse.json({ sourceId, graph, quota: charge.quota });
   } catch (err) {

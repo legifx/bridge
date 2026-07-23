@@ -16,6 +16,11 @@ import { languageName } from "@/lib/i18n";
 const MODEL = process.env.OPENROUTER_MODEL || "google/gemini-3.1-flash-lite";
 const FALLBACK_MODEL = process.env.OPENROUTER_FALLBACK_MODEL || "google/gemini-3.5-flash";
 
+// Capture (document understanding) uses a stronger model than chat-sized
+// calls: reading a full notebook page / PDF faithfully is the one step where
+// accuracy is worth paying for.
+export const CAPTURE_MODEL = process.env.OPENROUTER_CAPTURE_MODEL || "google/gemini-3.5-flash";
+
 let clientSingleton: OpenAI | null = null;
 function client(): OpenAI {
   if (!process.env.OPENROUTER_API_KEY) {
@@ -47,6 +52,8 @@ export type LlmCall<T> = {
   temperature?: number;
   /** Learner's main language (BCP-47-ish, e.g. "de"). Learner-facing strings are written in it. */
   language?: string;
+  /** Override the primary model for this call (e.g. CAPTURE_MODEL). */
+  model?: string;
 };
 
 function withLanguage(system: string, language?: string): string {
@@ -85,13 +92,14 @@ export async function llmJson<T>(call: LlmCall<T>): Promise<T> {
       ],
     });
 
+  const primary = call.model ?? MODEL;
   let res;
   try {
-    res = await complete(MODEL);
+    res = await complete(primary);
   } catch (err) {
     // On rate-limit / upstream failure, retry once with the paid fallback model.
     const status = (err as { status?: number })?.status;
-    if (FALLBACK_MODEL && FALLBACK_MODEL !== MODEL && (status === 429 || (status ?? 500) >= 500)) {
+    if (FALLBACK_MODEL && FALLBACK_MODEL !== primary && (status === 429 || (status ?? 500) >= 500)) {
       res = await complete(FALLBACK_MODEL);
     } else {
       throw err;

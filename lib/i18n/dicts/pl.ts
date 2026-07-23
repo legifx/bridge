@@ -130,8 +130,11 @@ export const pl: Dict = {
   "cap.subNew":
     "Zrób zdjęcie strony albo wklej tekst — językiem przedmiotu. Każdy materiał staje się osobnym folderem.",
   "cap.subInto": "Nowe pojęcia trafiają do tego folderu i wpasowują się w jego kolejność nauki.",
-  "cap.takePhoto": "Zrób / wybierz zdjęcie",
+  "cap.takePhoto": "Zrób zdjęcie lub wybierz PDF / plik Worda",
   "cap.retake": "Powtórz zdjęcie",
+  "cap.fileReady": "„{name}” jest gotowy",
+  "cap.pagesPartial": "Długi dokument: odczytane zostanie pierwszych {used} z {total} stron.",
+  "cap.badFile": "Nie udało się odczytać pliku. Spróbuj innego.",
   "cap.badImage": "Nie udało się odczytać obrazu. Spróbuj innego.",
   "cap.orPaste": "albo wklej",
   "cap.pastePlaceholder": "Wklej akapit z notatek…",
