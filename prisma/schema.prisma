@@ -14,6 +14,8 @@ model Learner {
   id           String   @id @default(cuid())
   displayName  String
   handle       String?  @unique // normalized sign-in name (public demo: any name is open)
+  passwordHash String? // optional account lock (scrypt); null = open profile (legacy/seed)
+  unlimited    Boolean  @default(false) // owner accounts: no AI quota (set via OWNER_UNLOCK_CODE)
   readingLevel Int      @default(3) // 1..5
   language     String   @default("en") // main language for learner-facing AI text (set at onboarding, editable later)
   aiUnits      Int      @default(0) // AI-call units used (quota enforced on public demo only)

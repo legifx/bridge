@@ -22,7 +22,7 @@ export async function GET() {
       : null,
     publicDemo: isPublicDemo(),
     db: { ...dbConfig(), reachable: dbReachable },
-    quota: learner ? quotaState(learner.aiUnits) : null,
+    quota: learner && !learner.unlimited ? quotaState(learner.aiUnits) : null,
   });
 }
 

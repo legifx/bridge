@@ -36,6 +36,8 @@ export async function chargeAi(
   if (!isPublicDemo()) return { ok: true, quota: null };
   const learner = await prisma.learner.findUnique({ where: { id: learnerId } });
   if (!learner) return { ok: false, quota: quotaState(0) };
+  // Owner accounts (unlocked via OWNER_UNLOCK_CODE) bypass the demo budget.
+  if (learner.unlimited) return { ok: true, quota: null };
   const limit = quotaLimit();
   if (learner.aiUnits + units > limit) {
     return { ok: false, quota: quotaState(learner.aiUnits) };

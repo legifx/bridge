@@ -10,19 +10,28 @@ function SignInForm() {
   const router = useRouter();
   const expired = useSearchParams().get("expired") === "1";
   const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [ownerCode, setOwnerCode] = useState("");
+  const [showOwner, setShowOwner] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // `explore` sign-ins (the seeded demo profiles) carry no credentials.
   async function submit(name?: string) {
     const value = (name ?? username).trim();
     if (!value) return;
+    const explore = name !== undefined;
     setBusy(true);
     setError(null);
     try {
       const res = await fetch("/api/signin", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ username: value, language: lang }),
+        body: JSON.stringify({
+          username: value,
+          language: lang,
+          ...(explore ? {} : { password: password || undefined, ownerCode: ownerCode || undefined }),
+        }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data) {
@@ -68,12 +77,44 @@ function SignInForm() {
             id="user"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
             placeholder={t("signin.placeholder")}
             maxLength={24}
             autoFocus
             className="input mt-3"
           />
+          <input
+            id="pw"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submit()}
+            placeholder={t("signin.passwordPlaceholder")}
+            maxLength={128}
+            autoComplete="current-password"
+            className="input mt-3"
+          />
+          <p className="mt-2 text-xs leading-relaxed text-faint">{t("signin.passwordHint")}</p>
+
+          {showOwner ? (
+            <input
+              id="owner"
+              value={ownerCode}
+              onChange={(e) => setOwnerCode(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && submit()}
+              placeholder={t("signin.ownerPlaceholder")}
+              maxLength={128}
+              className="input mt-3"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowOwner(true)}
+              className="slabel mt-3 text-faint transition hover:text-dim"
+            >
+              {t("signin.ownerToggle")}
+            </button>
+          )}
+
           {error && <p className="mt-2 text-xs text-reject-text">{error}</p>}
           <button
             onClick={() => submit()}

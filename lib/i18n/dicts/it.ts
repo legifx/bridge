@@ -273,4 +273,12 @@ export const it: Dict = {
   "engine.gradeGood": "Bene — coglie l'idea centrale.",
   "engine.gradeClose": "Quasi — rivedi la definizione e riprova.",
   "signin.invalidName": "Scegli un nome tra 2 e 24 caratteri (lettere, numeri, spazi).",
+  "signin.password": "Password",
+  "signin.passwordPlaceholder": "Password",
+  "signin.passwordHint": "Nome nuovo? Qui imposti la tua password. Torni a trovarci? Inseriscila per aprire il profilo.",
+  "signin.wrongPassword": "Password errata per questo nome.",
+  "signin.passwordRequired": "Imposta una password per proteggere il tuo account.",
+  "signin.passwordTooShort": "Password troppo corta — almeno 4 caratteri.",
+  "signin.ownerToggle": "Ho un codice proprietario",
+  "signin.ownerPlaceholder": "Codice proprietario (facoltativo)",
 };

@@ -298,6 +298,14 @@ export const en = {
   "engine.gradeGood": "Good — that captures the core idea.",
   "engine.gradeClose": "Close, but revisit the definition and try again.",
   "signin.invalidName": "Pick a name between 2 and 24 characters (letters, numbers, spaces).",
+  "signin.password": "Password",
+  "signin.passwordPlaceholder": "Password",
+  "signin.passwordHint": "New name? You set your password here. Coming back? Enter it to unlock your profile.",
+  "signin.wrongPassword": "Wrong password for this name.",
+  "signin.passwordRequired": "Set a password to protect your account.",
+  "signin.passwordTooShort": "Password too short — at least 4 characters.",
+  "signin.ownerToggle": "I have an owner code",
+  "signin.ownerPlaceholder": "Owner code (optional)",
 };
 
 export type Dict = typeof en;

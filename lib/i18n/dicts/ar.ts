@@ -273,4 +273,12 @@ export const ar: Dict = {
   "engine.gradeGood": "أحسنت — هذا يلتقط الفكرة الأساسية.",
   "engine.gradeClose": "اقتربت — راجع التعريف وحاول مجددًا.",
   "signin.invalidName": "اختر اسمًا من 2 إلى 24 حرفًا (حروف وأرقام ومسافات).",
+  "signin.password": "كلمة المرور",
+  "signin.passwordPlaceholder": "كلمة المرور",
+  "signin.passwordHint": "اسم جديد؟ تحدّد كلمة مرورك هنا. عائد؟ أدخلها لفتح ملفك.",
+  "signin.wrongPassword": "كلمة المرور غير صحيحة لهذا الاسم.",
+  "signin.passwordRequired": "حدّد كلمة مرور لحماية حسابك.",
+  "signin.passwordTooShort": "كلمة المرور قصيرة جدًا — 4 أحرف على الأقل.",
+  "signin.ownerToggle": "لديّ رمز مالك",
+  "signin.ownerPlaceholder": "رمز المالك (اختياري)",
 };

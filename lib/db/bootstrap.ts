@@ -32,6 +32,13 @@ const RUNTIME_MIGRATIONS: RuntimeMigration[] = [
       `UPDATE "Source" SET "subject" = 'Chemistry' WHERE "subject" IS NULL AND "title" = 'Chemical bonding'`,
     ],
   },
+  {
+    name: "20260723150000_account_password_unlimited",
+    statements: [
+      `ALTER TABLE "Learner" ADD COLUMN "passwordHash" TEXT`,
+      `ALTER TABLE "Learner" ADD COLUMN "unlimited" BOOLEAN NOT NULL DEFAULT false`,
+    ],
+  },
 ];
 
 async function run(): Promise<void> {

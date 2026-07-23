@@ -273,4 +273,12 @@ export const uk: Dict = {
   "engine.gradeGood": "Добре — це передає суть.",
   "engine.gradeClose": "Майже — переглянь визначення і спробуй ще раз.",
   "signin.invalidName": "Обери ім'я від 2 до 24 символів (літери, цифри, пробіли).",
+  "signin.password": "Пароль",
+  "signin.passwordPlaceholder": "Пароль",
+  "signin.passwordHint": "Нове ім'я? Тут ти встановлюєш пароль. Повертаєшся? Введи його, щоб відкрити профіль.",
+  "signin.wrongPassword": "Невірний пароль для цього імені.",
+  "signin.passwordRequired": "Встанови пароль, щоб захистити свій акаунт.",
+  "signin.passwordTooShort": "Пароль закороткий — щонайменше 4 символи.",
+  "signin.ownerToggle": "У мене є код власника",
+  "signin.ownerPlaceholder": "Код власника (необов'язково)",
 };
