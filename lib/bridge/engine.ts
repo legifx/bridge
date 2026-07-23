@@ -120,9 +120,10 @@ async function tryDomain(
   readingLevel: number,
   language: string | undefined,
   attempts: BridgeAttempt[],
+  maxAttempts: number,
 ): Promise<{ bridgeId: string; body: BridgeBody } | null> {
   let contradictions: Verdict["contradictions"] | undefined;
-  for (let attempt = 1; attempt <= MAX_RETRIES + 1; attempt++) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const body = await generate(concept, domain, readingLevel, contradictions, language);
     const verdict = await verify(concept, body);
     const status: "accepted" | "rejected" = verdict.verdict === "accept" ? "accepted" : "rejected";
@@ -165,8 +166,13 @@ export async function generateBestBridge(params: {
   const { concept, candidates, readingLevel, language } = params;
   const attempts: BridgeAttempt[] = [];
 
-  for (const { domain, match } of candidates) {
-    const accepted = await tryDomain(concept, domain, readingLevel, language, attempts);
+  // Cost guard: the best domain gets the full retry budget; each additional
+  // domain gets a single fresh attempt. Worst case is bounded at (MAX_RETRIES+1)
+  // + 1 attempt-pairs rather than growing with the candidate count.
+  for (let i = 0; i < candidates.length; i++) {
+    const { domain, match } = candidates[i];
+    const maxAttempts = i === 0 ? MAX_RETRIES + 1 : 1;
+    const accepted = await tryDomain(concept, domain, readingLevel, language, attempts, maxAttempts);
     if (accepted) {
       return { bridgeId: accepted.bridgeId, body: accepted.body, match, attempts, isFallback: false };
     }
