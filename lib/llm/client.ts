@@ -15,9 +15,10 @@ import { languageName } from "@/lib/i18n";
 // against the live OpenRouter catalogue, real German + JSON + OCR test calls):
 //
 //   MODEL   — all learner-facing text (interview, bridges, quiz, grading).
-//     Mistral Small 3.2 24B: the strongest, most idiomatic German of the cheap
-//     tier, token-efficient output, solid JSON mode. ~4x cheaper than the old
-//     gemini-3.1-flash-lite default.
+//     Qwen3.5 Flash: the most reliable across ALL 10 UI languages, not just
+//     German. A neutral native-speaker judge scored it 10/10 on Ukrainian,
+//     Turkish and Arabic where Mistral Small made real grammar/term errors
+//     (6-7/10). Also cheaper. Mistral is a touch more idiomatic in DE/PL only.
 //   CAPTURE_MODEL — document understanding (vision OCR + full transcription).
 //     Qwen3-VL 32B: the document/OCR master class (read "ü"/"→" correctly where
 //     others didn't) and, thanks to lean output, ~75x cheaper per capture than
@@ -26,7 +27,7 @@ import { languageName } from "@/lib/i18n";
 //     multimodal, cheap — works as a fallback for both text and capture calls.
 //
 // Free-tier models are opt-in via env only (rate limits + broken German).
-const MODEL = process.env.OPENROUTER_MODEL || "mistralai/mistral-small-3.2-24b-instruct";
+const MODEL = process.env.OPENROUTER_MODEL || "qwen/qwen3.5-flash-02-23";
 const FALLBACK_MODEL = process.env.OPENROUTER_FALLBACK_MODEL || "google/gemini-2.5-flash-lite";
 export const CAPTURE_MODEL = process.env.OPENROUTER_CAPTURE_MODEL || "qwen/qwen3-vl-32b-instruct";
 
