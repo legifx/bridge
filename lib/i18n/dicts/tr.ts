@@ -279,7 +279,7 @@ export const tr: Dict = {
   "signin.passwordHint": "Yeni ad mı? Parolanı burada belirlersin. Geri mi döndün? Profilini açmak için gir.",
   "signin.wrongPassword": "Bu ad için parola yanlış.",
   "signin.passwordRequired": "Hesabını korumak için bir parola belirle.",
-  "signin.passwordTooShort": "Parola çok kısa — en az 4 karakter.",
+  "signin.passwordTooShort": "Parola çok kısa — en az 6 karakter.",
   "signin.ownerToggle": "Sahip kodum var",
   "signin.ownerPlaceholder": "Sahip kodu (isteğe bağlı)",
 };

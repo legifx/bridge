@@ -279,7 +279,7 @@ export const pl: Dict = {
   "signin.passwordHint": "Nowa nazwa? Tu ustawiasz hasło. Wracasz? Wpisz je, aby otworzyć profil.",
   "signin.wrongPassword": "Błędne hasło dla tej nazwy.",
   "signin.passwordRequired": "Ustaw hasło, aby chronić swoje konto.",
-  "signin.passwordTooShort": "Hasło za krótkie — co najmniej 4 znaki.",
+  "signin.passwordTooShort": "Hasło za krótkie — co najmniej 6 znaki.",
   "signin.ownerToggle": "Mam kod właściciela",
   "signin.ownerPlaceholder": "Kod właściciela (opcjonalnie)",
 };

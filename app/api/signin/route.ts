@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { LEARNER_COOKIE, isValidUsername, normalizeHandle } from "@/lib/db/learner";
-import { hashPassword, verifyPassword, isValidPassword } from "@/lib/auth/password";
+import { hashPassword, verifyPassword, isValidPassword, safeEqual } from "@/lib/auth/password";
 import { st } from "@/lib/i18n";
 
 export const runtime = "nodejs";
@@ -39,9 +39,8 @@ export async function POST(req: Request) {
   const handle = normalizeHandle(displayName);
   const password = parsed.data.password?.trim() || undefined;
   const ownerCode = parsed.data.ownerCode?.trim() || undefined;
-  const ownerUnlock =
-    Boolean(ownerCode) && ownerCode === (process.env.OWNER_UNLOCK_CODE || "").trim() &&
-    Boolean(process.env.OWNER_UNLOCK_CODE);
+  const envOwnerCode = (process.env.OWNER_UNLOCK_CODE || "").trim();
+  const ownerUnlock = !!ownerCode && !!envOwnerCode && safeEqual(ownerCode, envOwnerCode);
 
   let learner;
   try {

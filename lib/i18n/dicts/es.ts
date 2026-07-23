@@ -279,7 +279,7 @@ export const es: Dict = {
   "signin.passwordHint": "¿Nombre nuevo? Aquí defines tu contraseña. ¿Ya tienes cuenta? Introdúcela para abrir tu perfil.",
   "signin.wrongPassword": "Contraseña incorrecta para este nombre.",
   "signin.passwordRequired": "Define una contraseña para proteger tu cuenta.",
-  "signin.passwordTooShort": "Contraseña demasiado corta: al menos 4 caracteres.",
+  "signin.passwordTooShort": "Contraseña demasiado corta: al menos 6 caracteres.",
   "signin.ownerToggle": "Tengo un código de propietario",
   "signin.ownerPlaceholder": "Código de propietario (opcional)",
 };

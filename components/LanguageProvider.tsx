@@ -26,10 +26,33 @@ const Ctx = createContext<I18n | null>(null);
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState("en");
 
-  // hydrate: localStorage first, then confirm against the signed-in learner
+  // hydrate. A local choice (localStorage) ALWAYS wins for the UI — otherwise
+  // opening a profile stored in another language (e.g. the seeded English demo
+  // profiles) would yank the UI back to that language mid-session. When there
+  // is a local choice we instead push it TO the profile, so server-generated
+  // text (brain summary, new captures) follows the UI language too. Only when
+  // there is no local choice yet do we adopt the learner's stored language.
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    setLangState(stored ?? detectLanguage(navigator.language));
+    if (stored) {
+      setLangState(stored);
+      fetch("/api/me")
+        .then((r) => r.json())
+        .then((d) => {
+          const remote = d?.learner?.language;
+          if (typeof remote === "string" && remote !== stored) {
+            // signed in, but the profile is on a different language → align it
+            fetch("/api/me", {
+              method: "PATCH",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ language: stored }),
+            }).catch(() => {});
+          }
+        })
+        .catch(() => {});
+      return;
+    }
+    setLangState(detectLanguage(navigator.language));
     fetch("/api/me")
       .then((r) => r.json())
       .then((d) => {

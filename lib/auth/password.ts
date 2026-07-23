@@ -5,7 +5,7 @@
  * This is a lightweight guard for open demo accounts — enough that a name alone
  * no longer opens a protected profile — not a high-security credential store.
  */
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
+import { scrypt, randomBytes, timingSafeEqual, createHash } from "crypto";
 import { promisify } from "util";
 
 const scryptAsync = promisify(scrypt);
@@ -27,7 +27,16 @@ export async function verifyPassword(password: string, stored: string): Promise<
 }
 
 /** Password rules for a new account. Kept deliberately gentle for a demo. */
-export const MIN_PASSWORD_LENGTH = 4;
+export const MIN_PASSWORD_LENGTH = 6;
 export function isValidPassword(password: string): boolean {
   return typeof password === "string" && password.length >= MIN_PASSWORD_LENGTH && password.length <= 128;
+}
+
+/** Constant-time string compare (for the owner code) — hashes to equal length
+ *  first so timingSafeEqual never throws on a length mismatch, and the compare
+ *  itself leaks no timing about how much of the code matched. */
+export function safeEqual(a: string, b: string): boolean {
+  const ha = createHash("sha256").update(a).digest();
+  const hb = createHash("sha256").update(b).digest();
+  return timingSafeEqual(ha, hb);
 }

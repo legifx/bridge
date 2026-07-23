@@ -176,6 +176,13 @@ export default function Onboarding() {
   }
 
   const step = queue[idx];
+  // The server only reports `sync` once per batch, so within a batch of
+  // questions the meter would sit frozen. Nudge it forward per answered
+  // question toward the next batch's value, so every tap visibly moves it.
+  const displaySync =
+    phase === "interview" && queue.length > 0
+      ? Math.min(0.97, sync + (idx / queue.length) * 0.18)
+      : sync;
   const depthLabel: Record<string, string> = {
     novice: t("ob.depth.casual"),
     hobbyist: t("ob.depth.hobbyist"),
@@ -391,9 +398,9 @@ export default function Onboarding() {
           <div className="mb-3">
             <div className="mb-1 flex items-center justify-between">
               <span className="slabel text-faint">{t("ob.brainSync")}</span>
-              <span className="text-xs text-dim">{Math.round(sync * 100)}%</span>
+              <span className="text-xs text-dim">{Math.round(displaySync * 100)}%</span>
             </div>
-            <TickScale value={sync} color="var(--interest)" />
+            <TickScale value={displaySync} color="var(--interest)" />
           </div>
           {phase === "seed" && (
             <>
@@ -416,7 +423,7 @@ export default function Onboarding() {
           )}
           {phase === "mirror" && (
             <button
-              onClick={() => router.push("/capture")}
+              onClick={() => router.push("/")}
               disabled={profile.length === 0}
               className="btn btn-primary w-full"
             >

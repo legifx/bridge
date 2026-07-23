@@ -279,7 +279,7 @@ export const ar: Dict = {
   "signin.passwordHint": "اسم جديد؟ تحدّد كلمة مرورك هنا. عائد؟ أدخلها لفتح ملفك.",
   "signin.wrongPassword": "كلمة المرور غير صحيحة لهذا الاسم.",
   "signin.passwordRequired": "حدّد كلمة مرور لحماية حسابك.",
-  "signin.passwordTooShort": "كلمة المرور قصيرة جدًا — 4 أحرف على الأقل.",
+  "signin.passwordTooShort": "كلمة المرور قصيرة جدًا — 6 أحرف على الأقل.",
   "signin.ownerToggle": "لديّ رمز مالك",
   "signin.ownerPlaceholder": "رمز المالك (اختياري)",
 };

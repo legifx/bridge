@@ -304,7 +304,7 @@ export const en = {
   "signin.passwordHint": "New name? You set your password here. Coming back? Enter it to unlock your profile.",
   "signin.wrongPassword": "Wrong password for this name.",
   "signin.passwordRequired": "Set a password to protect your account.",
-  "signin.passwordTooShort": "Password too short — at least 4 characters.",
+  "signin.passwordTooShort": "Password too short — at least 6 characters.",
   "signin.ownerToggle": "I have an owner code",
   "signin.ownerPlaceholder": "Owner code (optional)",
 };
