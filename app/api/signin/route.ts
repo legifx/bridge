@@ -11,6 +11,13 @@ export const runtime = "nodejs";
 // and passwordless on purpose; every other account is protected by a password.
 const DEMO_HANDLES = new Set(["mara", "theo"]);
 
+// Brute-force lockout: after FAIL_THRESHOLD consecutive wrong passwords, block
+// the account with exponential backoff (30s, doubling, capped at 15 min). This
+// is per-account and DB-backed, so it holds up on serverless too.
+const FAIL_THRESHOLD = 5;
+const BASE_LOCK_MS = 30_000;
+const MAX_LOCK_MS = 15 * 60_000;
+
 const BodySchema = z.object({
   username: z.string().min(1).max(60),
   // the client's current UI language — no learner exists yet at this point
@@ -51,9 +58,31 @@ export async function POST(req: Request) {
 
     if (existing) {
       if (existing.passwordHash) {
+        // Too many recent failures → temporarily blocked.
+        if (existing.lockedUntil && existing.lockedUntil.getTime() > Date.now()) {
+          const retryAfter = Math.ceil((existing.lockedUntil.getTime() - Date.now()) / 1000);
+          return NextResponse.json(
+            { error: st(lang, "signin.tooManyAttempts"), retryAfter },
+            { status: 429 },
+          );
+        }
         // Locked profile → the password must match, every time.
         if (!password || !(await verifyPassword(password, existing.passwordHash))) {
+          const attempts = existing.failedAttempts + 1;
+          const data: { failedAttempts: number; lockedUntil?: Date } = { failedAttempts: attempts };
+          if (attempts >= FAIL_THRESHOLD) {
+            const backoff = Math.min(MAX_LOCK_MS, BASE_LOCK_MS * 2 ** (attempts - FAIL_THRESHOLD));
+            data.lockedUntil = new Date(Date.now() + backoff);
+          }
+          await prisma.learner.update({ where: { id: existing.id }, data });
           return NextResponse.json({ error: st(lang, "signin.wrongPassword") }, { status: 401 });
+        }
+        // Correct password → clear any failure counters.
+        if (existing.failedAttempts > 0 || existing.lockedUntil) {
+          await prisma.learner.update({
+            where: { id: existing.id },
+            data: { failedAttempts: 0, lockedUntil: null },
+          });
         }
       } else if (!DEMO_HANDLES.has(handle)) {
         // A real account that never had a password yet. Trust-on-first-use: the

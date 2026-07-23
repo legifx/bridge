@@ -278,6 +278,7 @@ export const de: Dict = {
   "signin.passwordPlaceholder": "Passwort",
   "signin.passwordHint": "Neuer Name? Hier legst du dein Passwort fest. Schon dabei? Gib es ein, um dein Profil zu öffnen.",
   "signin.wrongPassword": "Falsches Passwort für diesen Namen.",
+  "signin.tooManyAttempts": "Zu viele Versuche. Warte einen Moment und versuch es erneut.",
   "signin.passwordRequired": "Lege ein Passwort fest, um deinen Account zu schützen.",
   "signin.passwordTooShort": "Passwort zu kurz — mindestens 6 Zeichen.",
   "signin.ownerToggle": "Ich habe einen Owner-Code",

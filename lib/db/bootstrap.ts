@@ -39,6 +39,13 @@ const RUNTIME_MIGRATIONS: RuntimeMigration[] = [
       `ALTER TABLE "Learner" ADD COLUMN "unlimited" BOOLEAN NOT NULL DEFAULT false`,
     ],
   },
+  {
+    name: "20260723183000_signin_lockout",
+    statements: [
+      `ALTER TABLE "Learner" ADD COLUMN "failedAttempts" INTEGER NOT NULL DEFAULT 0`,
+      `ALTER TABLE "Learner" ADD COLUMN "lockedUntil" DATETIME`,
+    ],
+  },
 ];
 
 async function run(): Promise<void> {

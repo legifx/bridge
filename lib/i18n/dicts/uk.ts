@@ -278,6 +278,7 @@ export const uk: Dict = {
   "signin.passwordPlaceholder": "Пароль",
   "signin.passwordHint": "Нове ім'я? Тут ти встановлюєш пароль. Повертаєшся? Введи його, щоб відкрити профіль.",
   "signin.wrongPassword": "Невірний пароль для цього імені.",
+  "signin.tooManyAttempts": "Забагато спроб. Зачекай трохи й спробуй ще раз.",
   "signin.passwordRequired": "Встанови пароль, щоб захистити свій акаунт.",
   "signin.passwordTooShort": "Пароль закороткий — щонайменше 6 символи.",
   "signin.ownerToggle": "У мене є код власника",

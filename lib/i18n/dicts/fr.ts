@@ -278,6 +278,7 @@ export const fr: Dict = {
   "signin.passwordPlaceholder": "Mot de passe",
   "signin.passwordHint": "Nouveau nom ? Tu définis ton mot de passe ici. Déjà inscrit ? Saisis-le pour ouvrir ton profil.",
   "signin.wrongPassword": "Mot de passe incorrect pour ce nom.",
+  "signin.tooManyAttempts": "Trop de tentatives. Attends un instant, puis réessaie.",
   "signin.passwordRequired": "Définis un mot de passe pour protéger ton compte.",
   "signin.passwordTooShort": "Mot de passe trop court — au moins 6 caractères.",
   "signin.ownerToggle": "J'ai un code propriétaire",

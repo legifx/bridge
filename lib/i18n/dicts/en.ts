@@ -303,6 +303,7 @@ export const en = {
   "signin.passwordPlaceholder": "Password",
   "signin.passwordHint": "New name? You set your password here. Coming back? Enter it to unlock your profile.",
   "signin.wrongPassword": "Wrong password for this name.",
+  "signin.tooManyAttempts": "Too many attempts. Wait a moment, then try again.",
   "signin.passwordRequired": "Set a password to protect your account.",
   "signin.passwordTooShort": "Password too short — at least 6 characters.",
   "signin.ownerToggle": "I have an owner code",
