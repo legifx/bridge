@@ -102,6 +102,27 @@ export default function Brain() {
             <span className="slabel text-faint">{t("brain.numbers")}</span>
             <span className="h-px flex-1 bg-hair" />
           </div>
+
+          {/* legend: what weight / coherence / clicked / mastery actually mean */}
+          <details className="group mb-4 px-1">
+            <summary className="slabel cursor-pointer text-faint transition hover:text-dim">
+              {t("brain.legendToggle")}
+            </summary>
+            <ul className="mt-3 space-y-2">
+              {(["brain.legWeight", "brain.legCoherence", "brain.legClicked", "brain.legMastery"] as const).map(
+                (key) => {
+                  const [term, ...rest] = t(key).split(": ");
+                  return (
+                    <li key={key} className="text-xs leading-relaxed text-faint">
+                      <span className="font-semibold text-dim">{term}</span>
+                      {rest.length > 0 ? `: ${rest.join(": ")}` : ""}
+                    </li>
+                  );
+                },
+              )}
+            </ul>
+          </details>
+
           <ul className="mb-5 space-y-2 px-1">
             {data.summary.lines.map((l, i) => (
               <li key={i} className="text-xs leading-relaxed text-faint">

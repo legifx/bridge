@@ -61,8 +61,21 @@ export function Shell({
               <LanguageSelect compact />
               {me.quota && (
                 <span className="flex items-baseline gap-1" title={t("shell.aiBudget")}>
-                  <Led value={`${me.quota.remaining}`} dot={2.4} color={me.quota.remaining > 2 ? "#c9ff7a" : "#ffb877"} />
-                  <span className="font-mono text-2xs text-faint">AI</span>
+                  {me.quota.remaining === 0 ? (
+                    <span className="font-mono text-2xs font-semibold text-orange-text">
+                      {t("shell.aiEmpty")}
+                    </span>
+                  ) : (
+                    <>
+                      <Led
+                        value={`${me.quota.remaining}`}
+                        dot={2.4}
+                        color={me.quota.remaining > 2 ? "#c9ff7a" : "#ffb877"}
+                      />
+                      <span className="font-mono text-2xs text-faint">/{me.quota.limit}</span>
+                    </>
+                  )}
+                  <span className="font-mono text-2xs text-faint">{t("shell.aiLabel")}</span>
                 </span>
               )}
               <button
