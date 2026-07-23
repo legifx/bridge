@@ -29,7 +29,7 @@ export const de: Dict = {
   "signin.placeholder": "z. B. nova, tim, käsebrot…",
   "signin.opening": "öffne dein Profil…",
   "signin.start": "Loslernen",
-  "signin.existing": "Name schon vergeben? Mit ihm anmelden bringt dein Profil sofort zurück.",
+  "signin.existing": "Schon einen Namen? Melde dich damit an und dein Profil ist sofort wieder da.",
   "signin.orExplore": "oder ein gelebtes Profil erkunden",
   "signin.mara": "Mara · Gaming",
   "signin.theo": "Theo · Pferde",
@@ -253,4 +253,15 @@ export const de: Dict = {
   "sum.computed":
     "Alles oben ist aus {n} gespeicherten Signalen berechnet — kein Profil wird je geraten, nur angesammelt.",
   "sum.headline": "{name}, Bridge liest dich gerade als: {top}.",
+
+  "viz.overlap": "semantische Überlappung · Cosinus",
+  "cap.extractFailed": "Extraktion fehlgeschlagen.",
+  "err.quota":
+    "Demo-Budget dieses Profils aufgebraucht. Melde dich mit einem anderen Namen an, um weiterzumachen — oder klone das Repo und starte Bridge mit eigenem Key.",
+  "err.embeddings":
+    "Das Onboarding braucht das lokale Embedding-Modell, das diese gehostete Demo nicht mitliefert. Klone das Repo und starte Bridge lokal, um ein Profil zu bauen.",
+  "engine.plainOpening": "Hier ist {label} in nüchternen Worten, ohne Analogie.",
+  "engine.gradeGood": "Gut — das trifft den Kern.",
+  "engine.gradeClose": "Knapp daneben — schau dir die Definition nochmal an und versuch es erneut.",
+  "signin.invalidName": "Wähle einen Namen mit 2 bis 24 Zeichen (Buchstaben, Zahlen, Leerzeichen).",
 };

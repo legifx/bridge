@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { llmJson } from "@/lib/llm/client";
+import { st } from "@/lib/i18n";
 import { QUIZ_SYSTEM, GRADE_SYSTEM } from "@/lib/prompts/quiz";
 
 export const QuizSchema = z.object({
@@ -35,7 +36,7 @@ export async function generateQuiz(concept: Concept, language?: string): Promise
  * Resilience fallback only (NOT a demo mode): if the grading call fails,
  * a keyword-overlap heuristic keeps the session alive instead of bricking it.
  */
-function heuristicGrade(concept: Concept, answer: string): Grade {
+function heuristicGrade(concept: Concept, answer: string, language?: string): Grade {
   const stop = new Set(["the", "a", "an", "of", "to", "and", "is", "are", "that", "in", "it", "its", "with", "by", "as"]);
   const tokens = (s: string) =>
     new Set(
@@ -54,7 +55,7 @@ function heuristicGrade(concept: Concept, answer: string): Grade {
   return {
     correct,
     confident: overlap >= 0.6,
-    feedback: correct ? "Good — that captures the core idea." : "Close, but revisit the definition and try again.",
+    feedback: correct ? st(language, "engine.gradeGood") : st(language, "engine.gradeClose"),
   };
 }
 
@@ -68,6 +69,6 @@ export async function gradeFreeRecall(concept: Concept, answer: string, language
       language,
     });
   } catch {
-    return heuristicGrade(concept, answer);
+    return heuristicGrade(concept, answer, language);
   }
 }

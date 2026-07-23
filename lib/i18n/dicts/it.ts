@@ -253,4 +253,15 @@ export const it: Dict = {
   "sum.computed":
     "Tutto quanto sopra è calcolato da {n} segnali salvati — nessun profilo viene indovinato, solo accumulato.",
   "sum.headline": "{name}, al momento Bridge ti legge come: {top}.",
+
+  "viz.overlap": "sovrapposizione semantica · coseno",
+  "cap.extractFailed": "Estrazione non riuscita.",
+  "err.quota":
+    "Budget demo esaurito per questo profilo. Accedi con un altro nome per continuare — oppure clona il repo ed esegui Bridge con la tua chiave.",
+  "err.embeddings":
+    "L'onboarding richiede il modello di embedding locale, che questa demo ospitata non include. Clona il repo ed esegui Bridge in locale per creare un profilo.",
+  "engine.plainOpening": "Ecco {label} in termini semplici, senza analogia.",
+  "engine.gradeGood": "Bene — coglie l'idea centrale.",
+  "engine.gradeClose": "Quasi — rivedi la definizione e riprova.",
+  "signin.invalidName": "Scegli un nome tra 2 e 24 caratteri (lettere, numeri, spazi).",
 };

@@ -253,4 +253,15 @@ export const tr: Dict = {
   "sum.computed":
     "Yukarıdaki her şey {n} kayıtlı sinyalden hesaplandı — hiçbir profil tahmin edilmez, yalnızca birikir.",
   "sum.headline": "{name}, Bridge seni şu an şöyle okuyor: {top}.",
+
+  "viz.overlap": "anlamsal örtüşme · kosinüs",
+  "cap.extractFailed": "Çıkarma başarısız oldu.",
+  "err.quota":
+    "Bu profilin demo bütçesi tükendi. Keşfe devam etmek için başka bir isimle gir — ya da repoyu klonlayıp Bridge'i kendi anahtarınla çalıştır.",
+  "err.embeddings":
+    "Tanışma, bu barındırılan demoda bulunmayan yerel embedding modelini gerektirir. Profil oluşturmak için repoyu klonlayıp Bridge'i yerelde çalıştır.",
+  "engine.plainOpening": "İşte {label}, benzetme olmadan, sade haliyle.",
+  "engine.gradeGood": "Güzel — ana fikri yakalamışsın.",
+  "engine.gradeClose": "Yaklaştın — tanıma tekrar bak ve yeniden dene.",
+  "signin.invalidName": "2 ile 24 karakter arasında bir isim seç (harf, rakam, boşluk).",
 };

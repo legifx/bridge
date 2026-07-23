@@ -2,10 +2,15 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { LEARNER_COOKIE, isValidUsername, normalizeHandle } from "@/lib/db/learner";
+import { st } from "@/lib/i18n";
 
 export const runtime = "nodejs";
 
-const BodySchema = z.object({ username: z.string().min(1).max(60) });
+const BodySchema = z.object({
+  username: z.string().min(1).max(60),
+  // the client's current UI language — no learner exists yet at this point
+  language: z.string().min(2).max(8).optional(),
+});
 
 /**
  * Username-only sign-in (public demo). The same handle always resolves to the
@@ -13,12 +18,11 @@ const BodySchema = z.object({ username: z.string().min(1).max(60) });
  * notice in the UI. New handles get a fresh learner and go through onboarding.
  */
 export async function POST(req: Request) {
-  const parsed = BodySchema.safeParse(await req.json().catch(() => null));
+  const raw = await req.json().catch(() => null);
+  const parsed = BodySchema.safeParse(raw);
+  const lang = parsed.success ? parsed.data.language : undefined;
   if (!parsed.success || !isValidUsername(parsed.data.username)) {
-    return NextResponse.json(
-      { error: "Pick a name between 2 and 24 characters (letters, numbers, spaces)." },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: st(lang, "signin.invalidName") }, { status: 400 });
   }
 
   const displayName = parsed.data.username.trim().replace(/\s+/g, " ");

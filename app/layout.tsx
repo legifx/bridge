@@ -3,10 +3,10 @@ import { Space_Grotesk, Instrument_Sans, IBM_Plex_Mono } from "next/font/google"
 import { LanguageProvider } from "@/components/LanguageProvider";
 import "./globals.css";
 
-const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display" });
-const sans = Instrument_Sans({ subsets: ["latin"], variable: "--font-sans" });
+const display = Space_Grotesk({ subsets: ["latin", "latin-ext"], variable: "--font-display" });
+const sans = Instrument_Sans({ subsets: ["latin", "latin-ext"], variable: "--font-sans" });
 const mono = IBM_Plex_Mono({
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext", "cyrillic"],
   weight: ["400", "500"],
   variable: "--font-mono",
 });

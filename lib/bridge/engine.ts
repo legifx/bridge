@@ -9,6 +9,7 @@
  * attempt is the most persuasive evidence that we take hallucination seriously.
  */
 import { prisma } from "@/lib/db/prisma";
+import { st } from "@/lib/i18n";
 import { llmJson } from "@/lib/llm/client";
 import {
   GENERATE_SYSTEM,
@@ -137,7 +138,7 @@ export async function generateVerifiedBridge(params: {
 
   // Fallback: a plain, non-analogical explanation rather than shipping something wrong.
   const plain: BridgeBody = {
-    opening: `Here is ${concept.label} in plain terms, without an analogy.`,
+    opening: st(language, "engine.plainOpening", { label: concept.label }),
     correspondences: [],
     breaksDown: "",
     plainRestatement: concept.definition,

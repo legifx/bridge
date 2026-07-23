@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 
   // Extraction is the most expensive call (vision + long output): 2 units.
   const charge = await chargeAi(learner.id, 2);
-  if (!charge.ok) return quotaExceededResponse(charge.quota);
+  if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
   try {
     const { graph, embeddings } = await extractConceptGraph({

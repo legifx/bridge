@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   if (!concept) return NextResponse.json({ error: "Concept not found." }, { status: 404 });
 
   const charge = await chargeAi(learner.id, 1);
-  if (!charge.ok) return quotaExceededResponse(charge.quota);
+  if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
   const quiz = await generateQuiz(concept, learner.language);
   return NextResponse.json({ quiz, quota: charge.quota });

@@ -253,4 +253,15 @@ export const fr: Dict = {
   "sum.computed":
     "Tout ce qui précède est calculé à partir de {n} signaux enregistrés — aucun profil n'est deviné, seulement accumulé.",
   "sum.headline": "{name}, Bridge te lit en ce moment comme : {top}.",
+
+  "viz.overlap": "recouvrement sémantique · cosinus",
+  "cap.extractFailed": "L'extraction a échoué.",
+  "err.quota":
+    "Budget démo épuisé pour ce profil. Connecte-toi avec un autre nom pour continuer — ou clone le dépôt et lance Bridge avec ta propre clé.",
+  "err.embeddings":
+    "L'onboarding nécessite le modèle d'embeddings local, absent de cette démo hébergée. Clone le dépôt et lance Bridge en local pour créer un profil.",
+  "engine.plainOpening": "Voici {label} en termes simples, sans analogie.",
+  "engine.gradeGood": "Bien — l'idée centrale y est.",
+  "engine.gradeClose": "Presque — revois la définition et réessaie.",
+  "signin.invalidName": "Choisis un nom de 2 à 24 caractères (lettres, chiffres, espaces).",
 };

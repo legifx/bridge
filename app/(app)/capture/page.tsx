@@ -69,7 +69,7 @@ function CaptureForm() {
         return;
       }
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Extraction failed.");
+      if (!res.ok) throw new Error(data.error ?? t("cap.extractFailed"));
       router.push("/");
     } catch (e) {
       setError(e instanceof Error ? e.message : t("common.somethingWrong"));

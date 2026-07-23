@@ -2,6 +2,7 @@
 
 import { Led } from "./Led";
 import { TickScale } from "./TickScale";
+import { useT } from "./LanguageProvider";
 
 /**
  * The signature visualization: concept node (curriculum blue) and interest node
@@ -24,6 +25,7 @@ export function BridgeViz({
   correspondences: Correspondence[];
   animate?: boolean;
 }) {
+  const t = useT();
   return (
     <div className="card relative overflow-hidden p-6">
       {/* dual aura wash */}
@@ -73,7 +75,7 @@ export function BridgeViz({
       <div className="mt-8 flex flex-col items-center">
         <Led value={similarity.toFixed(2)} dot={4} color="#c9d6ff" />
         <TickScale value={similarity} color="#8b5cff" count={40} className="mt-3.5 max-w-[220px]" />
-        <span className="slabel mt-3 text-faint">semantic overlap · cosine</span>
+        <span className="slabel mt-3 text-faint">{t("viz.overlap")}</span>
       </div>
 
       {/* correspondence rows */}

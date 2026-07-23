@@ -277,6 +277,18 @@ export const en = {
   "sum.computed":
     "Everything above is computed from {n} stored signals — no profile is ever guessed, only accumulated.",
   "sum.headline": "{name}, Bridge currently reads you as: {top}.",
+
+  // ---- late additions: viz label, server-side errors, engine fallbacks ----
+  "viz.overlap": "semantic overlap · cosine",
+  "cap.extractFailed": "Extraction failed.",
+  "err.quota":
+    "Demo budget used up for this profile. Sign in with a different name to keep exploring — or clone the repo and run Bridge with your own key.",
+  "err.embeddings":
+    "Onboarding needs the local embedding model, which this hosted demo does not ship. Clone the repo and run Bridge locally to build a profile.",
+  "engine.plainOpening": "Here is {label} in plain terms, without an analogy.",
+  "engine.gradeGood": "Good — that captures the core idea.",
+  "engine.gradeClose": "Close, but revisit the definition and try again.",
+  "signin.invalidName": "Pick a name between 2 and 24 characters (letters, numbers, spaces).",
 };
 
 export type Dict = typeof en;

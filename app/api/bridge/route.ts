@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   const chosen = domains.find((d) => d.id === match.domainId)!;
 
   const charge = await chargeAi(learner.id, 1);
-  if (!charge.ok) return quotaExceededResponse(charge.quota);
+  if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
   try {
     const result = await generateVerifiedBridge({

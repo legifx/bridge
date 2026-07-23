@@ -5,6 +5,7 @@
  * Self-hosted / local runs (no VERCEL env) are unlimited.
  */
 import { NextResponse } from "next/server";
+import { st } from "@/lib/i18n";
 import { prisma } from "@/lib/db/prisma";
 
 export function isPublicDemo(): boolean {
@@ -46,13 +47,6 @@ export async function chargeAi(
   return { ok: true, quota: quotaState(updated.aiUnits) };
 }
 
-export function quotaExceededResponse(quota: QuotaState) {
-  return NextResponse.json(
-    {
-      error:
-        "Demo budget used up for this profile. Sign in with a different name to keep exploring — or clone the repo and run Bridge with your own key.",
-      quota,
-    },
-    { status: 429 },
-  );
+export function quotaExceededResponse(quota: QuotaState, language?: string) {
+  return NextResponse.json({ error: st(language, "err.quota"), quota }, { status: 429 });
 }

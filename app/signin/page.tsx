@@ -2,10 +2,11 @@
 
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useT } from "@/components/LanguageProvider";
+import { useI18n } from "@/components/LanguageProvider";
+import { LanguageSelect } from "@/components/LanguageSelect";
 
 function SignInForm() {
-  const t = useT();
+  const { t, lang } = useI18n();
   const router = useRouter();
   const expired = useSearchParams().get("expired") === "1";
   const [username, setUsername] = useState("");
@@ -21,7 +22,7 @@ function SignInForm() {
       const res = await fetch("/api/signin", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ username: value }),
+        body: JSON.stringify({ username: value, language: lang }),
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data) {
@@ -37,7 +38,10 @@ function SignInForm() {
   return (
     <main className="page-enter mx-auto flex min-h-dvh w-full max-w-[480px] flex-col px-5 pb-10 pt-14">
       <div className="flex-1">
-        <p className="eyebrow">Bridge</p>
+        <div className="flex items-center justify-between">
+          <p className="eyebrow">Bridge</p>
+          <LanguageSelect compact />
+        </div>
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-text">
           {t("signin.heroTitle")}
         </h1>

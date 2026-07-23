@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
+import { st } from "@/lib/i18n";
 import { getCurrentLearner } from "@/lib/db/learner";
 import { checkInterestText } from "@/lib/profile/guard";
 import { EMBEDDINGS_ENABLED } from "@/lib/ml/embeddings";
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
 
   if (!EMBEDDINGS_ENABLED) {
     return NextResponse.json(
-      { error: "Onboarding needs the local embedding model, which this hosted demo does not ship. Clone the repo and run Bridge locally to build a profile." },
+      { error: st(learner.language, "err.embeddings") },
       { status: 503 },
     );
   }
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
 
   // The whole interview costs a flat 3 AI units (plan + magnets/audit + synthesis).
   const charge = await chargeAi(learner.id, 3);
-  if (!charge.ok) return quotaExceededResponse(charge.quota);
+  if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
   let language = learner.language;
   if (parsed.data.language && parsed.data.language !== learner.language) {
