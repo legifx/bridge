@@ -348,6 +348,7 @@ export const tr: Dict = {
   "flow.explain": "Açıklama",
   "flow.check": "Kontrol",
   "flow.result": "Sonuç",
+  "learn.widgetsComing": "denemen için bir şey hazırlanıyor…",
   "err.aiBusy":
     "Yapay zeka servisi şu anda yoğun. Birkaç saniye bekleyip tekrar dene.",
   "err.aiSlow":

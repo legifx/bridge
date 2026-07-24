@@ -348,6 +348,7 @@ export const pt: Dict = {
   "flow.explain": "Explicação",
   "flow.check": "Teste",
   "flow.result": "Resultado",
+  "learn.widgetsComing": "a criar algo para experimentares…",
   "err.aiBusy":
     "O serviço de IA está sobrecarregado neste momento. Espera alguns segundos e tenta de novo.",
   "err.aiSlow":

@@ -348,6 +348,7 @@ export const ar: Dict = {
   "flow.explain": "الشرح",
   "flow.check": "الاختبار",
   "flow.result": "النتيجة",
+  "learn.widgetsComing": "أجهّز شيئاً لتجربته…",
   "err.aiBusy":
     "خدمة الذكاء الاصطناعي مشغولة الآن. انتظر بضع ثوانٍ ثم أعد المحاولة.",
   "err.aiSlow":

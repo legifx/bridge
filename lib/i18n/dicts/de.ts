@@ -348,6 +348,7 @@ export const de: Dict = {
   "flow.explain": "Erklärung",
   "flow.check": "Check",
   "flow.result": "Ergebnis",
+  "learn.widgetsComing": "baue etwas zum Ausprobieren…",
   "err.aiBusy":
     "Der KI-Dienst ist gerade ausgelastet. Warte ein paar Sekunden und versuche es erneut.",
   "err.aiSlow":

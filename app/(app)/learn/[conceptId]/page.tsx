@@ -44,6 +44,8 @@ type BridgeResp = {
   attempts: Attempt[];
   isFallback: boolean;
   visualizations?: Widget[];
+  /** the widgets are generated separately and arrive a few seconds later */
+  widgetsPending?: boolean;
 };
 
 export default function Learn() {
@@ -61,6 +63,7 @@ export default function Learn() {
   const [costsBudget, setCostsBudget] = useState<boolean | null>(null);
   /** have we looked for a previously generated explanation yet? */
   const [cacheChecked, setCacheChecked] = useState(false);
+  const [widgetsLoading, setWidgetsLoading] = useState(false);
 
   useEffect(() => {
     fetch("/api/concepts")
@@ -90,7 +93,9 @@ export default function Learn() {
     fetch(`/api/bridge?conceptId=${encodeURIComponent(conceptId)}`)
       .then((r) => r.json())
       .then((d) => {
-        if (!cancelled && d.bridge) setBridge(d.bridge);
+        if (cancelled || !d.bridge) return;
+        setBridge(d.bridge);
+        if (d.bridge.widgetsPending) loadWidgets(d.bridge.bridgeId);
       })
       .catch(() => {})
       .finally(() => {
@@ -134,10 +139,34 @@ export default function Learn() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? t("learn.couldNotBuild"));
       setBridge(data);
+      // The explanation is on screen now; the widgets follow while it is read.
+      if (data.widgetsPending && data.bridgeId) loadWidgets(data.bridgeId);
     } catch (e) {
       setError(e instanceof Error ? e.message : t("common.somethingWrong"));
     } finally {
       setLoadingBridge(false);
+    }
+  }
+
+  /** Fetch the interactive widgets for a bridge and drop them in when they land. */
+  async function loadWidgets(bridgeId: string) {
+    setWidgetsLoading(true);
+    try {
+      const res = await fetch("/api/bridge/widgets", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ bridgeId }),
+      });
+      const data = await res.json();
+      if (Array.isArray(data.visualizations) && data.visualizations.length > 0) {
+        // Only touch the bridge this belongs to — the learner may have switched
+        // interest while these were still being generated.
+        setBridge((b) => (b && b.bridgeId === bridgeId ? { ...b, visualizations: data.visualizations } : b));
+      }
+    } catch {
+      /* widgets are a bonus; a text-only explanation is a complete one */
+    } finally {
+      setWidgetsLoading(false);
     }
   }
 
@@ -323,6 +352,14 @@ export default function Learn() {
             {bridge.visualizations && bridge.visualizations.length > 0 && (
               <div className="reveal" style={{ animationDelay: "420ms" }}>
                 <LearnWidgets widgets={bridge.visualizations} />
+              </div>
+            )}
+            {/* …and a quiet placeholder while they are still being made, so they
+                do not shove the page around unannounced. */}
+            {widgetsLoading && !bridge.visualizations?.length && (
+              <div className="card mt-6 p-5" aria-hidden>
+                <div className="think-shimmer slabel text-faint">{t("learn.widgetsComing")}</div>
+                <div className="mt-4 h-16 rounded-xl" style={{ background: "rgba(255,255,255,0.04)" }} />
               </div>
             )}
 

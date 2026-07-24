@@ -7,7 +7,6 @@ import { embed } from "@/lib/ml/embeddings";
 import { getDomainsForMatch } from "@/lib/profile/repo";
 import { rankDomainsForConcept, buildMatch } from "@/lib/profile/match";
 import { generateBestBridge } from "@/lib/bridge/engine";
-import { generateVisualizations } from "@/lib/learn/visualize";
 import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 import { apiError } from "@/lib/api/errors";
 
@@ -71,7 +70,7 @@ export async function GET(req: Request) {
   });
   if (!bridge?.renderJson) return NextResponse.json({ bridge: null });
 
-  let cached: { match?: unknown; visualizations?: unknown } = {};
+  let cached: { match?: unknown; visualizations?: unknown[]; widgetsDone?: boolean } = {};
   try {
     cached = JSON.parse(bridge.renderJson);
   } catch {
@@ -85,6 +84,10 @@ export async function GET(req: Request) {
       body: JSON.parse(bridge.body),
       match: cached.match,
       visualizations: cached.visualizations ?? [],
+      // A bridge whose widget step never finished (closed tab, failed call)
+      // picks it up on the next visit instead of staying half-built forever.
+      // Rows from before the flag existed count as finished if they have widgets.
+      widgetsPending: !cached.widgetsDone && (cached.visualizations?.length ?? 0) === 0,
       // The verification trail belongs to the run that produced it; the log
       // page is where it lives. A cached view shows the explanation itself.
       attempts: [],
@@ -166,9 +169,7 @@ export async function POST(req: Request) {
   if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
   // Everything from here on is LLM work, and the platform will kill the request
-  // at `maxDuration`. Track the time so the widget step can bow out instead of
-  // taking the whole response down with it.
-  const startedAt = Date.now();
+  // at `maxDuration` — so the engine gets a budget it can stop inside.
   const RESPONSE_BUDGET_MS = (maxDuration - 8) * 1000; // leave room to serialize
 
   try {
@@ -183,34 +184,30 @@ export async function POST(req: Request) {
       readingLevel: learner.readingLevel,
       language: learner.language,
       priorMistakes,
-      // Keep enough of the budget for the widget step to still have a chance.
-      budgetMs: RESPONSE_BUDGET_MS - 14_000,
-    });
-
-    // Interactive widgets for the concept, framed through the chosen interest.
-    // Non-fatal: an empty list just means a text-only explanation this time.
-    const visualizations = await generateVisualizations({
-      label: concept.label,
-      definition: concept.definition,
-      plainRestatement: result.body.plainRestatement,
-      domain: result.match.domainName,
-      anchor: result.match.anchor,
-      language: learner.language,
-      budgetMs: RESPONSE_BUDGET_MS - (Date.now() - startedAt),
+      budgetMs: RESPONSE_BUDGET_MS,
     });
 
     // Cache what this screen needs to render again, so re-opening the aspect
-    // costs nothing: the match line and the widgets are not reconstructible
-    // from the stored body alone. Non-fatal — a failed cache write only means
-    // the next visit regenerates, exactly as before.
+    // costs nothing: the match line is not reconstructible from the stored body
+    // alone. Non-fatal — a failed cache write only means the next visit
+    // regenerates, exactly as before.
     await prisma.bridge
       .update({
         where: { id: result.bridgeId },
-        data: { renderJson: JSON.stringify({ match: result.match, visualizations }) },
+        data: { renderJson: JSON.stringify({ match: result.match, visualizations: [] }) },
       })
       .catch(() => {});
 
-    return NextResponse.json({ ...result, visualizations, quota: charge.quota });
+    // The widgets are deliberately NOT generated here. They cost two more model
+    // round-trips, and waiting for them delayed the explanation itself by
+    // several seconds — for content that is read after the text, not before it.
+    // The client fetches them from /api/bridge/widgets while the learner reads.
+    return NextResponse.json({
+      ...result,
+      visualizations: [],
+      widgetsPending: true,
+      quota: charge.quota,
+    });
   } catch (err) {
     return apiError("bridge", err, learner.language);
   }

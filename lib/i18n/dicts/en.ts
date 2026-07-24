@@ -361,6 +361,7 @@ export const en = {
   "flow.explain": "Explanation",
   "flow.check": "Check",
   "flow.result": "Result",
+  "learn.widgetsComing": "building something to try…",
   "err.aiBusy":
     "The AI service is busy right now. Wait a few seconds and try again.",
   "err.aiSlow":

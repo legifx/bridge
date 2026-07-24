@@ -278,3 +278,11 @@ when the text flips. All of them are logical properties now (`ps-`, `ms-`, `text
 across both screens, an interactivity hint on widgets that respond to touch, an expected wait on
 the demo's start button, and a "taking longer than usual" note once a generation runs past twice
 its expected time.
+
+**Widgets are generated after the explanation, not before it.** They cost two more model calls
+(design + fact-check), and producing them inside the bridge request meant the learner watched a
+loader for those seconds before seeing a single word. Now `/api/bridge` returns as soon as the
+explanation is verified and the client fetches `/api/bridge/widgets` while it is being read —
+measured on this machine: text after 3.7 s instead of 6.7 s, widgets landing 3.0 s later. The
+widget result is folded into the same render cache, with a `widgetsDone` flag so an interrupted
+run finishes on the next visit while "this concept got no widgets" never re-runs the calls.

@@ -348,6 +348,7 @@ export const uk: Dict = {
   "flow.explain": "Пояснення",
   "flow.check": "Перевірка",
   "flow.result": "Результат",
+  "learn.widgetsComing": "створюю щось для випробування…",
   "err.aiBusy":
     "Сервіс ШІ зараз перевантажений. Зачекай кілька секунд і спробуй ще раз.",
   "err.aiSlow":
