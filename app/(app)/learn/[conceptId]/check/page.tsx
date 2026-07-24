@@ -5,9 +5,15 @@ import { useParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { Led } from "@/components/Led";
 import { useT } from "@/components/LanguageProvider";
+import type { Problem } from "@/lib/quiz";
 
-type Quiz = { free: { prompt: string }; mcq: { prompt: string; options: string[]; answerIndex: number } };
+type Quiz = {
+  free: { prompt: string };
+  mcq: { prompt: string; options: string[]; answerIndex: number };
+  problems: Problem[];
+};
 type Concept = { id: string; label: string; reviewEnabled: boolean };
+type ProblemResult = { correct: boolean; feedback?: string; solution: string };
 
 /**
  * The check lives on its own page ON PURPOSE: active recall only works when
@@ -24,12 +30,15 @@ export default function Check() {
   const [error, setError] = useState<string | null>(null);
   const [freeAnswer, setFreeAnswer] = useState("");
   const [mcqChoice, setMcqChoice] = useState<number | null>(null);
+  // one response slot per practice problem: number (numeric), index (mcq), or text (open)
+  const [responses, setResponses] = useState<(number | string | null)[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<null | {
     correct: boolean;
     mastery: number;
     nextIntervalDays: number;
     grade: { feedback: string };
+    problemResults?: ProblemResult[];
   }>(null);
   const [srs, setSrs] = useState<boolean | null>(null);
 
@@ -53,7 +62,10 @@ export default function Check() {
       .then((r) => r.json())
       .then((d) => {
         if (d.error) setError(d.error);
-        else setQuiz(d.quiz);
+        else {
+          setQuiz(d.quiz);
+          setResponses((d.quiz?.problems ?? []).map(() => null));
+        }
       })
       .catch(() => setError(t("check.couldNotLoad")));
   }, [conceptId]);
@@ -64,7 +76,12 @@ export default function Check() {
     const res = await fetch("/api/answer", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ conceptId, freeAnswer, mcqCorrect: mcqChoice === quiz.mcq.answerIndex }),
+      body: JSON.stringify({
+        conceptId,
+        freeAnswer,
+        mcqCorrect: mcqChoice === quiz.mcq.answerIndex,
+        problems: quiz.problems.map((p, i) => ({ problem: p, response: responses[i] ?? null })),
+      }),
     });
     const data = await res.json();
     setSubmitting(false);
@@ -140,6 +157,68 @@ export default function Check() {
               ))}
             </div>
           </div>
+
+          {/* real practice problems — solve, not just recall */}
+          {quiz.problems.map((p, i) => (
+            <div key={i} className="border-t border-hair pt-5">
+              <p className="slabel mb-2 text-curriculum-text">{t("check.task")}</p>
+              <p className="text-sm font-medium text-text">{p.prompt}</p>
+              {p.type === "numeric" && (
+                <div className="mt-3 flex items-center gap-2">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={typeof responses[i] === "number" ? (responses[i] as number) : ""}
+                    onChange={(e) =>
+                      setResponses((r) => {
+                        const n = [...r];
+                        n[i] = e.target.value === "" ? null : Number(e.target.value);
+                        return n;
+                      })
+                    }
+                    placeholder={t("check.yourAnswer")}
+                    className="input max-w-[180px] text-sm"
+                  />
+                  {p.unit && <span className="font-mono text-xs text-faint">{p.unit}</span>}
+                </div>
+              )}
+              {p.type === "mcq" && (
+                <div className="mt-3 space-y-2">
+                  {p.options.map((o, oi) => (
+                    <button
+                      key={oi}
+                      onClick={() =>
+                        setResponses((r) => {
+                          const n = [...r];
+                          n[i] = oi;
+                          return n;
+                        })
+                      }
+                      className={`opt ${responses[i] === oi ? "opt-active-blue" : ""}`}
+                    >
+                      {o}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {p.type === "open" && (
+                <textarea
+                  value={typeof responses[i] === "string" ? (responses[i] as string) : ""}
+                  onChange={(e) =>
+                    setResponses((r) => {
+                      const n = [...r];
+                      n[i] = e.target.value;
+                      return n;
+                    })
+                  }
+                  rows={3}
+                  placeholder={t("check.yourAnswer")}
+                  className="input mt-3 resize-y text-sm"
+                />
+              )}
+            </div>
+          ))}
+
           <button
             onClick={submit}
             disabled={submitting || mcqChoice === null || freeAnswer.trim().length === 0}
@@ -177,6 +256,35 @@ export default function Check() {
             />
             <span className="slabel text-faint">{t("check.mastery", { d: result.nextIntervalDays })}</span>
           </div>
+
+          {/* per-problem breakdown: what was right/wrong + the worked solution */}
+          {result.problemResults && result.problemResults.length > 0 && (
+            <div className="mt-6 space-y-2 text-left">
+              {result.problemResults.map((pr, i) => (
+                <div
+                  key={i}
+                  className="rounded-xl p-3"
+                  style={{
+                    background: pr.correct ? "rgba(179,255,60,0.08)" : "rgba(255,184,119,0.08)",
+                    boxShadow: `inset 0 0 0 1px ${pr.correct ? "rgba(179,255,60,0.25)" : "rgba(255,184,119,0.25)"}`,
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="slabel text-faint">
+                      {t("check.task")} {i + 1}
+                    </span>
+                    <span className={`slabel ${pr.correct ? "text-acid-text" : "text-orange-text"}`}>
+                      {pr.correct ? t("check.taskRight") : t("check.taskWrong")}
+                    </span>
+                  </div>
+                  {pr.feedback && <p className="mt-1 text-xs leading-relaxed text-dim">{pr.feedback}</p>}
+                  <p className="mt-1.5 text-xs leading-relaxed text-faint">
+                    <span className="text-curriculum-text">{t("check.solution")}:</span> {pr.solution}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
 
           {/* spaced repetition opt-in, per concept */}
           <button

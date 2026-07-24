@@ -1,7 +1,34 @@
 import { z } from "zod";
 import { llmJson } from "@/lib/llm/client";
 import { st } from "@/lib/i18n";
-import { QUIZ_SYSTEM, GRADE_SYSTEM } from "@/lib/prompts/quiz";
+import { QUIZ_SYSTEM, GRADE_SYSTEM, OPEN_GRADE_SYSTEM } from "@/lib/prompts/quiz";
+
+/** A real, solvable practice problem. The agent picks the type that fits the
+ *  subject: numeric for quantitative work, mcq for recognition, open for applied
+ *  reasoning. `solution` is the worked answer, shown after the learner tries. */
+export const ProblemSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("numeric"),
+    prompt: z.string().min(1),
+    answer: z.number().finite(),
+    tolerance: z.number().nonnegative().max(1e9).optional(),
+    unit: z.string().max(16).optional(),
+    solution: z.string().min(1),
+  }),
+  z.object({
+    type: z.literal("mcq"),
+    prompt: z.string().min(1),
+    options: z.array(z.string().min(1)).length(4),
+    answerIndex: z.number().int().min(0).max(3),
+    solution: z.string().min(1),
+  }),
+  z.object({
+    type: z.literal("open"),
+    prompt: z.string().min(1),
+    solution: z.string().min(1), // model answer / rubric — shown after, and grades the open answer
+  }),
+]);
+export type Problem = z.infer<typeof ProblemSchema>;
 
 export const QuizSchema = z.object({
   free: z.object({ prompt: z.string().min(1) }),
@@ -10,8 +37,15 @@ export const QuizSchema = z.object({
     options: z.array(z.string().min(1)).length(4),
     answerIndex: z.number().int().min(0).max(3),
   }),
+  problems: z.array(ProblemSchema).min(1).max(3),
 });
 export type Quiz = z.infer<typeof QuizSchema>;
+
+/** Check a numeric answer against the expected value with tolerance. */
+export function checkNumeric(expected: number, tolerance: number | undefined, given: number): boolean {
+  const tol = tolerance ?? Math.max(1e-9, Math.abs(expected) * 0.01);
+  return Math.abs(given - expected) <= tol;
+}
 
 export const GradeSchema = z.object({
   correct: z.boolean(),
@@ -57,6 +91,35 @@ function heuristicGrade(concept: Concept, answer: string, language?: string): Gr
     confident: overlap >= 0.6,
     feedback: correct ? st(language, "engine.gradeGood") : st(language, "engine.gradeClose"),
   };
+}
+
+const OpenGradeSchema = z.object({
+  results: z.array(z.object({ correct: z.boolean(), feedback: z.string() })),
+});
+
+/** Grade open practice answers against their model solutions — one batched call. */
+export async function gradeOpenProblems(
+  items: { prompt: string; solution: string; answer: string }[],
+  language?: string,
+): Promise<{ correct: boolean; feedback: string }[]> {
+  if (items.length === 0) return [];
+  try {
+    const { results } = await llmJson({
+      system: OPEN_GRADE_SYSTEM,
+      user: items
+        .map(
+          (it, i) =>
+            `Problem ${i + 1}: ${it.prompt}\nModel answer: ${it.solution}\nLearner answer: ${it.answer}`,
+        )
+        .join("\n\n"),
+      schema: OpenGradeSchema,
+      temperature: 0,
+      language,
+    });
+    return items.map((_, i) => results[i] ?? { correct: false, feedback: "" });
+  } catch {
+    return items.map(() => ({ correct: false, feedback: "" }));
+  }
 }
 
 export async function gradeFreeRecall(concept: Concept, answer: string, language?: string): Promise<Grade> {
