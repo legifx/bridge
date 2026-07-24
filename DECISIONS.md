@@ -148,3 +148,40 @@ destructive correction, scoped to that domain and its seeded brain items.
 
 - PWA icon is a single SVG (`purpose: any maskable`). Rasterized PNG fallbacks can be added later.
 - Vision input path is wired in the API (`images[]`) but the camera UI + client downscale land in Day 2.
+
+## Learning experience v2 (2026-07-24, user feedback rounds)
+
+**Grading is points-based and teacher-style, not binary.** Each check question is worth points
+(free 3, mcq 2, problems numeric 3 / mcq 2 / open 4). Free-recall and open problems earn PARTIAL
+credit (a 0..1 score × points); mcq/numeric are all-or-nothing. The headline result is the check
+SCORE = earned/total, coherent with performance — the Elo mastery moves continuously
+(`updateEloScore`) and is shown secondary. Grading judges MEANING, never wording: an answer
+phrased differently but correct in substance gets full marks.
+
+**Interactive learning, not just text.** After the analogy, the agent picks 1–2 of five safe,
+schema-bounded widget types (scale / steps / barChart / diagram / formula) that fit the concept;
+the formula widget is a slider→live-result interactive backed by a hand-written safe expression
+evaluator (no eval). Widget contents pass an independent fact-check, same guardrail as bridges.
+
+**Real practice problems.** Checks include solvable problems (numeric checked with tolerance, mcq
+deterministic, open LLM-graded against a model solution). A "practice tasks" mode gives a bigger
+problem set from the review log; "relearn" rebuilds the explanation targeting last time's mistakes.
+
+**Quota is per learning aspect, not per request.** The first billable request for a concept spends
+one unit and marks it paid; all further work on that concept is free — a learner can't get
+stranded mid-aspect. Capture and onboarding are free. Owner code = unlimited.
+
+**Capture is fast: right model per modality + deferred embeddings.** Text/PDF/DOCX use the fast
+text model (~1.5s), images use the vision/OCR model. Concept embeddings are computed lazily at
+first-learn (stored then), not at capture, so uploads don't pay the local model's load time.
+
+**Grades in the learner's country system.** Scores render as the country grade (Germany 1–6, USA
+A–F, France 0–20, …, or percentage) via `lib/grades.ts`, chosen in the Settings tab (which also
+holds the language picker). Internal score/Elo is unchanged — a pure display transform in the LED
+readout (font extended with A–F + comma).
+
+**Speak your answer.** Free-text and open answers can be dictated via the browser's speech
+recognition; the transcript is graded exactly like typed text.
+
+## Still open
+- Brain tab: an interactive, non-technical memory graph at the top (planned next).
