@@ -9,6 +9,7 @@ import { rankDomainsForConcept, buildMatch } from "@/lib/profile/match";
 import { generateBestBridge } from "@/lib/bridge/engine";
 import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 import { apiError } from "@/lib/api/errors";
+import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
 
 export const runtime = "nodejs";
 // Serverless ceiling: up to three generate/verify pairs plus the widget call.
@@ -97,7 +98,14 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const parsed = BodySchema.safeParse(await req.json().catch(() => null));
+  let raw: unknown = null;
+  try {
+    raw = await readJson(req);
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) return tooLargeResponse();
+    // malformed JSON — the schema below turns it into the usual 400
+  }
+  const parsed = BodySchema.safeParse(raw);
   if (!parsed.success) return NextResponse.json({ error: "conceptId required." }, { status: 400 });
 
   const learner = await getCurrentLearner();

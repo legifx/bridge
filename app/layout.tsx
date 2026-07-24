@@ -11,6 +11,14 @@ const mono = IBM_Plex_Mono({
   variable: "--font-mono",
 });
 
+/**
+ * Every page renders per request. The CSP hands each response a fresh nonce
+ * (see middleware.ts), and a page prerendered at build time cannot carry one —
+ * its scripts would be blocked in the browser. Nothing here benefits from
+ * static generation anyway: every screen is per-learner.
+ */
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Bridge — learn through what you already know",
   description:

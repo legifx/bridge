@@ -6,6 +6,7 @@ import { gradeFreeRecall, gradeOpenProblems, checkNumeric, ProblemSchema } from 
 import { recordAnswer } from "@/lib/adaptive/review";
 import { eloToMastery } from "@/lib/extraction/repo";
 import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
+import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
 
 export const runtime = "nodejs";
 // Serverless ceiling: free-recall grading plus one batched open-problem call.
@@ -27,7 +28,14 @@ const BodySchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const parsed = BodySchema.safeParse(await req.json().catch(() => null));
+  let raw: unknown = null;
+  try {
+    raw = await readJson(req);
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) return tooLargeResponse();
+    // malformed JSON — the schema below turns it into the usual 400
+  }
+  const parsed = BodySchema.safeParse(raw);
   if (!parsed.success) return NextResponse.json({ error: "Invalid answer payload." }, { status: 400 });
 
   const learner = await getCurrentLearner();

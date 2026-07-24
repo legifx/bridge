@@ -4,6 +4,7 @@ import { buildProfile } from "@/lib/profile/build";
 import { checkInterestText } from "@/lib/profile/guard";
 import { getCurrentLearner } from "@/lib/db/learner";
 import { apiError } from "@/lib/api/errors";
+import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
 
 export const runtime = "nodejs";
 // Serverless ceiling: the multi-step interview synthesis.
@@ -23,7 +24,14 @@ export async function POST(req: Request) {
   const learner = await getCurrentLearner();
   if (!learner) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  const parsed = BodySchema.safeParse(await req.json().catch(() => null));
+  let raw: unknown = null;
+  try {
+    raw = await readJson(req);
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) return tooLargeResponse();
+    // malformed JSON — the schema below turns it into the usual 400
+  }
+  const parsed = BodySchema.safeParse(raw);
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid onboarding payload." }, { status: 400 });
   }

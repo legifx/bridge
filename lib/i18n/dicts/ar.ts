@@ -349,6 +349,20 @@ export const ar: Dict = {
   "flow.check": "الاختبار",
   "flow.result": "النتيجة",
   "learn.widgetsComing": "أجهّز شيئاً لتجربته…",
+  "common.cancel":
+    "إلغاء",
+  "settings.yourData":
+    "بياناتك",
+  "settings.yourDataSub":
+    "كل ما يحفظه Bridge عنك: المواد، المفاهيم، الشروح، الإجابات وملف اهتماماتك.",
+  "settings.exportData":
+    "تنزيل بياناتي",
+  "settings.deleteAccount":
+    "حذف الملف وكل البيانات",
+  "settings.deleteWarning":
+    "هذا يحذف ملفك، وموادك المرفوعة، وكل الشروح، وكل الإجابات، وملف اهتماماتك. لا يمكن التراجع. أدخل كلمة المرور للتأكيد.",
+  "settings.deleteConfirm":
+    "حذف نهائي",
   "err.aiBusy":
     "خدمة الذكاء الاصطناعي مشغولة الآن. انتظر بضع ثوانٍ ثم أعد المحاولة.",
   "err.aiSlow":

@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentLearner } from "@/lib/db/learner";
+import { getCurrentLearner, LEARNER_COOKIE } from "@/lib/db/learner";
+import { verifyPassword } from "@/lib/auth/password";
+import { st } from "@/lib/i18n";
 import { isPublicDemo, quotaState } from "@/lib/quota";
 import { dbConfig } from "@/lib/db/prisma";
 import { prisma } from "@/lib/db/prisma";
+import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
 
 export const runtime = "nodejs";
 
@@ -31,6 +34,46 @@ export async function GET() {
   });
 }
 
+/**
+ * Delete this profile and everything attached to it.
+ *
+ * Learners can create a profile in two taps; being unable to remove one is not
+ * a defensible position for an app that stores a person's interests, uploaded
+ * school material and answers. Every relation cascades from Learner (see
+ * schema.prisma), so one delete really does take the concepts, sources,
+ * bridges, reviews, brain items and interview logs with it.
+ *
+ * The account password is required when the profile has one — a stolen session
+ * must not be enough to wipe someone's work.
+ */
+const DeleteSchema = z.object({ password: z.string().max(128).optional() });
+
+export async function DELETE(req: Request) {
+  const learner = await getCurrentLearner();
+  if (!learner) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+
+  let raw: unknown = null;
+  try {
+    raw = await readJson(req);
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) return tooLargeResponse();
+  }
+  const parsed = DeleteSchema.safeParse(raw ?? {});
+  const password = parsed.success ? parsed.data.password?.trim() : undefined;
+
+  if (learner.passwordHash) {
+    if (!password || !(await verifyPassword(password, learner.passwordHash))) {
+      return NextResponse.json({ error: st(learner.language, "signin.wrongPassword") }, { status: 401 });
+    }
+  }
+
+  await prisma.learner.delete({ where: { id: learner.id } });
+
+  const res = NextResponse.json({ deleted: true });
+  res.cookies.set(LEARNER_COOKIE, "", { path: "/", maxAge: 0 });
+  return res;
+}
+
 const PatchSchema = z.object({
   language: z.string().min(2).max(8).regex(/^[a-z-]+$/i).optional(),
   gradeSystem: z.string().min(2).max(16).regex(/^[a-z]+$/i).optional(),
@@ -41,7 +84,14 @@ export async function PATCH(req: Request) {
   const learner = await getCurrentLearner();
   if (!learner) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  const parsed = PatchSchema.safeParse(await req.json().catch(() => null));
+  let raw: unknown = null;
+  try {
+    raw = await readJson(req);
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) return tooLargeResponse();
+    // malformed JSON — the schema below turns it into the usual 400
+  }
+  const parsed = PatchSchema.safeParse(raw);
   if (!parsed.success) return NextResponse.json({ error: "Invalid settings." }, { status: 400 });
 
   const data: { language?: string; gradeSystem?: string } = {};

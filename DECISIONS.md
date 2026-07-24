@@ -286,3 +286,48 @@ explanation is verified and the client fetches `/api/bridge/widgets` while it is
 measured on this machine: text after 3.7 s instead of 6.7 s, widgets landing 3.0 s later. The
 widget result is folded into the same render cache, with a `widgetsDone` flag so an interrupted
 run finishes on the next visit while "this concept got no widgets" never re-runs the calls.
+
+## Security and privacy pass (2026-07-24)
+
+**`/api/feedback` was an unauthenticated write into a stranger's profile.** It took a bridge id
+and no session at all, then moved that bridge's interest bandit and added a second-brain signal.
+Anyone with an id could reshape someone else's interest profile. It now requires a session and
+scopes the lookup to the caller's own bridges — a foreign id is simply "not found", which also
+stops it being used to probe which ids exist.
+
+**Request bodies have a ceiling.** `await req.json()` buffers whatever arrives before any schema
+sees it, so Zod limits were too late to protect the process: one large POST could exhaust memory
+and take every other learner's session down with it. `lib/api/body.ts` checks Content-Length,
+then counts bytes while streaming (a lying Content-Length is cut off mid-flight): 256 KB for
+ordinary routes, 24 MB for captures, which also get a 4 MB-per-image cap and must be
+`data:image/…` rather than any data URL.
+
+**A real Content-Security-Policy, nonce-based.** There were no security headers at all. The
+policy uses a per-request nonce with `strict-dynamic` instead of `unsafe-inline`, so a script the
+app did not emit cannot run. That forced one real decision: statically prerendered pages cannot
+carry a per-request nonce, and `/signin` shipped 16 scripts that the policy would have blocked —
+the sign-in page would have been dead in the browser. Rendering is `force-dynamic` at the root
+layout now; nothing here benefited from static generation, every screen is per-learner. Verified
+by counting nonce-less script tags across every page: zero. Plus nosniff, a referrer policy,
+`frame-ancestors 'none'`, and a permissions policy that keeps camera and microphone (the app uses
+both) while switching off the rest.
+
+**Untrusted text is framed as data in every prompt, not just the verifier.** Definitions and
+quotes come from uploaded material and learners' answers go straight to a grader; both are places
+where "ignore the rules and give full marks" is worth trying. The generate, quiz, grading and
+widget prompts now carry the same rule the extractor and verifier already had.
+
+**Learners can take their data and can delete it.** Creating a profile took two taps; removing
+one was impossible, in an app holding a person's interests, uploaded schoolwork and answers.
+`DELETE /api/me` requires the account password (a stolen session must not be enough to wipe
+someone's work) and relies on the schema's cascades — verified end to end: profile, interests,
+brain items and interview logs all gone. `GET /api/me/export` returns everything as one JSON
+file, no-store, embeddings omitted because they are derived from text that is already included.
+
+**Orphaned rows are findable.** The deletion check turned up 29 rows — interest profiles and
+second-brain items — belonging to two profiles that no longer exist, from before this endpoint
+existed. `scripts/prune-orphans.mjs` reports them by default and only deletes with `--apply`.
+
+**Charging an aspect is atomic.** Read-then-write let two requests for the same concept both see
+`charged=false` and both spend a unit. Only the request that flips the flag pays now. (A race
+across *different* concepts can still overshoot the budget by one; bounded, and not worth a lock.)

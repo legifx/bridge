@@ -362,6 +362,20 @@ export const en = {
   "flow.check": "Check",
   "flow.result": "Result",
   "learn.widgetsComing": "building something to try…",
+  "common.cancel":
+    "Cancel",
+  "settings.yourData":
+    "Your data",
+  "settings.yourDataSub":
+    "Everything Bridge stores about you — your captures, concepts, explanations, answers and interest profile.",
+  "settings.exportData":
+    "Download my data",
+  "settings.deleteAccount":
+    "Delete profile and all data",
+  "settings.deleteWarning":
+    "This removes your profile, your uploaded material, every explanation, all answers and your interest profile. It cannot be undone. Enter your password to confirm.",
+  "settings.deleteConfirm":
+    "Delete permanently",
   "err.aiBusy":
     "The AI service is busy right now. Wait a few seconds and try again.",
   "err.aiSlow":

@@ -7,6 +7,7 @@ import { hashPassword, verifyPassword, isValidPassword, safeEqual } from "@/lib/
 import { st } from "@/lib/i18n";
 import { defaultGradeSystem } from "@/lib/grades";
 import { isDemoHandle } from "@/lib/demo/profiles";
+import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
 
 export const runtime = "nodejs";
 
@@ -37,7 +38,13 @@ const BodySchema = z.object({
  * Passing the OWNER_UNLOCK_CODE marks the account unlimited (no AI budget).
  */
 export async function POST(req: Request) {
-  const raw = await req.json().catch(() => null);
+  let raw: unknown = null;
+  try {
+    raw = await readJson(req);
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) return tooLargeResponse();
+    // malformed JSON — the schema below turns it into the usual 400
+  }
   const parsed = BodySchema.safeParse(raw);
   const lang = parsed.success ? parsed.data.language : undefined;
   if (!parsed.success || !isValidUsername(parsed.data.username)) {

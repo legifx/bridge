@@ -73,10 +73,21 @@ export async function chargeConcept(
   if (concept.charged) return { ok: true, quota: quotaState(learner.aiUnits) };
   const limit = quotaLimit();
   if (learner.aiUnits + 1 > limit) return { ok: false, quota: quotaState(learner.aiUnits) };
-  const [updated] = await prisma.$transaction([
-    prisma.learner.update({ where: { id: learnerId }, data: { aiUnits: { increment: 1 } } }),
-    prisma.concept.update({ where: { id: conceptId }, data: { charged: true } }),
-  ]);
+
+  // Claim the aspect before charging for it. Read-then-write would let two
+  // requests for the SAME aspect (a double tap, the learn screen and a retry)
+  // both see charged=false and both spend a unit — the learner pays twice for
+  // one concept. Only the request that flips the flag pays.
+  const claimed = await prisma.concept.updateMany({
+    where: { id: conceptId, charged: false },
+    data: { charged: true },
+  });
+  if (claimed.count === 0) return { ok: true, quota: quotaState(learner.aiUnits) };
+
+  const updated = await prisma.learner.update({
+    where: { id: learnerId },
+    data: { aiUnits: { increment: 1 } },
+  });
   return { ok: true, quota: quotaState(updated.aiUnits) };
 }
 

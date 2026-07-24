@@ -349,6 +349,20 @@ export const tr: Dict = {
   "flow.check": "Kontrol",
   "flow.result": "Sonuç",
   "learn.widgetsComing": "denemen için bir şey hazırlanıyor…",
+  "common.cancel":
+    "Vazgeç",
+  "settings.yourData":
+    "Verilerin",
+  "settings.yourDataSub":
+    "Bridge'in senin hakkında sakladığı her şey: yüklemeler, kavramlar, açıklamalar, cevaplar ve ilgi profili.",
+  "settings.exportData":
+    "Verilerimi indir",
+  "settings.deleteAccount":
+    "Profili ve tüm verileri sil",
+  "settings.deleteWarning":
+    "Bu, profilini, yüklediğin materyali, tüm açıklamaları, tüm cevapları ve ilgi profilini siler. Geri alınamaz. Onaylamak için şifreni gir.",
+  "settings.deleteConfirm":
+    "Kalıcı olarak sil",
   "err.aiBusy":
     "Yapay zeka servisi şu anda yoğun. Birkaç saniye bekleyip tekrar dene.",
   "err.aiSlow":

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentLearner } from "@/lib/db/learner";
+import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
 
 export const runtime = "nodejs";
 
@@ -12,7 +13,14 @@ export async function POST(req: Request) {
   const learner = await getCurrentLearner();
   if (!learner) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  const parsed = BodySchema.safeParse(await req.json().catch(() => null));
+  let raw: unknown = null;
+  try {
+    raw = await readJson(req);
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) return tooLargeResponse();
+    // malformed JSON — the schema below turns it into the usual 400
+  }
+  const parsed = BodySchema.safeParse(raw);
   if (!parsed.success) return NextResponse.json({ error: "conceptId and enabled required." }, { status: 400 });
 
   const concept = await prisma.concept.findFirst({

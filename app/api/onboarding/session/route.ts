@@ -8,6 +8,7 @@ import { EMBEDDINGS_ENABLED } from "@/lib/ml/embeddings";
 import { startInterview, continueInterview } from "@/lib/onboarding/engine";
 import { AnswerSchema } from "@/lib/onboarding/types";
 import { apiError } from "@/lib/api/errors";
+import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
 
 export const runtime = "nodejs";
 // Serverless ceiling: interview turns, generated live.
@@ -43,7 +44,14 @@ export async function POST(req: Request) {
     );
   }
 
-  const parsed = StartSchema.safeParse(await req.json().catch(() => null));
+  let raw: unknown = null;
+  try {
+    raw = await readJson(req);
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) return tooLargeResponse();
+    // malformed JSON — the schema below turns it into the usual 400
+  }
+  const parsed = StartSchema.safeParse(raw);
   if (!parsed.success) {
     return NextResponse.json({ error: "Give at least one interest (2-80 characters each)." }, { status: 400 });
   }
@@ -77,7 +85,13 @@ export async function PATCH(req: Request) {
   const learner = await getCurrentLearner();
   if (!learner) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
 
-  const body = await req.json().catch(() => null);
+  let body: unknown = null;
+  try {
+    body = await readJson(req);
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) return tooLargeResponse();
+    // malformed JSON — the schema below turns it into the usual 400
+  }
 
   const remove = RemoveSchema.safeParse(body);
   if (remove.success) {

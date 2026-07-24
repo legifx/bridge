@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentLearner } from "@/lib/db/learner";
 import { generateVisualizations } from "@/lib/learn/visualize";
 import type { BridgeBody } from "@/lib/bridge/types";
+import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
 
 export const runtime = "nodejs";
 // Two model calls (generate + fact-check) on their own budget.
@@ -23,7 +24,14 @@ const BodySchema = z.object({ bridgeId: z.string().min(1) });
  * was generated (see chargeConcept), and this is part of that same aspect.
  */
 export async function POST(req: Request) {
-  const parsed = BodySchema.safeParse(await req.json().catch(() => null));
+  let raw: unknown = null;
+  try {
+    raw = await readJson(req);
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) return tooLargeResponse();
+    // malformed JSON — the schema below turns it into the usual 400
+  }
+  const parsed = BodySchema.safeParse(raw);
   if (!parsed.success) return NextResponse.json({ error: "bridgeId required." }, { status: 400 });
 
   const learner = await getCurrentLearner();

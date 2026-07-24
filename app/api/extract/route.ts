@@ -6,6 +6,7 @@ import { getCurrentLearner } from "@/lib/db/learner";
 
 import { recordSignal, averageVec } from "@/lib/brain/record";
 import { apiError } from "@/lib/api/errors";
+import { readJson, tooLargeResponse, BodyTooLargeError, MAX_JSON_BYTES } from "@/lib/api/body";
 
 // Embeddings + LLM need the Node runtime, not the edge runtime.
 export const runtime = "nodejs";
@@ -19,7 +20,13 @@ const BodySchema = z.object({
   text: z.string().min(1).max(120000).optional(),
   // data URLs of already-downscaled images (client caps the long edge at 1600px).
   // Multi-page captures (scanned PDFs) send one image per page.
-  images: z.array(z.object({ dataUrl: z.string().startsWith("data:") })).max(16).optional(),
+  // Per-image ceiling as well as a count: the client downscales to a long edge
+  // of 1600px (a few hundred KB), so 4 MB of base64 is generous for an honest
+  // page and still bounds what one request can hand to the model.
+  images: z
+    .array(z.object({ dataUrl: z.string().startsWith("data:image/").max(4_000_000) }))
+    .max(16)
+    .optional(),
   // what the material originally was — the binary itself is never uploaded.
   kind: z.enum(["photo", "pdf", "docx", "text"]).optional(),
   fileName: z.string().max(200).optional(),
@@ -33,8 +40,9 @@ export async function POST(req: Request) {
 
   let body: unknown;
   try {
-    body = await req.json();
-  } catch {
+    body = await readJson(req, MAX_JSON_BYTES);
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) return tooLargeResponse();
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
 

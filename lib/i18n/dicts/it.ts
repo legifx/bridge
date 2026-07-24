@@ -349,6 +349,20 @@ export const it: Dict = {
   "flow.check": "Verifica",
   "flow.result": "Risultato",
   "learn.widgetsComing": "sto creando qualcosa da provare…",
+  "common.cancel":
+    "Annulla",
+  "settings.yourData":
+    "I tuoi dati",
+  "settings.yourDataSub":
+    "Tutto ciò che Bridge conserva su di te: acquisizioni, concetti, spiegazioni, risposte e profilo di interessi.",
+  "settings.exportData":
+    "Scarica i miei dati",
+  "settings.deleteAccount":
+    "Elimina profilo e tutti i dati",
+  "settings.deleteWarning":
+    "Questo rimuove il tuo profilo, il materiale caricato, ogni spiegazione, tutte le risposte e il tuo profilo di interessi. Non è reversibile. Inserisci la password per confermare.",
+  "settings.deleteConfirm":
+    "Elimina definitivamente",
   "err.aiBusy":
     "Il servizio di IA è occupato in questo momento. Aspetta qualche secondo e riprova.",
   "err.aiSlow":

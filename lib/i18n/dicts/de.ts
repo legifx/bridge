@@ -349,6 +349,20 @@ export const de: Dict = {
   "flow.check": "Check",
   "flow.result": "Ergebnis",
   "learn.widgetsComing": "baue etwas zum Ausprobieren…",
+  "common.cancel":
+    "Abbrechen",
+  "settings.yourData":
+    "Deine Daten",
+  "settings.yourDataSub":
+    "Alles, was Bridge über dich speichert — Aufnahmen, Konzepte, Erklärungen, Antworten und Interessensprofil.",
+  "settings.exportData":
+    "Meine Daten herunterladen",
+  "settings.deleteAccount":
+    "Profil und alle Daten löschen",
+  "settings.deleteWarning":
+    "Das entfernt dein Profil, dein hochgeladenes Material, jede Erklärung, alle Antworten und dein Interessensprofil. Das lässt sich nicht rückgängig machen. Gib zur Bestätigung dein Passwort ein.",
+  "settings.deleteConfirm":
+    "Endgültig löschen",
   "err.aiBusy":
     "Der KI-Dienst ist gerade ausgelastet. Warte ein paar Sekunden und versuche es erneut.",
   "err.aiSlow":

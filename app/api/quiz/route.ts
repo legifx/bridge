@@ -5,6 +5,7 @@ import { getCurrentLearner } from "@/lib/db/learner";
 import { generateQuiz } from "@/lib/quiz";
 import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 import { st } from "@/lib/i18n";
+import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
 
 export const runtime = "nodejs";
 // Serverless ceiling: one generation call, plus a fallback-model retry.
@@ -15,7 +16,14 @@ export const maxDuration = 60;
 const BodySchema = z.object({ conceptId: z.string().min(1), tasks: z.boolean().optional() });
 
 export async function POST(req: Request) {
-  const parsed = BodySchema.safeParse(await req.json().catch(() => null));
+  let raw: unknown = null;
+  try {
+    raw = await readJson(req);
+  } catch (err) {
+    if (err instanceof BodyTooLargeError) return tooLargeResponse();
+    // malformed JSON — the schema below turns it into the usual 400
+  }
+  const parsed = BodySchema.safeParse(raw);
   if (!parsed.success) return NextResponse.json({ error: "conceptId required." }, { status: 400 });
 
   const learner = await getCurrentLearner();

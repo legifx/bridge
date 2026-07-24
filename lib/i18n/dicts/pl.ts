@@ -349,6 +349,20 @@ export const pl: Dict = {
   "flow.check": "Sprawdzenie",
   "flow.result": "Wynik",
   "learn.widgetsComing": "tworzę coś do wypróbowania…",
+  "common.cancel":
+    "Anuluj",
+  "settings.yourData":
+    "Twoje dane",
+  "settings.yourDataSub":
+    "Wszystko, co Bridge o tobie przechowuje: materiały, pojęcia, wyjaśnienia, odpowiedzi i profil zainteresowań.",
+  "settings.exportData":
+    "Pobierz moje dane",
+  "settings.deleteAccount":
+    "Usuń profil i wszystkie dane",
+  "settings.deleteWarning":
+    "To usuwa twój profil, wgrane materiały, wszystkie wyjaśnienia, wszystkie odpowiedzi i profil zainteresowań. Tego nie da się cofnąć. Wpisz hasło, aby potwierdzić.",
+  "settings.deleteConfirm":
+    "Usuń trwale",
   "err.aiBusy":
     "Usługa AI jest w tej chwili przeciążona. Odczekaj kilka sekund i spróbuj ponownie.",
   "err.aiSlow":
