@@ -33,22 +33,31 @@ export function ThinkingLoader({
   const [stage, setStage] = useState(0);
   const [itemIdx, setItemIdx] = useState(0);
 
-  const perStage = Math.max(900, expectedMs / Math.max(1, stages.length));
+  const count = Math.max(1, stages.length);
+  const perStage = Math.max(900, expectedMs / count);
+  const itemCount = items.length;
 
-  useEffect(() => {
+  // Callers pass inline arrays, so depending on the array IDENTITY would restart
+  // the timer on every parent render and the narration would never advance.
+  // Depend on the shape instead, and reset the stage during render (the React-
+  // sanctioned way to adjust state on a prop change) when the shape changes.
+  const signature = `${count}:${perStage}`;
+  const [prevSignature, setPrevSignature] = useState(signature);
+  if (signature !== prevSignature) {
+    setPrevSignature(signature);
     setStage(0);
-    const t = setInterval(
-      () => setStage((s) => Math.min(s + 1, stages.length - 1)),
-      perStage,
-    );
-    return () => clearInterval(t);
-  }, [stages, perStage]);
+  }
 
   useEffect(() => {
-    if (items.length < 2) return;
-    const t = setInterval(() => setItemIdx((i) => (i + 1) % items.length), 1300);
+    const t = setInterval(() => setStage((s) => Math.min(s + 1, count - 1)), perStage);
     return () => clearInterval(t);
-  }, [items]);
+  }, [count, perStage]);
+
+  useEffect(() => {
+    if (itemCount < 2) return;
+    const t = setInterval(() => setItemIdx((i) => (i + 1) % itemCount), 1300);
+    return () => clearInterval(t);
+  }, [itemCount]);
 
   const orbitDots = useMemo(
     () => [
@@ -104,7 +113,7 @@ export function ThinkingLoader({
       {items.length > 0 && (
         <p className="mb-4 h-6">
           <span key={itemIdx} className="chip chip-interest pop max-w-full">
-            <span className="truncate">{items[itemIdx]}</span>
+            <span className="truncate">{items[itemIdx % itemCount]}</span>
           </span>
         </p>
       )}

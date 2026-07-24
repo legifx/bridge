@@ -5,9 +5,14 @@ import { saveConceptGraph } from "@/lib/extraction/persist";
 import { getCurrentLearner } from "@/lib/db/learner";
 
 import { recordSignal, averageVec } from "@/lib/brain/record";
+import { apiError } from "@/lib/api/errors";
 
 // Embeddings + LLM need the Node runtime, not the edge runtime.
 export const runtime = "nodejs";
+// Serverless ceiling: vision OCR over up to 16 scanned pages.
+// 60s is the ceiling every Vercel plan allows and 4x the platform default;
+// raise it in vercel.json on plans that permit more.
+export const maxDuration = 60;
 
 const BodySchema = z.object({
   // PDFs/DOCX can carry far more text than a pasted paragraph.
@@ -92,7 +97,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ sourceId, graph, quota: null });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Extraction failed.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError("extract", err, learner.language);
   }
 }

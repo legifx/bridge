@@ -6,6 +6,10 @@ import { eloToMastery } from "@/lib/extraction/repo";
 export const runtime = "nodejs";
 
 type CheckDetail = {
+  /** fraction of the check's points earned, 0..1 */
+  score?: number;
+  earned?: number;
+  total?: number;
   freeCorrect?: boolean;
   freeFeedback?: string;
   mcqCorrect?: boolean;
@@ -41,6 +45,12 @@ export async function GET() {
       correct: r.correct,
       answeredAt: r.answeredAt.toISOString(),
       dueAt: r.nextDueAt.toISOString(),
+      // The grade of THIS check (what the learner actually scored that day) —
+      // the log used to show only long-term mastery, which is a different number
+      // and made a good check look like a bad one. Older rows have no breakdown.
+      score: typeof detail?.score === "number" ? detail.score : null,
+      earned: typeof detail?.earned === "number" ? detail.earned : null,
+      total: typeof detail?.total === "number" ? detail.total : null,
       mastery: eloToMastery(r.concept.elo),
       reviewEnabled: r.concept.reviewEnabled,
       detail,

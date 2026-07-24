@@ -46,6 +46,9 @@ export async function extractConceptGraph(input: ExtractInput): Promise<ExtractO
     // are text-only — the fast default model handles them in ~1.5s instead of
     // the vision model's ~8s, so uploads feel instant.
     model: input.images?.length ? CAPTURE_MODEL : undefined,
+    // A 16-page scan transcribed in full legitimately takes minutes — the
+    // default 45s ceiling is meant for stalled text calls, not for this.
+    timeoutMs: input.images?.length ? 180_000 : undefined,
   });
 
   // Concept vectors are NOT computed here — they are deferred to first-learn

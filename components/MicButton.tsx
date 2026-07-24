@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useI18n } from "./LanguageProvider";
 
 /**
@@ -27,26 +27,36 @@ type SR = {
   stop: () => void;
 };
 
+function speechCtor(): (new () => SR) | undefined {
+  if (typeof window === "undefined") return undefined;
+  const w = window as unknown as { SpeechRecognition?: new () => SR; webkitSpeechRecognition?: new () => SR };
+  return w.SpeechRecognition || w.webkitSpeechRecognition;
+}
+
+// Browser capability, read as an external store: it never changes at runtime,
+// so it does not belong in state (and writing it from an effect would cost an
+// extra render pass on every mount).
+const subscribeNever = () => () => {};
+
 export function MicButton({ onText, className = "" }: { onText: (text: string) => void; className?: string }) {
   const { lang, t } = useI18n();
-  const [supported, setSupported] = useState(false);
+  const supported = useSyncExternalStore(
+    subscribeNever,
+    () => Boolean(speechCtor()),
+    () => false, // server render: no speech API, the button appears after hydration
+  );
   const [listening, setListening] = useState(false);
   const recRef = useRef<SR | null>(null);
 
-  useEffect(() => {
-    const w = window as unknown as { SpeechRecognition?: new () => SR; webkitSpeechRecognition?: new () => SR };
-    const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition;
-    setSupported(Boolean(Ctor));
-    return () => recRef.current?.stop();
-  }, []);
+  // Stop a running recognition when the field unmounts mid-dictation.
+  useEffect(() => () => recRef.current?.stop(), []);
 
   function toggle() {
     if (listening) {
       recRef.current?.stop();
       return;
     }
-    const w = window as unknown as { SpeechRecognition?: new () => SR; webkitSpeechRecognition?: new () => SR };
-    const Ctor = w.SpeechRecognition || w.webkitSpeechRecognition;
+    const Ctor = speechCtor();
     if (!Ctor) return;
     const rec = new Ctor();
     rec.lang = SPEECH_LOCALE[lang] ?? "en-US";

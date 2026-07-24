@@ -6,9 +6,13 @@ import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
 import { Grade } from "@/components/Grade";
 import { useT } from "@/components/LanguageProvider";
+import { useNow } from "@/components/useNow";
 
 type ProblemDetail = { correct: boolean; feedback: string | null };
 type Detail = {
+  score?: number;
+  earned?: number;
+  total?: number;
   freeCorrect?: boolean;
   freeFeedback?: string;
   mcqCorrect?: boolean;
@@ -21,6 +25,10 @@ type LogEntry = {
   correct: boolean;
   answeredAt: string;
   dueAt: string;
+  /** grade of this check (0..1), null on rows saved before breakdowns existed */
+  score: number | null;
+  earned: number | null;
+  total: number | null;
   mastery: number;
   reviewEnabled: boolean;
   detail: Detail | null;
@@ -35,6 +43,7 @@ function masteryColor(m: number) {
 export default function Review() {
   const t = useT();
   const router = useRouter();
+  const now = useNow();
   const [log, setLog] = useState<LogEntry[] | null>(null);
   const [open, setOpen] = useState<string | null>(null);
 
@@ -48,21 +57,21 @@ export default function Review() {
   }, []);
 
   function fmtDue(iso: string) {
-    const diff = Math.round((new Date(iso).getTime() - Date.now()) / 86400000);
+    const diff = Math.round((new Date(iso).getTime() - now) / 86400000);
     if (diff < 0) return t("review.overdue");
     if (diff === 0) return t("review.today");
     if (diff === 1) return t("review.tomorrow");
     return t("review.inDays", { n: diff });
   }
   function fmtWhen(iso: string) {
-    const diff = Math.round((Date.now() - new Date(iso).getTime()) / 86400000);
+    const diff = Math.round((now - new Date(iso).getTime()) / 86400000);
     if (diff <= 0) return t("review.today");
     if (diff === 1) return t("review.yesterday");
     return t("review.daysAgo", { n: diff });
   }
 
   const dueCount = (log ?? []).filter(
-    (e) => e.reviewEnabled && new Date(e.dueAt).getTime() <= Date.now(),
+    (e) => e.reviewEnabled && new Date(e.dueAt).getTime() <= now,
   ).length;
 
   return (
@@ -85,7 +94,7 @@ export default function Review() {
         <div className="mt-4 space-y-3">
           {log.map((e) => {
             const isOpen = open === e.id;
-            const due = e.reviewEnabled && new Date(e.dueAt).getTime() <= Date.now();
+            const due = e.reviewEnabled && new Date(e.dueAt).getTime() <= now;
             return (
               <div key={e.id} className="card overflow-hidden">
                 {/* row */}
@@ -111,7 +120,11 @@ export default function Review() {
                       )}
                     </span>
                   </span>
-                  <Grade score={e.mastery} dot={2.6} color={masteryColor(e.mastery)} />
+                  <Grade
+                    score={e.score ?? e.mastery}
+                    dot={2.6}
+                    color={masteryColor(e.score ?? e.mastery)}
+                  />
                 </button>
 
                 {/* detail */}
@@ -119,6 +132,15 @@ export default function Review() {
                   <div className="border-t border-hair p-4">
                     {e.detail ? (
                       <div className="space-y-2">
+                        {e.earned !== null && e.total !== null && (
+                          <p className="mb-3 text-xs text-dim">
+                            {t("review.pointsLine", { earned: e.earned, total: e.total })}
+                            <span className="text-faint">
+                              {" · "}
+                              {t("review.masteryLine", { pct: Math.round(e.mastery * 100) })}
+                            </span>
+                          </p>
+                        )}
                         <DetailRow label={t("check.recallLabel")} ok={e.detail.freeCorrect} />
                         <DetailRow label={t("review.multipleChoice")} ok={e.detail.mcqCorrect} />
                         {e.detail.problems?.map((p, i) => (

@@ -22,6 +22,17 @@ import { BridgeBodySchema, VerdictSchema, type BridgeAttempt, type BridgeBody, t
 
 const MAX_RETRIES = 2; // attempts 1..3
 
+/**
+ * Wall-clock budget for the whole loop. Serverless functions are killed at a
+ * hard ceiling (see `maxDuration` on the route), and a killed request gives the
+ * learner an error instead of an explanation. So the engine keeps its own
+ * deadline: once the remaining time is too short for another generate/verify
+ * pair, it stops retrying and ships the plain explanation it can still produce.
+ */
+const DEFAULT_BUDGET_MS = Number(process.env.BRIDGE_BUDGET_MS) || (process.env.VERCEL ? 50_000 : 180_000);
+/** Rough cost of one generate+verify pair; below this, don't start another. */
+const PAIR_COST_MS = 12_000;
+
 export type EngineConcept = {
   id: string;
   label: string;
@@ -123,10 +134,14 @@ async function tryDomain(
   language: string | undefined,
   attempts: BridgeAttempt[],
   maxAttempts: number,
+  deadline: number,
   priorMistakes?: string,
 ): Promise<{ bridgeId: string; body: BridgeBody } | null> {
   let contradictions: Verdict["contradictions"] | undefined;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    // Out of time for a full pair → stop here and let the caller fall back,
+    // rather than getting killed mid-verification with nothing to show.
+    if (attempt > 1 && Date.now() + PAIR_COST_MS > deadline) break;
     const body = await generate(concept, domain, readingLevel, contradictions, language, priorMistakes);
     const verdict = await verify(concept, body);
     const status: "accepted" | "rejected" = verdict.verdict === "accept" ? "accepted" : "rejected";
@@ -167,17 +182,24 @@ export async function generateBestBridge(params: {
   language?: string;
   /** When re-learning: what the learner got wrong, so the new explanation targets it. */
   priorMistakes?: string;
+  /** Wall-clock budget for the whole loop (ms). Defaults per host, see above. */
+  budgetMs?: number;
 }): Promise<BridgeResult> {
   const { concept, candidates, readingLevel, language, priorMistakes } = params;
   const attempts: BridgeAttempt[] = [];
+  const deadline = Date.now() + (params.budgetMs ?? DEFAULT_BUDGET_MS);
 
   // Cost guard: the best domain gets the full retry budget; each additional
   // domain gets a single fresh attempt. Worst case is bounded at (MAX_RETRIES+1)
   // + 1 attempt-pairs rather than growing with the candidate count.
   for (let i = 0; i < candidates.length; i++) {
     const { domain, match } = candidates[i];
+    // Another interest is only worth starting if there is time to finish it.
+    if (i > 0 && Date.now() + PAIR_COST_MS > deadline) break;
     const maxAttempts = i === 0 ? MAX_RETRIES + 1 : 1;
-    const accepted = await tryDomain(concept, domain, readingLevel, language, attempts, maxAttempts, priorMistakes);
+    const accepted = await tryDomain(
+      concept, domain, readingLevel, language, attempts, maxAttempts, deadline, priorMistakes,
+    );
     if (accepted) {
       return { bridgeId: accepted.bridgeId, body: accepted.body, match, attempts, isFallback: false };
     }

@@ -9,8 +9,13 @@ import { rankDomainsForConcept, buildMatch } from "@/lib/profile/match";
 import { generateBestBridge } from "@/lib/bridge/engine";
 import { generateVisualizations } from "@/lib/learn/visualize";
 import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
+import { apiError } from "@/lib/api/errors";
 
 export const runtime = "nodejs";
+// Serverless ceiling: up to three generate/verify pairs plus the widget call.
+// 60s is the ceiling every Vercel plan allows and 4x the platform default;
+// raise it in vercel.json on plans that permit more.
+export const maxDuration = 60;
 
 const BodySchema = z.object({
   conceptId: z.string().min(1),
@@ -118,6 +123,12 @@ export async function POST(req: Request) {
   const charge = await chargeConcept(learner.id, concept.id);
   if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
+  // Everything from here on is LLM work, and the platform will kill the request
+  // at `maxDuration`. Track the time so the widget step can bow out instead of
+  // taking the whole response down with it.
+  const startedAt = Date.now();
+  const RESPONSE_BUDGET_MS = (maxDuration - 8) * 1000; // leave room to serialize
+
   try {
     const result = await generateBestBridge({
       concept: {
@@ -130,6 +141,8 @@ export async function POST(req: Request) {
       readingLevel: learner.readingLevel,
       language: learner.language,
       priorMistakes,
+      // Keep enough of the budget for the widget step to still have a chance.
+      budgetMs: RESPONSE_BUDGET_MS - 14_000,
     });
 
     // Interactive widgets for the concept, framed through the chosen interest.
@@ -141,11 +154,11 @@ export async function POST(req: Request) {
       domain: result.match.domainName,
       anchor: result.match.anchor,
       language: learner.language,
+      budgetMs: RESPONSE_BUDGET_MS - (Date.now() - startedAt),
     });
 
     return NextResponse.json({ ...result, visualizations, quota: charge.quota });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Bridge generation failed.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError("bridge", err, learner.language);
   }
 }

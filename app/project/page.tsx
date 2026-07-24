@@ -111,8 +111,8 @@ export default function Project() {
             <p className="eyebrow mb-2">Live demo</p>
             <p className="text-sm text-dim break-all">bridge-livid-one.vercel.app</p>
             <p className="mt-1 text-sm text-dim">
-              Explore two seeded profiles (competitive gaming vs horse riding). Tap "compare profiles"
-              to see the same concept explained through two different worlds.
+              Explore two seeded profiles (competitive gaming vs horse riding). Tap &ldquo;compare
+              profiles&rdquo; to see the same concept explained through two different worlds.
             </p>
           </div>
 
@@ -120,7 +120,7 @@ export default function Project() {
             <p className="eyebrow mb-2">Hackathon</p>
             <p className="text-sm text-dim">
               Built as a submission for an education-focused hackathon. The project demonstrates
-              analogical transfer learning — using a learner's existing interests as bridges to
+              analogical transfer learning — using a learner&rsquo;s existing interests as bridges to
               new academic concepts.
             </p>
           </div>

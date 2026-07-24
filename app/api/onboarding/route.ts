@@ -3,8 +3,13 @@ import { z } from "zod";
 import { buildProfile } from "@/lib/profile/build";
 import { checkInterestText } from "@/lib/profile/guard";
 import { getCurrentLearner } from "@/lib/db/learner";
+import { apiError } from "@/lib/api/errors";
 
 export const runtime = "nodejs";
+// Serverless ceiling: the multi-step interview synthesis.
+// 60s is the ceiling every Vercel plan allows and 4x the platform default;
+// raise it in vercel.json on plans that permit more.
+export const maxDuration = 60;
 
 const IntensitySchema = z.enum(["casual", "into", "deep"]);
 
@@ -49,7 +54,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ learnerId: learner.id, domains });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Onboarding failed.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError("onboarding", err, learner.language);
   }
 }

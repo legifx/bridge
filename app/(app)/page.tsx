@@ -7,6 +7,7 @@ import { PageHead } from "@/components/PageHead";
 import { Led } from "@/components/Led";
 import { TickScale } from "@/components/TickScale";
 import { useT } from "@/components/LanguageProvider";
+import { useNow } from "@/components/useNow";
 
 type Concept = {
   id: string;
@@ -65,7 +66,7 @@ export default function Home() {
   const ordered = data ? data.order.map((id) => byId.get(id)!).filter(Boolean) : [];
 
   // spaced repetition: opted-in concepts whose next review is due (or unstarted)
-  const now = Date.now();
+  const now = useNow();
   const due = ordered.filter(
     (c) => c.reviewEnabled && (!c.dueAt || new Date(c.dueAt).getTime() <= now),
   );
@@ -86,7 +87,14 @@ export default function Home() {
   }
   const SUBJECT_GLOWS = ["var(--curriculum)", "var(--interest)", "var(--violet)", "var(--orange)", "var(--acid)"];
 
-  let seq = 0;
+  // Stable reading position per concept, computed up front in exactly the order
+  // the list renders (subject → folder → concept, then loose ones). Counting
+  // inside the JSX would mutate a captured variable while React renders, which
+  // gives wrong numbers as soon as a subtree re-renders on its own.
+  const seqOf = new Map<string, number>();
+  let n = 0;
+  for (const s of subjects) for (const f of s.folders) for (const c of f.concepts) seqOf.set(c.id, ++n);
+  for (const c of loose) seqOf.set(c.id, ++n);
 
   return (
     <Shell>
@@ -202,10 +210,9 @@ export default function Home() {
                           </Link>
                         </div>
                         <ol className="space-y-5">
-                          {f.concepts.map((c) => {
-                            seq += 1;
-                            return <ConceptCard key={c.id} c={c} index={seq} />;
-                          })}
+                          {f.concepts.map((c) => (
+                            <ConceptCard key={c.id} c={c} index={seqOf.get(c.id) ?? 0} />
+                          ))}
                         </ol>
                       </section>
                     ))}
@@ -218,10 +225,9 @@ export default function Home() {
               <section>
                 <p className="slabel mb-4 px-1 text-faint">{t("map.otherConcepts")}</p>
                 <ol className="space-y-5">
-                  {loose.map((c) => {
-                    seq += 1;
-                    return <ConceptCard key={c.id} c={c} index={seq} />;
-                  })}
+                  {loose.map((c) => (
+                    <ConceptCard key={c.id} c={c} index={seqOf.get(c.id) ?? 0} />
+                  ))}
                 </ol>
               </section>
             )}

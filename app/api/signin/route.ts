@@ -2,15 +2,16 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { LEARNER_COOKIE, isValidUsername, normalizeHandle } from "@/lib/db/learner";
+import { encodeSession } from "@/lib/auth/session";
 import { hashPassword, verifyPassword, isValidPassword, safeEqual } from "@/lib/auth/password";
 import { st } from "@/lib/i18n";
 import { defaultGradeSystem } from "@/lib/grades";
+import { isDemoHandle } from "@/lib/demo/profiles";
 
 export const runtime = "nodejs";
 
 // Seeded "Explore" profiles (the sign-in page's demo buttons). These stay open
 // and passwordless on purpose; every other account is protected by a password.
-const DEMO_HANDLES = new Set(["mara", "theo"]);
 
 // Brute-force lockout: after FAIL_THRESHOLD consecutive wrong passwords, block
 // the account with exponential backoff (30s, doubling, capped at 15 min). This
@@ -85,7 +86,7 @@ export async function POST(req: Request) {
             data: { failedAttempts: 0, lockedUntil: null },
           });
         }
-      } else if (!DEMO_HANDLES.has(handle)) {
+      } else if (!isDemoHandle(handle)) {
         // A real account that never had a password yet. Trust-on-first-use: the
         // password entered now becomes the account's permanent password, and a
         // name alone can no longer open it. A password is required to proceed —
@@ -147,7 +148,7 @@ export async function POST(req: Request) {
   // cookie, while the hosted (TLS) deployment gets the hardened flag.
   const isHttps =
     req.headers.get("x-forwarded-proto") === "https" || new URL(req.url).protocol === "https:";
-  res.cookies.set(LEARNER_COOKIE, learner.id, {
+  res.cookies.set(LEARNER_COOKIE, encodeSession(learner.id), {
     httpOnly: true,
     sameSite: "lax",
     secure: isHttps,

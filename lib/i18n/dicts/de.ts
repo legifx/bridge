@@ -218,6 +218,8 @@ export const de: Dict = {
 
   "review.daysAgo": "vor {n} Tagen",
 
+  "review.pointsLine": "{earned} von {total} Punkten in diesem Check",
+  "review.masteryLine": "Beherrschung {pct}%",
   "review.multipleChoice": "Multiple Choice",
 
   "review.noDetail": "Für diesen Eintrag ist keine Aufschlüsselung gespeichert.",
@@ -324,6 +326,12 @@ export const de: Dict = {
   "cap.extractFailed": "Extraktion fehlgeschlagen.",
   "err.quota":
     "Demo-Budget dieses Profils aufgebraucht. Melde dich mit einem anderen Namen an, um weiterzumachen — oder klone das Repo und starte Bridge mit eigenem Key.",
+  "err.aiBusy":
+    "Der KI-Dienst ist gerade ausgelastet. Warte ein paar Sekunden und versuche es erneut.",
+  "err.aiSlow":
+    "Das hat zu lange gedauert. Versuch es noch einmal — normalerweise geht es schneller.",
+  "err.aiFailed":
+    "Das konnte gerade nicht erzeugt werden. Bitte versuche es erneut.",
   "err.embeddings":
     "Das Onboarding braucht das lokale Embedding-Modell, das diese gehostete Demo nicht mitliefert. Klone das Repo und starte Bridge lokal, um ein Profil zu bauen.",
   "engine.plainOpening": "Hier ist {label} in nüchternen Worten, ohne Analogie.",

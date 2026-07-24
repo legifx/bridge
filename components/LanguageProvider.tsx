@@ -1,6 +1,14 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { detectLanguage, dictFor, format, isRTL, type Dict, type MsgKey } from "@/lib/i18n";
 
 /**
@@ -26,20 +34,46 @@ type I18n = {
 
 const Ctx = createContext<I18n | null>(null);
 
+/**
+ * The chosen language lives in localStorage, not in React state: it has to be
+ * readable on the very first client render (no flash of English) while the
+ * server render has no access to it. Exposing it as an external store keeps the
+ * component pure — no writing state from an effect just to hydrate.
+ */
+const langListeners = new Set<() => void>();
+function subscribeLang(onChange: () => void) {
+  langListeners.add(onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    langListeners.delete(onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+function notifyLang() {
+  for (const l of langListeners) l();
+}
+function readLang(): string {
+  if (typeof window === "undefined") return "en";
+  return window.localStorage.getItem(STORAGE_KEY) ?? detectLanguage(navigator.language);
+}
+function writeLang(code: string) {
+  window.localStorage.setItem(STORAGE_KEY, code);
+  notifyLang();
+}
+
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [lang, setLangState] = useState("en");
+  const lang = useSyncExternalStore(subscribeLang, readLang, () => "en");
   const [gradeSystem, setGradeSystemState] = useState("percent");
 
-  // hydrate. A local choice (localStorage) ALWAYS wins for the UI — otherwise
-  // opening a profile stored in another language (e.g. the seeded English demo
-  // profiles) would yank the UI back to that language mid-session. When there
-  // is a local choice we instead push it TO the profile, so server-generated
-  // text (brain summary, new captures) follows the UI language too. Only when
-  // there is no local choice yet do we adopt the learner's stored language.
+  // A local choice (localStorage) ALWAYS wins for the UI — otherwise opening a
+  // profile stored in another language (e.g. the seeded English demo profiles)
+  // would yank the UI back to that language mid-session. When there is a local
+  // choice we instead push it TO the profile, so server-generated text (brain
+  // summary, new captures) follows the UI language too. Only when there is no
+  // local choice yet do we adopt the learner's stored language.
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      setLangState(stored);
       fetch("/api/me")
         .then((r) => r.json())
         .then((d) => {
@@ -57,16 +91,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         .catch(() => {});
       return;
     }
-    setLangState(detectLanguage(navigator.language));
+    // No local choice yet (the browser locale is showing) → adopt the profile's.
     fetch("/api/me")
       .then((r) => r.json())
       .then((d) => {
         if (typeof d?.learner?.gradeSystem === "string") setGradeSystemState(d.learner.gradeSystem);
         const remote = d?.learner?.language;
-        if (typeof remote === "string" && remote.length >= 2) {
-          setLangState(remote);
-          window.localStorage.setItem(STORAGE_KEY, remote);
-        }
+        if (typeof remote === "string" && remote.length >= 2) writeLang(remote);
       })
       .catch(() => {});
   }, []);
@@ -87,8 +118,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, [lang]);
 
   const setLang = useCallback((code: string, opts?: { persistRemote?: boolean }) => {
-    setLangState(code);
-    window.localStorage.setItem(STORAGE_KEY, code);
+    writeLang(code);
     if (opts?.persistRemote !== false) {
       // 401 when signed out is fine — localStorage carries it into onboarding
       fetch("/api/me", {

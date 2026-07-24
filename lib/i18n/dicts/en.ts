@@ -230,6 +230,8 @@ export const en = {
   "review.emptyLog": "Nothing yet. Learn a concept and it shows up here.",
   "review.yesterday": "yesterday",
   "review.daysAgo": "{n} days ago",
+  "review.pointsLine": "{earned} of {total} points in this check",
+  "review.masteryLine": "mastery {pct}%",
   "review.multipleChoice": "Multiple choice",
   "review.noDetail": "No breakdown saved for this one.",
   "review.relearnBtn": "Relearn",
@@ -337,6 +339,12 @@ export const en = {
   "cap.extractFailed": "Extraction failed.",
   "err.quota":
     "Demo budget used up for this profile. Sign in with a different name to keep exploring — or clone the repo and run Bridge with your own key.",
+  "err.aiBusy":
+    "The AI service is busy right now. Wait a few seconds and try again.",
+  "err.aiSlow":
+    "That took too long to generate. Try again — it is usually faster.",
+  "err.aiFailed":
+    "Could not generate that right now. Please try again.",
   "err.embeddings":
     "Onboarding needs the local embedding model, which this hosted demo does not ship. Clone the repo and run Bridge locally to build a profile.",
   "engine.plainOpening": "Here is {label} in plain terms, without an analogy.",

@@ -7,6 +7,10 @@ import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 import { st } from "@/lib/i18n";
 
 export const runtime = "nodejs";
+// Serverless ceiling: one generation call, plus a fallback-model retry.
+// 60s is the ceiling every Vercel plan allows and 4x the platform default;
+// raise it in vercel.json on plans that permit more.
+export const maxDuration = 60;
 
 const BodySchema = z.object({ conceptId: z.string().min(1), tasks: z.boolean().optional() });
 

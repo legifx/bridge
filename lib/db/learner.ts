@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
+import { decodeSession } from "@/lib/auth/session";
 
 export const LEARNER_COOKIE = "learnerId";
 
@@ -21,7 +22,7 @@ export function isValidUsername(name: string): boolean {
  */
 export async function getCurrentLearner() {
   const jar = await cookies();
-  const id = jar.get(LEARNER_COOKIE)?.value;
+  const id = decodeSession(jar.get(LEARNER_COOKIE)?.value);
   if (!id) return null;
   try {
     return await prisma.learner.findUnique({ where: { id } });

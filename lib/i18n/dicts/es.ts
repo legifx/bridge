@@ -218,6 +218,8 @@ export const es: Dict = {
 
   "review.daysAgo": "hace {n} días",
 
+  "review.pointsLine": "{earned} de {total} puntos en esta prueba",
+  "review.masteryLine": "dominio {pct}%",
   "review.multipleChoice": "Opción múltiple",
 
   "review.noDetail": "No hay desglose guardado para este.",
@@ -324,6 +326,12 @@ export const es: Dict = {
   "cap.extractFailed": "La extracción falló.",
   "err.quota":
     "Presupuesto de demo agotado para este perfil. Entra con otro nombre para seguir explorando — o clona el repo y ejecuta Bridge con tu propia clave.",
+  "err.aiBusy":
+    "El servicio de IA está saturado ahora mismo. Espera unos segundos e inténtalo de nuevo.",
+  "err.aiSlow":
+    "Ha tardado demasiado en generarse. Inténtalo otra vez: suele ser más rápido.",
+  "err.aiFailed":
+    "No se ha podido generar esto ahora mismo. Inténtalo de nuevo.",
   "err.embeddings":
     "El onboarding necesita el modelo local de embeddings, que esta demo alojada no incluye. Clona el repo y ejecuta Bridge en local para crear un perfil.",
   "engine.plainOpening": "Aquí está {label} en términos claros, sin analogía.",

@@ -218,6 +218,8 @@ export const pl: Dict = {
 
   "review.daysAgo": "{n} dni temu",
 
+  "review.pointsLine": "{earned} z {total} punktów w tym sprawdzeniu",
+  "review.masteryLine": "opanowanie {pct}%",
   "review.multipleChoice": "Wielokrotny wybór",
 
   "review.noDetail": "Brak zapisanych szczegółów dla tego wpisu.",
@@ -324,6 +326,12 @@ export const pl: Dict = {
   "cap.extractFailed": "Ekstrakcja nie powiodła się.",
   "err.quota":
     "Budżet demo tego profilu wyczerpany. Zaloguj się innym imieniem, aby dalej testować — albo sklonuj repo i uruchom Bridge z własnym kluczem.",
+  "err.aiBusy":
+    "Usługa AI jest w tej chwili przeciążona. Odczekaj kilka sekund i spróbuj ponownie.",
+  "err.aiSlow":
+    "Generowanie trwało zbyt długo. Spróbuj ponownie — zwykle idzie szybciej.",
+  "err.aiFailed":
+    "Nie udało się tego teraz wygenerować. Spróbuj jeszcze raz.",
   "err.embeddings":
     "Onboarding wymaga lokalnego modelu embeddingów, którego ta hostowana wersja nie zawiera. Sklonuj repo i uruchom Bridge lokalnie, aby zbudować profil.",
   "engine.plainOpening": "Oto {label} prostymi słowami, bez analogii.",

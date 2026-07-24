@@ -7,6 +7,7 @@ import { Grade } from "@/components/Grade";
 import { MicButton } from "@/components/MicButton";
 import { useT } from "@/components/LanguageProvider";
 import type { Problem } from "@/lib/quiz";
+import type { MsgKey } from "@/lib/i18n";
 
 type Quiz = {
   free: { prompt: string };
@@ -29,6 +30,9 @@ export default function Check() {
   const [concept, setConcept] = useState<Concept | null>(null);
   const [quiz, setQuiz] = useState<Quiz | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [errorKey, setErrorKey] = useState<MsgKey | null>(null);
+  // one message, whichever arrived: a server text or a translated local key
+
   const [freeAnswer, setFreeAnswer] = useState("");
   const [mcqChoice, setMcqChoice] = useState<number | null>(null);
   // one response slot per practice problem: number (numeric), index (mcq), or text (open)
@@ -45,6 +49,8 @@ export default function Check() {
     problemResults?: ProblemResult[];
   }>(null);
   const [srs, setSrs] = useState<boolean | null>(null);
+  // whichever arrived: a message from the server, or a local key translated now
+  const shownError = error ?? (errorKey ? t(errorKey) : null);
 
   useEffect(() => {
     fetch("/api/concepts")
@@ -73,7 +79,11 @@ export default function Check() {
           setResponses((d.quiz?.problems ?? []).map(() => null));
         }
       })
-      .catch(() => setError(t("check.couldNotLoad")));
+      // Store a KEY, not a translated string: translating inside the effect
+      // would make `t` a dependency, and a language switch would then re-run the
+      // effect — regenerating the quiz (and charging another AI unit) for
+      // nothing. Rendering translates it instead.
+      .catch(() => setErrorKey("check.couldNotLoad"));
   }, [conceptId]);
 
   async function submit() {
@@ -119,16 +129,16 @@ export default function Check() {
         <p className="mt-2.5 max-w-md text-sm leading-relaxed text-dim">{t("check.sub")}</p>
       </header>
 
-      {error && (
+      {shownError && (
         <div className="card p-5">
-          <p className="text-sm text-reject-text">{error}</p>
+          <p className="text-sm text-reject-text">{shownError}</p>
           <button onClick={() => router.back()} className="btn btn-glass mt-4 w-full">
             {t("common.back")}
           </button>
         </div>
       )}
 
-      {!quiz && !error && (
+      {!quiz && !shownError && (
         <div className="card flex flex-col items-center gap-4 p-10">
           <span className="btn btn-working pointer-events-none h-10 px-5 text-xs">
             {t("check.writing")}

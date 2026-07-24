@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { cosine, bytesToVec } from "@/lib/ml/vector";
 import { embed, EMBEDDINGS_ENABLED } from "@/lib/ml/embeddings";
 import type { BridgeBody } from "@/lib/bridge/types";
+import { DEMO_HANDLES } from "@/lib/demo/profiles";
 
 /** Best-anchor similarity — the same metric the learn session shows. */
 async function bestAnchorSimilarity(conceptVec: Float32Array, anchorsJson: string): Promise<number> {
@@ -29,7 +30,17 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const label = url.searchParams.get("concept");
 
-  const learners = await prisma.learner.findMany({ orderBy: { createdAt: "asc" }, take: 2 });
+  // This page is public (no sign-in), so it may only ever read the two seeded
+  // demo profiles. Taking "the two oldest learners" happened to be the seeds on
+  // this deployment — but on a fresh database it would put two real people's
+  // names and study material on an open URL.
+  const seeded = await prisma.learner.findMany({
+    where: { handle: { in: [...DEMO_HANDLES] } },
+    orderBy: { createdAt: "asc" },
+  });
+  const learners = [...DEMO_HANDLES]
+    .map((h) => seeded.find((l) => l.handle === h))
+    .filter((l): l is (typeof seeded)[number] => Boolean(l));
   if (learners.length < 2) {
     return NextResponse.json({ error: "Need two seeded profiles to compare.", panels: [] }, { status: 200 });
   }

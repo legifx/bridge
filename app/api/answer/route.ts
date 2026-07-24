@@ -8,6 +8,10 @@ import { eloToMastery } from "@/lib/extraction/repo";
 import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 
 export const runtime = "nodejs";
+// Serverless ceiling: free-recall grading plus one batched open-problem call.
+// 60s is the ceiling every Vercel plan allows and 4x the platform default;
+// raise it in vercel.json on plans that permit more.
+export const maxDuration = 60;
 
 const AnsweredProblem = z.object({
   problem: ProblemSchema,

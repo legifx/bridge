@@ -7,8 +7,13 @@ import { checkInterestText } from "@/lib/profile/guard";
 import { EMBEDDINGS_ENABLED } from "@/lib/ml/embeddings";
 import { startInterview, continueInterview } from "@/lib/onboarding/engine";
 import { AnswerSchema } from "@/lib/onboarding/types";
+import { apiError } from "@/lib/api/errors";
 
 export const runtime = "nodejs";
+// Serverless ceiling: interview turns, generated live.
+// 60s is the ceiling every Vercel plan allows and 4x the platform default;
+// raise it in vercel.json on plans that permit more.
+export const maxDuration = 60;
 
 const StartSchema = z.object({
   seeds: z.array(z.string().min(2).max(80)).min(1).max(8),
@@ -63,8 +68,7 @@ export async function POST(req: Request) {
     const batch = await startInterview(learner.id, parsed.data.seeds, language);
     return NextResponse.json({ ...batch, quota: null });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Could not start the interview.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiError("onboarding/session:start", err, language);
   }
 }
 
@@ -102,8 +106,10 @@ export async function PATCH(req: Request) {
     );
     return NextResponse.json(batch);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Interview step failed.";
-    const status = /not found|finished/i.test(message) ? 409 : 500;
-    return NextResponse.json({ error: message }, { status });
+    // A stale/finished session is the client's problem to handle (409), not an
+    // upstream failure — keep that distinction, without echoing the raw text.
+    const message = err instanceof Error ? err.message : "";
+    const stale = /not found|finished/i.test(message);
+    return apiError("onboarding/session:answer", err, learner.language, stale ? 409 : undefined);
   }
 }

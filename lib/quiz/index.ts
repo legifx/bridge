@@ -80,13 +80,29 @@ export async function generateQuiz(
  * Resilience fallback only (NOT a demo mode): if the grading call fails,
  * a keyword-overlap heuristic keeps the session alive instead of bricking it.
  */
-function heuristicGrade(concept: Concept, answer: string, language?: string): Grade {
-  const stop = new Set(["the", "a", "an", "of", "to", "and", "is", "are", "that", "in", "it", "its", "with", "by", "as"]);
+export function heuristicGrade(concept: Concept, answer: string, language?: string): Grade {
+  // Function words worth ignoring, across the languages the app ships in.
+  // (Only an overlap heuristic — a missed stop word costs a little precision,
+  // never correctness.)
+  const stop = new Set([
+    "the", "a", "an", "of", "to", "and", "is", "are", "that", "in", "it", "its", "with", "by", "as",
+    "der", "die", "das", "und", "ist", "sind", "ein", "eine", "einer", "den", "dem", "des", "von", "für", "mit",
+    "el", "la", "los", "las", "que", "por", "para", "con", "una", "del",
+    "le", "les", "des", "une", "dans", "pour", "avec", "est", "sont",
+    "il", "lo", "gli", "che", "per", "con", "una", "sono",
+    "os", "as", "um", "uma", "com", "para", "que",
+    "ve", "bir", "için", "ile",
+    "jest", "nie", "dla", "oraz",
+    "що", "для", "або",
+    "من", "في", "على", "الى", "هذا", "التي",
+  ]);
+  // Unicode-aware: stripping to [a-z0-9] would delete German, Ukrainian, Turkish
+  // or Arabic answers entirely and score every one of them 0.
   const tokens = (s: string) =>
     new Set(
       s
         .toLowerCase()
-        .replace(/[^a-z0-9\s]/g, " ")
+        .replace(/[^\p{L}\p{N}\s]/gu, " ")
         .split(/\s+/)
         .filter((w) => w.length > 2 && !stop.has(w)),
     );

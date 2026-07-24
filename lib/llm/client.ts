@@ -54,6 +54,11 @@ function client(): OpenAI {
   return clientSingleton;
 }
 
+// Upper bound for a single upstream call. Text calls answer in ~1.5s and a
+// vision capture in ~10s, so 45s is "the provider is not coming back" — not a
+// tight deadline on a slow-but-working request.
+const REQUEST_TIMEOUT_MS = Number(process.env.OPENROUTER_TIMEOUT_MS) || 45_000;
+
 export type ImageInput = { dataUrl: string };
 
 export type LlmCall<T> = {
@@ -67,6 +72,8 @@ export type LlmCall<T> = {
   language?: string;
   /** Override the primary model for this call (e.g. CAPTURE_MODEL). */
   model?: string;
+  /** Override the upstream timeout (ms) — vision captures are allowed longer. */
+  timeoutMs?: number;
 };
 
 function withLanguage(system: string, language?: string): string {
@@ -95,15 +102,23 @@ export async function llmJson<T>(call: LlmCall<T>): Promise<T> {
   }
 
   const complete = (model: string) =>
-    client().chat.completions.create({
-      model,
-      temperature: call.temperature ?? 0.4,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: withLanguage(call.system, call.language) },
-        { role: "user", content },
-      ],
-    });
+    client().chat.completions.create(
+      {
+        model,
+        temperature: call.temperature ?? 0.4,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: withLanguage(call.system, call.language) },
+          { role: "user", content },
+        ],
+      },
+      // Never wait forever on an upstream that has gone quiet: a bridge runs up
+      // to three generate/verify pairs in sequence, so one hung call would eat
+      // the whole request budget (and on a serverless host, blow the function
+      // timeout with no message for the learner). A timeout raises a retriable
+      // error, so the fallback model gets its chance.
+      { timeout: call.timeoutMs ?? REQUEST_TIMEOUT_MS, maxRetries: 0 },
+    );
 
   // One attempt = complete + extract + schema-validate. Fast models occasionally
   // emit malformed JSON on complex nested schemas, so a parse/validation failure

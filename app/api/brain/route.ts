@@ -4,6 +4,10 @@ import { buildBrainTree } from "@/lib/brain/tree";
 import { summarizeBrain } from "@/lib/brain/summary";
 
 export const runtime = "nodejs";
+// Serverless ceiling: the brain summary is generated.
+// 60s is the ceiling every Vercel plan allows and 4x the platform default;
+// raise it in vercel.json on plans that permit more.
+export const maxDuration = 60;
 
 /** The learner's second brain: clustered tree + transparent summary. */
 export async function GET() {

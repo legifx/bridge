@@ -218,6 +218,8 @@ export const tr: Dict = {
 
   "review.daysAgo": "{n} gün önce",
 
+  "review.pointsLine": "Bu kontrolde {total} puandan {earned} puan",
+  "review.masteryLine": "hakimiyet %{pct}",
   "review.multipleChoice": "Çoktan seçmeli",
 
   "review.noDetail": "Bu kayıt için ayrıntı kaydedilmedi.",
@@ -324,6 +326,12 @@ export const tr: Dict = {
   "cap.extractFailed": "Çıkarma başarısız oldu.",
   "err.quota":
     "Bu profilin demo bütçesi tükendi. Keşfe devam etmek için başka bir isimle gir — ya da repoyu klonlayıp Bridge'i kendi anahtarınla çalıştır.",
+  "err.aiBusy":
+    "Yapay zeka servisi şu anda yoğun. Birkaç saniye bekleyip tekrar dene.",
+  "err.aiSlow":
+    "Oluşturma çok uzun sürdü. Tekrar dene — normalde daha hızlıdır.",
+  "err.aiFailed":
+    "Bu şu anda oluşturulamadı. Lütfen tekrar dene.",
   "err.embeddings":
     "Tanışma, bu barındırılan demoda bulunmayan yerel embedding modelini gerektirir. Profil oluşturmak için repoyu klonlayıp Bridge'i yerelde çalıştır.",
   "engine.plainOpening": "İşte {label}, benzetme olmadan, sade haliyle.",

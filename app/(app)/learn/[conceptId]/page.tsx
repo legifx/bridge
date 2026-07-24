@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { BridgeViz } from "@/components/BridgeViz";
 import { LearnWidgets } from "@/components/LearnWidgets";
@@ -59,18 +59,16 @@ export default function Learn() {
       });
   }, [conceptId]);
 
-  const [relearn, setRelearn] = useState(false);
+  // Re-learn entry (?relearn=1 from the review log): read straight from the URL
+  // — it is already state, so mirroring it into React state would only add a
+  // render pass and a chance to disagree with the address bar.
+  const relearn = useSearchParams().get("relearn") === "1";
 
-  // Re-learn entry (?relearn=1 from the review log): auto-build a fresh
-  // explanation that targets what was missed last time.
+  // …and auto-build a fresh explanation that targets what was missed last time.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (new URLSearchParams(window.location.search).get("relearn") === "1") {
-      setRelearn(true);
-      makeBridge(undefined, true);
-    }
+    if (relearn) makeBridge(undefined, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conceptId]);
+  }, [conceptId, relearn]);
 
   async function makeBridge(domainId?: string, doRelearn?: boolean) {
     setLoadingBridge(true);
