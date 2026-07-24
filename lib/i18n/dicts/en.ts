@@ -199,6 +199,8 @@ export const en = {
   "check.freePlaceholder": "From memory, in your own words…",
   "check.grading": "grading your recall…",
   "check.submit": "Submit answers",
+  "check.points": "pts",
+  "check.masteryLabel": "Mastery",
   "check.task": "Task",
   "check.recallLabel": "Free recall",
   "check.yourAnswer": "Your answer",

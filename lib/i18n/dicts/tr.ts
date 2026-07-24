@@ -181,6 +181,8 @@ export const tr: Dict = {
   "check.freePlaceholder": "Hafızadan, kendi kelimelerinle…",
   "check.grading": "hatırlaman değerlendiriliyor…",
   "check.submit": "Cevapları gönder",
+  "check.points": "puan",
+  "check.masteryLabel": "Ustalık",
   "check.task": "Alıştırma",
   "check.recallLabel": "Serbest hatırlama",
   "check.yourAnswer": "Cevabın",

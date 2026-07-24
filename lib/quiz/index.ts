@@ -48,8 +48,7 @@ export function checkNumeric(expected: number, tolerance: number | undefined, gi
 }
 
 export const GradeSchema = z.object({
-  correct: z.boolean(),
-  confident: z.boolean(),
+  score: z.number().min(0).max(1), // partial credit, teacher-style
   feedback: z.string(),
 });
 export type Grade = z.infer<typeof GradeSchema>;
@@ -96,23 +95,22 @@ function heuristicGrade(concept: Concept, answer: string, language?: string): Gr
   let hits = 0;
   for (const w of ans) if (ref.has(w)) hits++;
   const overlap = ref.size ? hits / Math.min(ref.size, 8) : 0;
-  const correct = overlap >= 0.34 && ans.size >= 3;
+  const score = ans.size < 3 ? 0 : Math.max(0, Math.min(1, overlap * 1.6));
   return {
-    correct,
-    confident: overlap >= 0.6,
-    feedback: correct ? st(language, "engine.gradeGood") : st(language, "engine.gradeClose"),
+    score,
+    feedback: score >= 0.5 ? st(language, "engine.gradeGood") : st(language, "engine.gradeClose"),
   };
 }
 
 const OpenGradeSchema = z.object({
-  results: z.array(z.object({ correct: z.boolean(), feedback: z.string() })),
+  results: z.array(z.object({ score: z.number().min(0).max(1), feedback: z.string() })),
 });
 
 /** Grade open practice answers against their model solutions — one batched call. */
 export async function gradeOpenProblems(
   items: { prompt: string; solution: string; answer: string }[],
   language?: string,
-): Promise<{ correct: boolean; feedback: string }[]> {
+): Promise<{ score: number; feedback: string }[]> {
   if (items.length === 0) return [];
   try {
     const { results } = await llmJson({
@@ -127,9 +125,9 @@ export async function gradeOpenProblems(
       temperature: 0,
       language,
     });
-    return items.map((_, i) => results[i] ?? { correct: false, feedback: "" });
+    return items.map((_, i) => results[i] ?? { score: 0, feedback: "" });
   } catch {
-    return items.map(() => ({ correct: false, feedback: "" }));
+    return items.map(() => ({ score: 0, feedback: "" }));
   }
 }
 

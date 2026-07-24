@@ -39,8 +39,14 @@ export async function POST(req: Request) {
 
   const grade = await gradeFreeRecall(concept, parsed.data.freeAnswer, learner.language);
 
-  // Grade the practice problems: numeric + mcq deterministically, open via one
-  // batched LLM call. Their correctness folds into the overall result.
+  // Points-based, teacher-style scoring. Each question is worth points; free
+  // recall and open problems earn PARTIAL credit (their 0..1 score × points);
+  // mcq/numeric are all-or-nothing. The check score is earned/total — a real
+  // grade, not an all-or-nothing pass/fail.
+  const FREE_POINTS = 3;
+  const MCQ_POINTS = 2;
+  const PROBLEM_POINTS = { numeric: 3, mcq: 2, open: 4 } as const;
+
   const answered = parsed.data.problems ?? [];
   const openItems = answered
     .filter((a) => a.problem.type === "open")
@@ -48,30 +54,52 @@ export async function POST(req: Request) {
   const openGrades = await gradeOpenProblems(openItems, learner.language);
   let oi = 0;
   const problemResults = answered.map((a) => {
+    const max = PROBLEM_POINTS[a.problem.type];
     if (a.problem.type === "numeric") {
       const val = typeof a.response === "number" ? a.response : Number(a.response);
       const ok = Number.isFinite(val) && checkNumeric(a.problem.answer, a.problem.tolerance, val);
-      return { correct: ok, solution: a.problem.solution };
+      return { correct: ok, score: ok ? 1 : 0, earned: ok ? max : 0, max, solution: a.problem.solution };
     }
     if (a.problem.type === "mcq") {
-      return { correct: a.response === a.problem.answerIndex, solution: a.problem.solution };
+      const ok = a.response === a.problem.answerIndex;
+      return { correct: ok, score: ok ? 1 : 0, earned: ok ? max : 0, max, solution: a.problem.solution };
     }
-    const g = openGrades[oi++] ?? { correct: false, feedback: "" };
-    return { correct: g.correct, feedback: g.feedback, solution: a.problem.solution };
+    const g = openGrades[oi++] ?? { score: 0, feedback: "" };
+    return {
+      correct: g.score >= 0.6,
+      score: g.score,
+      earned: g.score * max,
+      max,
+      feedback: g.feedback,
+      solution: a.problem.solution,
+    };
   });
-  const allProblemsCorrect = problemResults.every((r) => r.correct);
 
-  const correct = grade.correct && parsed.data.mcqCorrect && allProblemsCorrect;
+  const earned =
+    grade.score * FREE_POINTS +
+    (parsed.data.mcqCorrect ? MCQ_POINTS : 0) +
+    problemResults.reduce((s, r) => s + r.earned, 0);
+  const total = FREE_POINTS + MCQ_POINTS + problemResults.reduce((s, r) => s + r.max, 0);
+  const scorePct = total > 0 ? earned / total : 0;
 
   const { elo, nextIntervalDays } = await recordAnswer({
     conceptId: concept.id,
-    correct,
-    confident: grade.confident && parsed.data.mcqCorrect && allProblemsCorrect,
+    score: scorePct,
     detail: {
-      freeCorrect: grade.correct,
+      score: scorePct,
+      earned: Math.round(earned * 10) / 10,
+      total,
+      freeCorrect: grade.score >= 0.6,
+      freeScore: grade.score,
       freeFeedback: grade.feedback,
       mcqCorrect: parsed.data.mcqCorrect,
-      problems: problemResults.map((r) => ({ correct: r.correct, feedback: r.feedback ?? null })),
+      problems: problemResults.map((r) => ({
+        correct: r.correct,
+        score: r.score,
+        earned: Math.round(r.earned * 10) / 10,
+        max: r.max,
+        feedback: r.feedback ?? null,
+      })),
     },
   });
 
@@ -87,9 +115,12 @@ export async function POST(req: Request) {
 
   return NextResponse.json({
     grade,
-    correct,
+    score: scorePct, // this check's grade, 0..1 — coherent with the points earned
+    earned: Math.round(earned * 10) / 10,
+    total,
+    passed: scorePct >= 0.6,
     problemResults,
-    mastery: eloToMastery(elo),
+    mastery: eloToMastery(elo), // long-term mastery across attempts (secondary)
     nextIntervalDays,
     reviewEnabled,
   });

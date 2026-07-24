@@ -13,7 +13,7 @@ type Quiz = {
   problems: Problem[];
 };
 type Concept = { id: string; label: string; reviewEnabled: boolean };
-type ProblemResult = { correct: boolean; feedback?: string; solution: string };
+type ProblemResult = { correct: boolean; score?: number; earned?: number; max?: number; feedback?: string; solution: string };
 
 /**
  * The check lives on its own page ON PURPOSE: active recall only works when
@@ -34,7 +34,10 @@ export default function Check() {
   const [responses, setResponses] = useState<(number | string | null)[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState<null | {
-    correct: boolean;
+    score: number; // this check's grade, 0..1
+    earned: number;
+    total: number;
+    passed: boolean;
     mastery: number;
     nextIntervalDays: number;
     grade: { feedback: string };
@@ -236,27 +239,36 @@ export default function Check() {
           className="aura card p-7 text-center"
           style={
             {
-              "--glow": result.correct ? "var(--acid)" : "var(--orange)",
+              "--glow": result.passed ? "var(--acid)" : "var(--orange)",
               "--aura-strength": 0.5,
             } as React.CSSProperties
           }
         >
-          <p
-            className={`text-lg font-semibold tracking-tight ${
-              result.correct ? "text-acid-text" : "text-orange-text"
-            }`}
-          >
-            {result.correct ? t("check.gotIt") : t("check.notQuite")}
-          </p>
-          <p className="mt-1.5 text-sm leading-relaxed text-dim">{result.grade.feedback}</p>
-          <div className="mt-5 flex items-center justify-center gap-3">
+          {/* this check's grade — the headline, coherent with the points earned */}
+          <div className="flex items-center justify-center gap-3">
             <Led
-              value={`${Math.round(result.mastery * 100)}`}
-              dot={4}
-              color={result.correct ? "#c9ff7a" : "#ffb877"}
+              value={`${Math.round(result.score * 100)}`}
+              dot={5}
+              color={result.passed ? "#c9ff7a" : "#ffb877"}
               suffix="%"
             />
-            <span className="slabel text-faint">{t("check.mastery", { d: result.nextIntervalDays })}</span>
+          </div>
+          <p
+            className={`mt-3 text-lg font-semibold tracking-tight ${
+              result.passed ? "text-acid-text" : "text-orange-text"
+            }`}
+          >
+            {result.passed ? t("check.gotIt") : t("check.notQuite")}
+          </p>
+          <p className="mt-1 font-mono text-2xs text-faint">
+            {result.earned} / {result.total} {t("check.points")}
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-dim">{result.grade.feedback}</p>
+          {/* long-term mastery + next review, secondary */}
+          <div className="mt-5 flex items-center justify-center gap-2">
+            <span className="slabel text-faint">{t("check.masteryLabel")}</span>
+            <Led value={`${Math.round(result.mastery * 100)}`} dot={2.6} color="#9dc0ff" suffix="%" />
+            <span className="slabel text-faint">· {t("check.mastery", { d: result.nextIntervalDays })}</span>
           </div>
 
           {/* per-problem breakdown: what was right/wrong + the worked solution */}
@@ -276,7 +288,11 @@ export default function Check() {
                       {t("check.task")} {i + 1}
                     </span>
                     <span className={`slabel ${pr.correct ? "text-acid-text" : "text-orange-text"}`}>
-                      {pr.correct ? t("check.taskRight") : t("check.taskWrong")}
+                      {pr.earned !== undefined && pr.max !== undefined
+                        ? `${Math.round(pr.earned * 10) / 10} / ${pr.max} ${t("check.points")}`
+                        : pr.correct
+                          ? t("check.taskRight")
+                          : t("check.taskWrong")}
                     </span>
                   </div>
                   {pr.feedback && <p className="mt-1 text-xs leading-relaxed text-dim">{pr.feedback}</p>}

@@ -181,6 +181,8 @@ export const ar: Dict = {
   "check.freePlaceholder": "من الذاكرة، بكلماتك أنت…",
   "check.grading": "أُقيّم استرجاعك…",
   "check.submit": "أرسل الإجابات",
+  "check.points": "نقطة",
+  "check.masteryLabel": "الإتقان",
   "check.task": "مسألة",
   "check.recallLabel": "استرجاع حر",
   "check.yourAnswer": "إجابتك",

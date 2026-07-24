@@ -181,6 +181,8 @@ export const pt: Dict = {
   "check.freePlaceholder": "De memória, com as tuas palavras…",
   "check.grading": "a avaliar a tua evocação…",
   "check.submit": "Enviar respostas",
+  "check.points": "pts",
+  "check.masteryLabel": "Domínio",
   "check.task": "Exercício",
   "check.recallLabel": "Evocação livre",
   "check.yourAnswer": "A tua resposta",

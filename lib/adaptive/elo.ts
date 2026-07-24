@@ -31,6 +31,25 @@ export function updateElo(
   };
 }
 
+/**
+ * Continuous variant: the "match outcome" is a partial score 0..1 (e.g. the
+ * fraction of a check's points earned) rather than a win/loss — so mastery moves
+ * coherently with how well the learner actually did, not all-or-nothing.
+ */
+export function updateEloScore(
+  ability: number,
+  difficulty: number,
+  score: number,
+  k = K_FACTOR,
+): { ability: number; difficulty: number } {
+  const s = Math.max(0, Math.min(1, score));
+  const expected = expectedScore(ability, difficulty);
+  return {
+    ability: ability + k * (s - expected),
+    difficulty: difficulty + k * (expected - s),
+  };
+}
+
 /** Seed a concept's difficulty rating from its 1..5 difficulty tag. */
 export function difficultyToElo(difficulty: number): number {
   return 1000 + (difficulty - 1) * 150; // 1 -> 1000, 5 -> 1600

@@ -223,9 +223,9 @@ async function main() {
     const concepts = await prisma.concept.findMany({ where: { learnerId: learner.id }, orderBy: { difficulty: "asc" } });
     for (let i = 0; i < concepts.length; i++) {
       const c = concepts[i];
-      const correct = c.difficulty <= 3; // easy concepts mastered, hard ones struggled
-      await recordAnswer({ conceptId: c.id, correct, confident: correct });
-      if (correct) await recordAnswer({ conceptId: c.id, correct: true, confident: true });
+      const score = c.difficulty <= 3 ? 0.9 : 0.35; // easy concepts mastered, hard ones struggled
+      await recordAnswer({ conceptId: c.id, score });
+      if (score >= 0.6) await recordAnswer({ conceptId: c.id, score: 0.95 });
     }
   }
 

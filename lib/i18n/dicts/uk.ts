@@ -181,6 +181,8 @@ export const uk: Dict = {
   "check.freePlaceholder": "З пам'яті, своїми словами…",
   "check.grading": "оцінюю твоє пригадування…",
   "check.submit": "Надіслати відповіді",
+  "check.points": "бал.",
+  "check.masteryLabel": "Опанування",
   "check.task": "Завдання",
   "check.recallLabel": "Вільне пригадування",
   "check.yourAnswer": "Твоя відповідь",
