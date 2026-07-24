@@ -156,6 +156,8 @@ export const ar: Dict = {
   "learn.explain": "اشرحه من خلال عالمي",
   "learn.relearnNote": "أُعيد الشرح للتركيز على ما تعثّرت فيه المرة السابقة.",
   "learn.building": "أبني جسرًا إلى عالمك…",
+  "learn.preparing": "يتم تحضير المادة",
+  "learn.preparingDetail": "يُحلَّل هذا الجانب لأول مرة",
   "learn.couldNotBuild": "تعذّر بناء الجسر.",
   "learn.attempt": "محاولة {n} · مرفوضة",
   "learn.factChecker": "↳ التقطها مدقق الحقائق — رُوجعت حتى صارت دقيقة",

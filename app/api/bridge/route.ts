@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getCurrentLearner } from "@/lib/db/learner";
 import { prisma } from "@/lib/db/prisma";
-import { bytesToVec } from "@/lib/ml/vector";
+import { bytesToVec, vecToBytes } from "@/lib/ml/vector";
 import { embed } from "@/lib/ml/embeddings";
 import { getDomainsForMatch } from "@/lib/profile/repo";
 import { rankDomainsForConcept, buildMatch } from "@/lib/profile/match";
@@ -63,10 +63,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No interest profile yet. Finish onboarding first." }, { status: 409 });
   }
 
-  // Concept vector: use the stored embedding, or compute it on the fly.
-  const conceptVec = concept.embedding
-    ? bytesToVec(concept.embedding)
-    : await embed(`${concept.label}. ${concept.definition}`);
+  // Concept vector: use the stored embedding, or compute it on the fly and
+  // store it. Embeddings are deferred from capture to here (first learn), so the
+  // first bridge for a concept also pays the one-time embedding cost.
+  let conceptVec: Float32Array;
+  if (concept.embedding) {
+    conceptVec = bytesToVec(concept.embedding);
+  } else {
+    conceptVec = await embed(`${concept.label}. ${concept.definition}`);
+    await prisma.concept
+      .update({ where: { id: concept.id }, data: { embedding: vecToBytes(conceptVec) } })
+      .catch(() => {});
+  }
 
   // If the learner explicitly chose an interest, explain through exactly that
   // one and nudge the Brain toward it (a manual pick is a real preference

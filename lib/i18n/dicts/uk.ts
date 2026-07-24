@@ -156,6 +156,8 @@ export const uk: Dict = {
   "learn.explain": "Пояснити через мій світ",
   "learn.relearnNote": "Пояснено по-новому — з акцентом на те, що не вдалося минулого разу.",
   "learn.building": "будую міст у твій світ…",
+  "learn.preparing": "Готуємо матеріал",
+  "learn.preparingDetail": "цей аспект аналізується вперше",
   "learn.couldNotBuild": "Не вдалося збудувати міст.",
   "learn.attempt": "спроба {n} · відхилена",
   "learn.factChecker": "↳ фактчекер це впіймав — виправлено до точності",

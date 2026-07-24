@@ -156,6 +156,8 @@ export const tr: Dict = {
   "learn.explain": "Benim dünyamla açıkla",
   "learn.relearnNote": "Geçen sefer takıldığın noktaya odaklanarak yeniden anlatıldı.",
   "learn.building": "dünyana bir köprü kuruluyor…",
+  "learn.preparing": "Materyal hazırlanıyor",
+  "learn.preparingDetail": "bu konu ilk kez analiz ediliyor",
   "learn.couldNotBuild": "Köprü kurulamadı.",
   "learn.attempt": "deneme {n} · reddedildi",
   "learn.factChecker": "↳ doğrulayıcı yakaladı — doğru olana dek düzeltildi",

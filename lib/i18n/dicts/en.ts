@@ -173,6 +173,8 @@ export const en = {
   "learn.explain": "Explain through my world",
   "learn.relearnNote": "Re-explained to target what tripped you up last time.",
   "learn.building": "building a bridge to your world…",
+  "learn.preparing": "Preparing the material",
+  "learn.preparingDetail": "analyzing this aspect for the first time",
   "learn.couldNotBuild": "Could not build a bridge.",
   "learn.attempt": "attempt {n} · rejected",
   "learn.factChecker": "↳ the fact-checker caught it — revised until accurate",

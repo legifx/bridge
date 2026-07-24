@@ -2,17 +2,16 @@
  * Stage 1 orchestration — Vision/Text → Concept Graph.
  *
  *   raw material  --LLM-->  ExtractedConcept[]
- *                 --local embeddings-->  dedupe (cosine >= 0.86)
- *                 --our code-->  prerequisite DAG, cycle check, topo sort
+ *                 --our code-->  label dedupe, prerequisite DAG, cycle check, topo sort
  *
- * The LLM only returns concepts. All graph logic is our own code.
+ * The LLM only returns concepts. All graph logic is our own code. Concept
+ * embeddings are computed lazily at first-learn (bridge route), not here — so
+ * capture doesn't pay the local embedding model's load time.
  */
 import { llmJson, CAPTURE_MODEL, type ImageInput } from "@/lib/llm/client";
-import { embed } from "@/lib/ml/embeddings";
 import { EXTRACT_SYSTEM } from "@/lib/prompts/extract";
-import { dedupeConcepts } from "./dedupe";
 import { topologicalSort, type Edge } from "./graph";
-import { ExtractionResultSchema, type ConceptGraph } from "./types";
+import { ExtractionResultSchema, type ConceptGraph, type GraphConcept } from "./types";
 
 export type ExtractInput = {
   text?: string;
@@ -23,16 +22,11 @@ export type ExtractInput = {
 
 export type ExtractOutput = {
   graph: ConceptGraph;
-  /** canonical concept id -> embedding, for persistence and Stage-3 matching. */
+  /** canonical concept id -> embedding — empty now (deferred to first-learn). */
   embeddings: Map<string, Float32Array>;
   /** faithful Markdown transcription of the material (stored instead of the binary). */
   markdown: string | null;
 };
-
-/** Text used to embed a concept — label carries the most signal, definition disambiguates. */
-function conceptText(label: string, definition: string): string {
-  return `${label}. ${definition}`;
-}
 
 export async function extractConceptGraph(input: ExtractInput): Promise<ExtractOutput> {
   // Wrap untrusted material in explicit delimiters so injected commands inside
@@ -48,22 +42,30 @@ export async function extractConceptGraph(input: ExtractInput): Promise<ExtractO
     schema: ExtractionResultSchema,
     temperature: 0.2,
     language: input.language,
-    // Document understanding is the accuracy-critical call — dedicated model.
-    model: CAPTURE_MODEL,
+    // Only IMAGE captures need the vision/OCR model. Text/PDF-text/DOCX captures
+    // are text-only — the fast default model handles them in ~1.5s instead of
+    // the vision model's ~8s, so uploads feel instant.
+    model: input.images?.length ? CAPTURE_MODEL : undefined,
   });
 
-  // Embed every raw concept (order preserved) for dedupe.
-  const rawEmbeddings = await Promise.all(
-    concepts.map((c) => embed(conceptText(c.label, c.definition))),
-  );
-
-  const { concepts: merged, idMap } = dedupeConcepts(concepts, rawEmbeddings);
-
-  // Map canonical id -> its embedding (embedding of the cluster's canonical concept).
-  const embByOriginalId = new Map<string, Float32Array>();
-  concepts.forEach((c, i) => embByOriginalId.set(c.id, rawEmbeddings[i]));
-  const embeddings = new Map<string, Float32Array>();
-  for (const c of merged) embeddings.set(c.id, embByOriginalId.get(c.id)!);
+  // Concept vectors are NOT computed here — they are deferred to first-learn
+  // (the bridge route embeds and stores them on demand), so capture returns fast
+  // without the local embedding model load. Dedupe here is a cheap label match.
+  const seen = new Map<string, string>();
+  const idMap = new Map<string, string>();
+  const merged: GraphConcept[] = [];
+  for (const c of concepts) {
+    const key = c.label.trim().toLowerCase();
+    const existing = seen.get(key);
+    if (existing) {
+      idMap.set(c.id, existing);
+      continue;
+    }
+    seen.set(key, c.id);
+    idMap.set(c.id, c.id);
+    merged.push({ ...c, mergedFrom: [] });
+  }
+  const embeddings = new Map<string, Float32Array>(); // deferred
 
   // Build edges (prerequisite -> concept) from remapped prerequisiteIds.
   const ids = merged.map((c) => c.id);

@@ -163,14 +163,21 @@ export default function Learn() {
           </div>
         )}
 
-        {!bridge && (
-          <button
-            onClick={() => makeBridge()}
-            disabled={loadingBridge}
-            className={`btn w-full ${loadingBridge ? "btn-working" : "btn-gradient"}`}
-          >
-            {loadingBridge ? t("learn.building") : t("learn.explain")}
+        {!bridge && !loadingBridge && (
+          <button onClick={() => makeBridge()} className="btn btn-gradient w-full">
+            {t("learn.explain")}
           </button>
+        )}
+        {!bridge && loadingBridge && (
+          <ThinkingLoader
+            stages={[
+              { label: t("learn.preparing"), detail: t("learn.preparingDetail") },
+              { label: t("learn.building") },
+              { label: t("learn.factChecker") },
+            ]}
+            glow="var(--interest)"
+            expectedMs={11000}
+          />
         )}
         {error && (
           <p className="bg-[rgba(255,51,85,0.1)] p-4 text-sm text-reject-text" style={{ borderRadius: "var(--r)" }}>

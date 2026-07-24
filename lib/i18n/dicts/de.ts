@@ -156,6 +156,8 @@ export const de: Dict = {
   "learn.explain": "Durch meine Welt erklären",
   "learn.relearnNote": "Neu erklärt — gezielt auf das, was letztes Mal hakte.",
   "learn.building": "baue eine Brücke in deine Welt…",
+  "learn.preparing": "Material wird vorbereitet",
+  "learn.preparingDetail": "dieser Aspekt wird zum ersten Mal analysiert",
   "learn.couldNotBuild": "Brücke konnte nicht gebaut werden.",
   "learn.attempt": "Versuch {n} · abgelehnt",
   "learn.factChecker": "↳ der Faktencheck hat es erwischt — überarbeitet bis korrekt",
