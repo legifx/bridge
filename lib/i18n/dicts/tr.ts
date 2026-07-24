@@ -326,6 +326,8 @@ export const tr: Dict = {
   "cap.extractFailed": "Çıkarma başarısız oldu.",
   "err.quota":
     "Bu profilin demo bütçesi tükendi. Keşfe devam etmek için başka bir isimle gir — ya da repoyu klonlayıp Bridge'i kendi anahtarınla çalıştır.",
+  "err.sessionStale":
+    "Bu görüşme zaten tamamlandı. Profilini görmek için sayfayı yenile.",
   "err.aiBusy":
     "Yapay zeka servisi şu anda yoğun. Birkaç saniye bekleyip tekrar dene.",
   "err.aiSlow":

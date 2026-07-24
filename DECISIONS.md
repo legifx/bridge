@@ -187,3 +187,49 @@ recognition; the transcript is graded exactly like typed text.
 core with interests sized by weight, tap to fan out the skills learned through each — is the first
 thing on the Brain tab, understandable without any technical background. The weights, coherence,
 posteriors and cluster tree stay below for the curious.
+
+## Review pass (2026-07-24)
+
+**The session cookie is signed, not just secret.** It carried a bare learner id, so the account
+password only held as long as nobody learned an id — anyone who did could set the cookie by hand
+and walk straight in. It is now `<id>.<hmac>` under `AUTH_SECRET`. Without the env var the app
+still accepts plain ids, because a fresh clone has to run with nothing but a database URL; with
+it, forging a session needs the secret. Turning it on signs everyone out once, which is the
+correct trade.
+
+**Public pages read the seeded profiles by name, not "the two oldest rows".** `/api/compare` is
+unauthenticated. It picked the first two learners by `createdAt`, which happened to be the seeds
+here — on a fresh database it would have published two real people's names and study material.
+
+**Every AI call has a deadline, and the bridge loop has a budget.** A bridge is up to three
+generate/verify pairs plus two widget calls, all sequential. One quiet upstream used to hang the
+whole request until the platform killed it (no message, no explanation, quota already spent).
+Now: a per-call timeout (45s, 180s for multi-page vision), a wall-clock budget in the engine that
+stops retrying and ships the plain explanation while there is still time to send it, a widget step
+that skips itself when the budget is gone, and `maxDuration` on every AI route. 60s is used
+because it is the ceiling every Vercel plan allows.
+
+**Errors are logged, not echoed.** Routes returned raw exception text to the browser, including
+setup hints like "OPENROUTER_API_KEY is not set". `lib/api/errors.ts` logs the real error and
+answers with a localized sentence that says what to do next (rate-limited / too slow / try again),
+keeping the detail only in development.
+
+**Finalizing an interview is exactly-once.** A double-submitted last answer built the profile
+twice and counted every interest signal twice. The session is now claimed with a conditional
+update before the expensive step, and handed back if it fails.
+
+**The offline grader speaks more than ASCII.** The fallback used when a grading call fails
+stripped every non-`[a-z0-9]` character, so a German, Ukrainian, Turkish or Arabic answer had all
+its words deleted and scored 0 by construction — in an app that ships in ten languages.
+
+**The review log shows the grade of that check.** It showed long-term mastery, which is a
+different (and usually smaller) number than what the learner just scored — the exact confusion the
+points-based grading rework was meant to end. The check's own earned/total was already stored;
+it is now what the row displays, with mastery beside it in the detail view.
+
+**React 19 purity.** State written during effects, a counter mutated mid-render, `Date.now()` in
+render bodies. `ThinkingLoader` also depended on its `stages` array identity, so an inline array
+from the parent restarted the timer on every render and the narration could sit on stage one
+forever. Time is now read through a minute-bucketed external store, and browser capabilities
+(speech recognition, reduced motion, stored language) through `useSyncExternalStore` instead of
+being mirrored into state from an effect.

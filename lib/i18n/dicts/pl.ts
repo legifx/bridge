@@ -326,6 +326,8 @@ export const pl: Dict = {
   "cap.extractFailed": "Ekstrakcja nie powiodła się.",
   "err.quota":
     "Budżet demo tego profilu wyczerpany. Zaloguj się innym imieniem, aby dalej testować — albo sklonuj repo i uruchom Bridge z własnym kluczem.",
+  "err.sessionStale":
+    "Ten wywiad został już zakończony. Odśwież stronę, aby zobaczyć swój profil.",
   "err.aiBusy":
     "Usługa AI jest w tej chwili przeciążona. Odczekaj kilka sekund i spróbuj ponownie.",
   "err.aiSlow":

@@ -339,6 +339,8 @@ export const en = {
   "cap.extractFailed": "Extraction failed.",
   "err.quota":
     "Demo budget used up for this profile. Sign in with a different name to keep exploring — or clone the repo and run Bridge with your own key.",
+  "err.sessionStale":
+    "This interview has already been completed. Reload the page to see your profile.",
   "err.aiBusy":
     "The AI service is busy right now. Wait a few seconds and try again.",
   "err.aiSlow":

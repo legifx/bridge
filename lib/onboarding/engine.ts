@@ -240,7 +240,25 @@ export async function continueInterview(
       }
     }
     if (steps.length === 0) {
-      profile = await finalize(learnerId, state, language);
+      // Finalizing writes the profile and feeds the second brain, so it must
+      // happen exactly once. Claim the session first: a double-submitted last
+      // answer (double tap, retry on a slow network) would otherwise build the
+      // profile twice and count every interest signal twice over.
+      const claim = await prisma.onboardingSession.updateMany({
+        where: { id: session.id, status: "active" },
+        data: { status: "finalizing" },
+      });
+      if (claim.count === 0) throw new Error("This interview is already finished.");
+      try {
+        profile = await finalize(learnerId, state, language);
+      } catch (err) {
+        // Hand the session back so the learner can simply try again.
+        await prisma.onboardingSession.updateMany({
+          where: { id: session.id, status: "finalizing" },
+          data: { status: "active" },
+        });
+        throw err;
+      }
       phase = "mirror";
       status = "done";
       log = appendLog(log, { t: "profile", profile });

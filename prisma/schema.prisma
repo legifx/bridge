@@ -38,7 +38,7 @@ model Learner {
 model OnboardingSession {
   id        String   @id @default(cuid())
   learnerId String
-  status    String   @default("active") // active | done
+  status    String   @default("active") // active | finalizing | done
   phase     String   @default("drill") // drill | verify | mirror | done
   state     String   @default("{}") // JSON InterviewState (tiers/decoys stay server-side)
   log       String   @default("[]") // JSON array of served interactions + answers

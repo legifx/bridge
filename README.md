@@ -120,9 +120,11 @@ npm run db:seed
 Open http://localhost:3000 and sign in with any name. The seeded profiles `Mara` and `Theo`
 are fully explorable **without an API key** — the embedding, dedupe, graph, Thompson, Elo, SM-2
 and brain-clustering math all run for real. Live AI (capturing your own material, generating
-fresh bridges) needs `OPENROUTER_API_KEY` in `.env`; the default model is the free,
-vision-capable `google/gemma-4-31b-it:free` (Apache-2.0, not trained on your inputs), with
-automatic fallback to `google/gemini-3.1-flash-lite` when the free tier is rate-limited.
+fresh bridges) needs `OPENROUTER_API_KEY` in `.env`. Models are routed per task: learner-facing
+text runs on `google/gemini-2.5-flash-lite` (picked for latency — the learner waits on these
+screens), document scans on `qwen/qwen3-vl-32b-instruct` (the OCR specialist), and any call that
+is rate-limited, times out or comes back malformed is retried on `google/gemini-3.1-flash-lite`.
+All three are env vars, so swapping providers costs one line.
 
 ```bash
 npm test                  # unit tests: dedupe, cycle detection, Thompson, Elo, SM-2, clustering
@@ -130,8 +132,11 @@ npm test                  # unit tests: dedupe, cycle detection, Thompson, Elo, 
 
 ## Privacy
 
-A learner is a local profile — no accounts, no email. Learner data, including the second brain,
-stays in the local database and is never shared between learners. The teacher view receives
+A learner is a local profile — a name and (on anything hosted) a password, never an email.
+Session cookies are HMAC-signed when `AUTH_SECRET` is set, so a session cannot be forged from a
+known profile id. Learner data, including the second brain, stays in the local database and is
+never shared between learners; the public showcase pages (`/compare`, `/teacher`) only ever read
+the two seeded demo profiles and cohort-level aggregates. The teacher view receives
 **aggregates only**: concept-level counts, never individuals, never interest profiles. Onboarding
 asks only about interests — never family, emotions, or health.
 
@@ -148,9 +153,11 @@ Two supported targets, same codebase:
 - **Persistent host (Railway / Fly.io / your own box)** — SQLite on a persistent volume, the
   full app with no demo restrictions.
 - **Vercel (public demo)** — the [live demo](https://bridge-livid-one.vercel.app). On Vercel the
-  app enters public-demo mode automatically: open username sign-in, a small AI budget per
-  profile (default 10 units: capture = 2, bridge/quiz/grading = 1 each), and the "no private
-  data" notice. The embedding model runs inside the function (linux-x64 ONNX only, cache in
+  app enters public-demo mode automatically: username + password sign-in, a small AI budget per
+  profile (default 5 *learning aspects* — capture and onboarding are free, and everything you do
+  on one concept is covered by its single unit), and the "no private data" notice. Set
+  `AUTH_SECRET` (any long random string) so session cookies are signed, and `OWNER_UNLOCK_CODE`
+  if you want an account of your own without the budget. The embedding model runs inside the function (linux-x64 ONNX only, cache in
   `/tmp`). Set `OPENROUTER_API_KEY` in the Vercel project for live AI, and point
   `TURSO_DATABASE_URL`/`TURSO_AUTH_TOKEN` at a (free-tier) Turso database so profiles persist —
   Turso is hosted SQLite, so the schema and every query stay identical. Without Turso the app

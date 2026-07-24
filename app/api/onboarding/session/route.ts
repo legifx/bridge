@@ -110,6 +110,12 @@ export async function PATCH(req: Request) {
     // upstream failure — keep that distinction, without echoing the raw text.
     const message = err instanceof Error ? err.message : "";
     const stale = /not found|finished/i.test(message);
-    return apiError("onboarding/session:answer", err, learner.language, stale ? 409 : undefined);
+    return apiError(
+      "onboarding/session:answer",
+      err,
+      learner.language,
+      stale ? 409 : undefined,
+      stale ? "err.sessionStale" : undefined,
+    );
   }
 }

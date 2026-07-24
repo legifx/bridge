@@ -32,9 +32,11 @@ export function apiError(
   err: unknown,
   language?: string | null,
   status?: number,
+  /** Override the message when the caller knows better than the heuristic. */
+  messageKey?: MsgKey,
 ): NextResponse {
   console.error(`${where}:`, err);
-  const key = messageKeyFor(err);
+  const key = messageKey ?? messageKeyFor(err);
   const body: { error: string; detail?: string } = { error: st(language, key) };
   if (process.env.NODE_ENV !== "production" && err instanceof Error) body.detail = err.message;
   return NextResponse.json(body, { status: status ?? (key === "err.aiBusy" ? 429 : 502) });
