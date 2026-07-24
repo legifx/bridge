@@ -272,6 +272,10 @@ export const tr: Dict = {
   "sum.headline": "{name}, Bridge seni şu an şöyle okuyor: {top}.",
 
   "viz.overlap": "anlamsal örtüşme · kosinüs",
+
+  "widget.nextStep": "Sonraki adım",
+
+  "widget.replay": "Tekrar oynat",
   "cap.extractFailed": "Çıkarma başarısız oldu.",
   "err.quota":
     "Bu profilin demo bütçesi tükendi. Keşfe devam etmek için başka bir isimle gir — ya da repoyu klonlayıp Bridge'i kendi anahtarınla çalıştır.",

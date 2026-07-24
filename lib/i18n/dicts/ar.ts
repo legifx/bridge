@@ -272,6 +272,10 @@ export const ar: Dict = {
   "sum.headline": "{name}، يقرؤك Bridge حاليًا كالتالي: {top}.",
 
   "viz.overlap": "تداخل دلالي · جيب التمام",
+
+  "widget.nextStep": "الخطوة التالية",
+
+  "widget.replay": "إعادة",
   "cap.extractFailed": "فشل الاستخراج.",
   "err.quota":
     "نفد رصيد العرض التجريبي لهذا الملف. سجّل الدخول باسم آخر لمواصلة الاستكشاف — أو انسخ المستودع وشغّل Bridge بمفتاحك الخاص.",

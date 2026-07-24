@@ -297,6 +297,8 @@ export const en = {
 
   // ---- late additions: viz label, server-side errors, engine fallbacks ----
   "viz.overlap": "semantic overlap · cosine",
+  "widget.nextStep": "Next step",
+  "widget.replay": "Replay",
   "cap.extractFailed": "Extraction failed.",
   "err.quota":
     "Demo budget used up for this profile. Sign in with a different name to keep exploring — or clone the repo and run Bridge with your own key.",

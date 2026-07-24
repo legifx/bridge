@@ -272,6 +272,10 @@ export const de: Dict = {
   "sum.headline": "{name}, Bridge liest dich gerade als: {top}.",
 
   "viz.overlap": "semantische Überlappung · Cosinus",
+
+  "widget.nextStep": "Nächster Schritt",
+
+  "widget.replay": "Nochmal",
   "cap.extractFailed": "Extraktion fehlgeschlagen.",
   "err.quota":
     "Demo-Budget dieses Profils aufgebraucht. Melde dich mit einem anderen Namen an, um weiterzumachen — oder klone das Repo und starte Bridge mit eigenem Key.",

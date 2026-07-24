@@ -7,6 +7,7 @@ import { embed } from "@/lib/ml/embeddings";
 import { getDomainsForMatch } from "@/lib/profile/repo";
 import { rankDomainsForConcept, buildMatch } from "@/lib/profile/match";
 import { generateBestBridge } from "@/lib/bridge/engine";
+import { generateVisualizations } from "@/lib/learn/visualize";
 import { chargeAi, quotaExceededResponse } from "@/lib/quota";
 
 export const runtime = "nodejs";
@@ -63,7 +64,19 @@ export async function POST(req: Request) {
       readingLevel: learner.readingLevel,
       language: learner.language,
     });
-    return NextResponse.json({ ...result, quota: charge.quota });
+
+    // Interactive widgets for the concept, framed through the chosen interest.
+    // Non-fatal: an empty list just means a text-only explanation this time.
+    const visualizations = await generateVisualizations({
+      label: concept.label,
+      definition: concept.definition,
+      plainRestatement: result.body.plainRestatement,
+      domain: result.match.domainName,
+      anchor: result.match.anchor,
+      language: learner.language,
+    });
+
+    return NextResponse.json({ ...result, visualizations, quota: charge.quota });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Bridge generation failed.";
     return NextResponse.json({ error: message }, { status: 500 });

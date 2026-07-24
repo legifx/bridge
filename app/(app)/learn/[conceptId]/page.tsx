@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { BridgeViz } from "@/components/BridgeViz";
+import { LearnWidgets } from "@/components/LearnWidgets";
 import { useT } from "@/components/LanguageProvider";
+import type { Widget } from "@/lib/learn/widgets";
 
 type Concept = { id: string; label: string; definition: string; sourceQuote: string };
 type Body = {
@@ -26,7 +28,14 @@ type Attempt = {
   isFallback?: boolean;
 };
 type Match = { domainName: string; anchor: string; similarity: number };
-type BridgeResp = { bridgeId: string; body: Body; match: Match; attempts: Attempt[]; isFallback: boolean };
+type BridgeResp = {
+  bridgeId: string;
+  body: Body;
+  match: Match;
+  attempts: Attempt[];
+  isFallback: boolean;
+  visualizations?: Widget[];
+};
 
 export default function Learn() {
   const t = useT();
@@ -200,6 +209,13 @@ export default function Learn() {
               <div className="card p-6">
                 <p className="slabel text-faint">{t("learn.plainNoAnalogy")}</p>
                 <p className="mt-2 text-base leading-relaxed text-text">{bridge.body.plainRestatement}</p>
+              </div>
+            )}
+
+            {/* interactive/visual widgets the agent chose for this concept */}
+            {bridge.visualizations && bridge.visualizations.length > 0 && (
+              <div className="reveal" style={{ animationDelay: "420ms" }}>
+                <LearnWidgets widgets={bridge.visualizations} />
               </div>
             )}
 

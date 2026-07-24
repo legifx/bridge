@@ -272,6 +272,10 @@ export const it: Dict = {
   "sum.headline": "{name}, al momento Bridge ti legge come: {top}.",
 
   "viz.overlap": "sovrapposizione semantica · coseno",
+
+  "widget.nextStep": "Passo successivo",
+
+  "widget.replay": "Ripeti",
   "cap.extractFailed": "Estrazione non riuscita.",
   "err.quota":
     "Budget demo esaurito per questo profilo. Accedi con un altro nome per continuare — oppure clona il repo ed esegui Bridge con la tua chiave.",
