@@ -26,8 +26,9 @@ Each problem is ONE of these shapes, chosen to fit the subject:
   { "type":"open", "prompt":"…", "solution":"a concise model answer the response is graded against" }
 
 Rules:
-- Test understanding of the concept as defined by the source, not trivia. Strictly the subject's own vocabulary — never mention analogies/hobbies.
-- Generate REAL problems that must actually be solved (a calculation, a worked application), not just definition recall. For a math/physics/chemistry concept, PREFER at least one "numeric" problem with a correct, verifiable answer.
+- SCOPE — CRITICAL: test ONLY what THIS ONE concept's definition below actually covers. Do NOT ask about facts, numbers, or sub-topics that are not stated in the concept's definition, even if they belong to the broader subject or were on the same source page. The learner has only studied this one concept — a question they could not answer from this concept's own content is a failure. When in doubt, stay narrower.
+- Test understanding of the concept as defined, not trivia. Strictly the subject's own vocabulary — never mention analogies/hobbies.
+- Generate REAL problems that must actually be solved (a calculation, a worked application), not just definition recall — but each problem must be solvable purely from THIS concept's definition and the numbers in the problem itself. For a math/physics/chemistry concept, PREFER at least one "numeric" problem with a correct, verifiable answer.
 - numeric: "answer" is the exact numeric result; set a sensible "tolerance"; include the "unit" if any. The problem must be fully solvable from the numbers given in the prompt.
 - The MCQ (top-level and any mcq problem) must have exactly 4 options and one correct answerIndex (0-3); distractors plausible and subject-relevant.
 - "solution" is always a short, correct worked explanation.`;

@@ -67,7 +67,10 @@ export async function generateQuiz(
     : "";
   return llmJson({
     system: QUIZ_SYSTEM,
-    user: `Concept: ${concept.label}\nDefinition: ${concept.definition}\nSource: "${concept.sourceQuote}"${ask}`,
+    // Only this concept's own definition + its supporting quote — deliberately
+    // NOT the whole source, so questions can't drift onto material the learner
+    // hasn't studied in this aspect.
+    user: `The learner has studied ONLY this one concept. Test strictly within it.\n\nConcept: ${concept.label}\nDefinition (the full scope of what may be tested): ${concept.definition}\nSupporting quote from the material: "${concept.sourceQuote}"${ask}`,
     schema: QuizSchema,
     temperature: 0.4,
     language,
