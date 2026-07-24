@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentLearner } from "@/lib/db/learner";
 import { generateQuiz } from "@/lib/quiz";
 import { chargeAi, quotaExceededResponse } from "@/lib/quota";
+import { st } from "@/lib/i18n";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,14 @@ export async function POST(req: Request) {
   const charge = await chargeAi(learner.id, 1);
   if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
-  const quiz = await generateQuiz(concept, learner.language, { tasks: parsed.data.tasks });
-  return NextResponse.json({ quiz, quota: charge.quota });
+  try {
+    const quiz = await generateQuiz(concept, learner.language, { tasks: parsed.data.tasks });
+    return NextResponse.json({ quiz, quota: charge.quota });
+  } catch (err) {
+    // The model occasionally returns unparseable output even after the fallback
+    // retry — surface a readable error instead of an empty 500 the client can't
+    // show. The learner can simply try again.
+    console.error("quiz: generation failed", err);
+    return NextResponse.json({ error: st(learner.language, "check.couldNotLoad") }, { status: 502 });
+  }
 }

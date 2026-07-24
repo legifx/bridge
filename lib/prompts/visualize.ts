@@ -52,4 +52,25 @@ Learner's interest to frame through where natural: ${params.domain} (anchor: ${p
 Design 1–2 best-fit widgets.`;
 }
 
+/** Independent fact-check for generated widgets — same guardrail spirit as the
+ *  bridge verifier. Judges each widget's numbers/relationships against the
+ *  concept's authoritative definition; failing widgets are dropped, not shown. */
+export const VISUALIZE_VERIFY_SYSTEM = `You are an independent fact-checker for interactive learning widgets. You get a concept's authoritative definition and a list of widgets (their numbers, relationships and labels rendered as text). Judge each widget ONLY on factual correctness about the subject.
+
+Return ONLY a JSON object:
+{ "results": [ { "factual": true, "reason": "short" }, … ] }   // one entry per widget, in order
+
+Rules:
+- factual = false if any number, zone, bar value, diagram part, or (for a formula) the relationship/expression is WRONG or misrepresents the subject as defined. Example: a formula whose expression is not the real relationship, a pH scale with wrong zones, a bar chart with invented proportions.
+- factual = true if the widget is a correct, faithful representation, even if simplified.
+- Judge facts only, not style. Keep each reason to a short phrase.`;
+
+export function visualizeVerifyUser(concept: { label: string; definition: string }, rendered: string[]): string {
+  return `Concept: ${concept.label}
+Authoritative definition: ${concept.definition}
+
+Widgets to check (in order):
+${rendered.map((r, i) => `#${i + 1}: ${r}`).join("\n")}`;
+}
+
 export const VISUALIZE_VERSION = "visualize@1";

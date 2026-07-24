@@ -63,7 +63,7 @@ export async function generateQuiz(
 ): Promise<Quiz> {
   // Tasks mode = a bigger, problem-heavy set (the "practice tasks" button).
   const ask = opts?.tasks
-    ? "\n\nThis is a PRACTICE-TASKS set: generate 4 to 6 problems (favor solvable numeric/applied ones), varied in difficulty. The free/mcq are secondary here."
+    ? "\n\nThis is a PRACTICE-TASKS set. You MUST return AT LEAST 5 problems (5 or 6), varied in difficulty, favoring solvable numeric/applied ones. Fewer than 5 problems is not acceptable here. The free/mcq are secondary."
     : "";
   return llmJson({
     system: QUIZ_SYSTEM,
