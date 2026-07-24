@@ -1,7 +1,10 @@
-import { redirect } from "next/navigation";
+import Compare from "./compare-page";
 
-// Compare view is a future/premium feature — parked until it is
-// production-ready. The full implementation lives in ./compare-page.tsx.
-export default function CompareGate() {
-  redirect("/");
+/**
+ * Side-by-side: the same concept explained through two different learners'
+ * worlds. Reads pre-generated bridges of the seeded demo profiles only (see
+ * /api/compare), so it needs no sign-in and no API key.
+ */
+export default function ComparePage() {
+  return <Compare />;
 }

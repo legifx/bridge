@@ -51,6 +51,29 @@ export default function Compare() {
         </div>
       )}
 
+      {/* Phone-sized screens: the two worlds AT A GLANCE, before the full panels
+          stack below. The whole point of this page is simultaneity — "the same
+          concept, two learners" is lost if you have to scroll to find the
+          second one. */}
+      {data && data.panels.length === 2 && data.panels.every((p) => p.body) && (
+        <div className="mb-8 grid grid-cols-2 gap-3 md:hidden">
+          {data.panels.map((p, i) => (
+            <div key={i} className="card p-4">
+              <p className="truncate text-sm font-semibold tracking-tight text-text">{p.displayName}</p>
+              <p className="mt-1 truncate text-2xs text-interest-text">{p.domainName}</p>
+              <ul className="mt-3 space-y-2">
+                {p.body!.correspondences.slice(0, 3).map((c, ci) => (
+                  <li key={ci} className="text-2xs leading-relaxed">
+                    <span className="block truncate text-curriculum-text">{c.subject}</span>
+                    <span className="block truncate text-dim">↳ {c.yourWorld}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2">
         {data?.panels.map((p, i) => (
           <div key={i} className="space-y-4">

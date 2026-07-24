@@ -58,11 +58,21 @@ export async function GET(req: Request) {
   for (const learner of learners) {
     const concept = await prisma.concept.findFirst({ where: { learnerId: learner.id, label: chosen } });
     if (!concept) continue;
-    const bridge = await prisma.bridge.findFirst({
-      where: { conceptId: concept.id, status: "accepted" },
-      orderBy: { createdAt: "desc" },
-      include: { domain: true },
-    });
+    // Prefer a real analogy over the plain fallback (attempt 99). The newest
+    // accepted bridge can be the fallback — and a side-by-side comparison whose
+    // whole point is "the same concept through two different worlds" must not
+    // show "here it is in plain terms, without an analogy" on one side.
+    const bridge =
+      (await prisma.bridge.findFirst({
+        where: { conceptId: concept.id, status: "accepted", attempt: { lt: 99 } },
+        orderBy: { createdAt: "desc" },
+        include: { domain: true },
+      })) ??
+      (await prisma.bridge.findFirst({
+        where: { conceptId: concept.id, status: "accepted" },
+        orderBy: { createdAt: "desc" },
+        include: { domain: true },
+      }));
     if (!bridge) {
       panels.push({ displayName: learner.displayName, domainName: null, similarity: 0, body: null });
       continue;
