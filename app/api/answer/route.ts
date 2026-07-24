@@ -19,7 +19,7 @@ const BodySchema = z.object({
   conceptId: z.string().min(1),
   freeAnswer: z.string().max(1000),
   mcqCorrect: z.boolean(),
-  problems: z.array(AnsweredProblem).max(3).optional(),
+  problems: z.array(AnsweredProblem).max(6).optional(),
 });
 
 export async function POST(req: Request) {

@@ -147,18 +147,30 @@ export default function Learn() {
         {bridge && domains.length > 1 && (
           <div className="card flex flex-wrap items-center gap-x-3 gap-y-2 p-4">
             <span className="slabel text-faint">{t("learn.explainedVia")}</span>
-            <select
-              value={domains.find((d) => d.name === bridge.match.domainName)?.id ?? ""}
-              onChange={(e) => makeBridge(e.target.value)}
-              disabled={loadingBridge}
-              className="input h-9 max-w-[220px] py-0 text-sm"
+            <label
+              className="relative inline-flex h-9 cursor-pointer items-center gap-2 rounded-full px-4"
+              style={{ background: "rgba(255,255,255,0.07)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.1)" }}
             >
-              {domains.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold text-interest-text">
+                {bridge.match.domainName}
+              </span>
+              <svg aria-hidden width="10" height="6" viewBox="0 0 10 6" className="shrink-0 opacity-50">
+                <path d="M1 1l4 4 4-4" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              <select
+                aria-label={t("learn.explainedVia")}
+                value={domains.find((d) => d.name === bridge.match.domainName)?.id ?? ""}
+                onChange={(e) => makeBridge(e.target.value)}
+                disabled={loadingBridge}
+                className="absolute inset-0 cursor-pointer opacity-0"
+              >
+                {domains.map((d) => (
+                  <option key={d.id} value={d.id} className="bg-black text-white">
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </label>
             {loadingBridge && <span className="slabel text-interest-text">· {t("learn.building")}</span>}
           </div>
         )}
