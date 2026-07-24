@@ -118,8 +118,6 @@ export default function Learn() {
     );
   }
 
-  const rejected = bridge?.attempts.filter((a) => a.status === "rejected") ?? [];
-
   return (
     <Shell>
       <div className="space-y-6">
@@ -209,43 +207,6 @@ export default function Learn() {
 
         {bridge && !loadingBridge && (
           <>
-            {/* rejected attempts — honest, red aura */}
-            {rejected.map((a, idx) => (
-              <div
-                key={a.attempt}
-                className="aura card reveal p-6"
-                style={
-                  {
-                    "--glow": "var(--reject)",
-                    "--aura-x": "85%",
-                    "--aura-y": "25%",
-                    "--aura-strength": 0.45,
-                    animationDelay: `${idx * 90}ms`,
-                  } as React.CSSProperties
-                }
-              >
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="slabel text-reject">{t("learn.attempt", { n: a.attempt })}</span>
-                  <span className="font-mono text-2xs text-reject">{a.verdict.verdict}</span>
-                </div>
-                <p className="text-sm leading-relaxed text-dim line-through decoration-reject/50">
-                  {a.body.opening}
-                </p>
-                <ul className="mt-2.5 space-y-1.5">
-                  {a.verdict.contradictions.map((c, i) => (
-                    <li key={i} className="text-xs leading-relaxed text-reject-text">
-                      <span className="font-medium text-reject">{c.claim}</span> — {c.reason}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-            {rejected.length > 0 && (
-              <p className="slabel reveal text-center text-faint" style={{ animationDelay: "120ms" }}>
-                {t("learn.factChecker")}
-              </p>
-            )}
-
             {/* accepted bridge — signature viz */}
             {!bridge.isFallback ? (
               <>
