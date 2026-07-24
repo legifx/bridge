@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { BridgeViz } from "@/components/BridgeViz";
 import { LearnWidgets } from "@/components/LearnWidgets";
+import { ThinkingLoader } from "@/components/ThinkingLoader";
 import { useT } from "@/components/LanguageProvider";
 import type { Widget } from "@/lib/learn/widgets";
 
@@ -142,6 +143,26 @@ export default function Learn() {
           {relearn && <p className="mt-3 slabel text-interest-text">↺ {t("learn.relearnNote")}</p>}
         </header>
 
+        {/* interest selector at the TOP — switch which interest explains this */}
+        {bridge && domains.length > 1 && (
+          <div className="card flex flex-wrap items-center gap-x-3 gap-y-2 p-4">
+            <span className="slabel text-faint">{t("learn.explainedVia")}</span>
+            <select
+              value={domains.find((d) => d.name === bridge.match.domainName)?.id ?? ""}
+              onChange={(e) => makeBridge(e.target.value)}
+              disabled={loadingBridge}
+              className="input h-9 max-w-[220px] py-0 text-sm"
+            >
+              {domains.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
+            </select>
+            {loadingBridge && <span className="slabel text-interest-text">· {t("learn.building")}</span>}
+          </div>
+        )}
+
         {!bridge && (
           <button
             onClick={() => makeBridge()}
@@ -157,7 +178,19 @@ export default function Learn() {
           </p>
         )}
 
-        {bridge && (
+        {/* regenerating (interest switch / relearn): show progress, not stale content */}
+        {bridge && loadingBridge && (
+          <ThinkingLoader
+            stages={[
+              { label: t("learn.building"), detail: bridge.match.domainName },
+              { label: t("learn.factChecker") },
+            ]}
+            glow="var(--interest)"
+            expectedMs={9000}
+          />
+        )}
+
+        {bridge && !loadingBridge && (
           <>
             {/* rejected attempts — honest, red aura */}
             {rejected.map((a, idx) => (
@@ -242,29 +275,6 @@ export default function Learn() {
               </div>
             )}
 
-            {/* pick a different interest to explain this through (feeds the Brain) */}
-            {domains.length > 1 && (
-              <div className="reveal card p-4" style={{ animationDelay: "480ms" }}>
-                <p className="slabel text-faint">
-                  {t("learn.explainedVia")}{" "}
-                  <span className="text-interest-text">{bridge.match.domainName}</span> · {t("learn.orVia")}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {domains
-                    .filter((d) => d.name !== bridge.match.domainName)
-                    .map((d) => (
-                      <button
-                        key={d.id}
-                        onClick={() => makeBridge(d.id)}
-                        disabled={loadingBridge}
-                        className="chip chip-interest transition hover:opacity-80"
-                      >
-                        {d.name}
-                      </button>
-                    ))}
-                </div>
-              </div>
-            )}
 
             {/* plain subject restatement */}
             <div
