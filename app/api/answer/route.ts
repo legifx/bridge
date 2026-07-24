@@ -5,7 +5,7 @@ import { getCurrentLearner } from "@/lib/db/learner";
 import { gradeFreeRecall, gradeOpenProblems, checkNumeric, ProblemSchema } from "@/lib/quiz";
 import { recordAnswer } from "@/lib/adaptive/review";
 import { eloToMastery } from "@/lib/extraction/repo";
-import { chargeAi, quotaExceededResponse } from "@/lib/quota";
+import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 
 export const runtime = "nodejs";
 
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   });
   if (!concept) return NextResponse.json({ error: "Concept not found." }, { status: 404 });
 
-  const charge = await chargeAi(learner.id, 1);
+  const charge = await chargeConcept(learner.id, concept.id);
   if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
   const grade = await gradeFreeRecall(concept, parsed.data.freeAnswer, learner.language);

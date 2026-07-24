@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentLearner } from "@/lib/db/learner";
 import { generateQuiz } from "@/lib/quiz";
-import { chargeAi, quotaExceededResponse } from "@/lib/quota";
+import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 import { st } from "@/lib/i18n";
 
 export const runtime = "nodejs";
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   });
   if (!concept) return NextResponse.json({ error: "Concept not found." }, { status: 404 });
 
-  const charge = await chargeAi(learner.id, 1);
+  const charge = await chargeConcept(learner.id, concept.id);
   if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
   try {

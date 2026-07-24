@@ -112,6 +112,7 @@ model Concept {
   difficulty Int     @default(3) // 1..5
   elo        Float   @default(1200) // mastery: learner ability per concept
   reviewEnabled Boolean @default(false) // opt-in spaced repetition (SM-2)
+  charged    Boolean @default(false) // demo quota: this aspect has been paid for (covers all its requests)
   embedding  Bytes? // stored for Stage-3 interest<->concept matching
   sourceId   String?
 

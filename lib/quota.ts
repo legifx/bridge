@@ -14,7 +14,9 @@ export function isPublicDemo(): boolean {
 
 export function quotaLimit(): number {
   const n = Number(process.env.DEMO_AI_QUOTA);
-  return Number.isFinite(n) && n > 0 ? n : 10;
+  // Quota is now counted per LEARNING ASPECT (concept), not per request — so a
+  // small budget goes a long way. Default 5 aspects.
+  return Number.isFinite(n) && n > 0 ? n : 5;
 }
 
 export type QuotaState = { used: number; limit: number; remaining: number } | null;
@@ -46,6 +48,35 @@ export async function chargeAi(
     where: { id: learnerId },
     data: { aiUnits: { increment: units } },
   });
+  return { ok: true, quota: quotaState(updated.aiUnits) };
+}
+
+/**
+ * Charge for LEARNING one aspect (concept). The first billable request for a
+ * concept spends exactly one unit and marks the concept paid; every further
+ * request for that same concept (bridge re-roll, widgets, quiz, answer, relearn,
+ * tasks) is then free — so a learner can never get stranded mid-aspect. Owner
+ * accounts and self-hosted runs are unlimited.
+ */
+export async function chargeConcept(
+  learnerId: string,
+  conceptId: string,
+): Promise<{ ok: boolean; quota: QuotaState }> {
+  if (!isPublicDemo()) return { ok: true, quota: null };
+  const [learner, concept] = await Promise.all([
+    prisma.learner.findUnique({ where: { id: learnerId } }),
+    prisma.concept.findUnique({ where: { id: conceptId } }),
+  ]);
+  if (!learner || !concept) return { ok: false, quota: quotaState(0) };
+  if (learner.unlimited) return { ok: true, quota: null };
+  // Already paid for this aspect → all further work on it is free.
+  if (concept.charged) return { ok: true, quota: quotaState(learner.aiUnits) };
+  const limit = quotaLimit();
+  if (learner.aiUnits + 1 > limit) return { ok: false, quota: quotaState(learner.aiUnits) };
+  const [updated] = await prisma.$transaction([
+    prisma.learner.update({ where: { id: learnerId }, data: { aiUnits: { increment: 1 } } }),
+    prisma.concept.update({ where: { id: conceptId }, data: { charged: true } }),
+  ]);
   return { ok: true, quota: quotaState(updated.aiUnits) };
 }
 

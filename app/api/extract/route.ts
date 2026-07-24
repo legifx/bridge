@@ -3,7 +3,7 @@ import { z } from "zod";
 import { extractConceptGraph } from "@/lib/extraction";
 import { saveConceptGraph } from "@/lib/extraction/persist";
 import { getCurrentLearner } from "@/lib/db/learner";
-import { chargeAi, quotaExceededResponse } from "@/lib/quota";
+
 import { recordSignal, averageVec } from "@/lib/brain/record";
 
 // Embeddings + LLM need the Node runtime, not the edge runtime.
@@ -38,10 +38,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Provide text or at least one image." }, { status: 400 });
   }
 
-  // Extraction is the most expensive call (vision + long output): 2 units.
-  const charge = await chargeAi(learner.id, 2);
-  if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
-
+  // Capture itself is free — the demo budget is spent per learning aspect when
+  // the learner actually studies a concept (see chargeConcept). Uploading
+  // material and getting the concept list never strands the learner.
   try {
     const { graph, embeddings, markdown } = await extractConceptGraph({
       text: parsed.data.text,
@@ -91,7 +90,7 @@ export async function POST(req: Request) {
       console.warn("extract: brain signal failed (non-fatal)", err);
     }
 
-    return NextResponse.json({ sourceId, graph, quota: charge.quota });
+    return NextResponse.json({ sourceId, graph, quota: null });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Extraction failed.";
     return NextResponse.json({ error: message }, { status: 500 });

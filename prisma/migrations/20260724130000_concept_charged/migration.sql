@@ -1,0 +1,1 @@
+ALTER TABLE "Concept" ADD COLUMN "charged" BOOLEAN NOT NULL DEFAULT false;

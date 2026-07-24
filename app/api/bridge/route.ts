@@ -8,7 +8,7 @@ import { getDomainsForMatch } from "@/lib/profile/repo";
 import { rankDomainsForConcept, buildMatch } from "@/lib/profile/match";
 import { generateBestBridge } from "@/lib/bridge/engine";
 import { generateVisualizations } from "@/lib/learn/visualize";
-import { chargeAi, quotaExceededResponse } from "@/lib/quota";
+import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 
 export const runtime = "nodejs";
 
@@ -107,7 +107,7 @@ export async function POST(req: Request) {
     priorMistakes = mistakesSummary(last?.detailJson ?? null);
   }
 
-  const charge = await chargeAi(learner.id, 1);
+  const charge = await chargeConcept(learner.id, concept.id);
   if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
   try {

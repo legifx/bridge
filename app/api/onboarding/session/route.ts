@@ -7,7 +7,6 @@ import { checkInterestText } from "@/lib/profile/guard";
 import { EMBEDDINGS_ENABLED } from "@/lib/ml/embeddings";
 import { startInterview, continueInterview } from "@/lib/onboarding/engine";
 import { AnswerSchema } from "@/lib/onboarding/types";
-import { chargeAi, quotaExceededResponse } from "@/lib/quota";
 
 export const runtime = "nodejs";
 
@@ -52,10 +51,8 @@ export async function POST(req: Request) {
     }
   }
 
-  // The whole interview costs a flat 3 AI units (plan + magnets/audit + synthesis).
-  const charge = await chargeAi(learner.id, 3);
-  if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
-
+  // Onboarding is free — it's the one-time profile build, not a learning
+  // aspect. The demo budget is spent per concept studied (see chargeConcept).
   let language = learner.language;
   if (parsed.data.language && parsed.data.language !== learner.language) {
     language = parsed.data.language;
@@ -64,7 +61,7 @@ export async function POST(req: Request) {
 
   try {
     const batch = await startInterview(learner.id, parsed.data.seeds, language);
-    return NextResponse.json({ ...batch, quota: charge.quota });
+    return NextResponse.json({ ...batch, quota: null });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Could not start the interview.";
     return NextResponse.json({ error: message }, { status: 500 });
