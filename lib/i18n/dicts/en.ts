@@ -255,6 +255,10 @@ export const en = {
   "brain.sub":
     "A per-learner vector store that grows with every signal. Clusters, weights and posteriors are shown as they are — nothing is guessed.",
   "brain.whatThinks": "what bridge thinks",
+  "brain.you": "You",
+  "brain.graphHint": "Tap an interest to see what you've learned through it.",
+  "brain.graphSkills": "Learned through this interest:",
+  "brain.graphNoSkills": "Nothing learned through this one yet — it's ready to explain your next concept.",
   "brain.numbers": "the numbers",
   "brain.legendToggle": "What do these numbers mean?",
   "brain.legWeight": "Weight: how strong an interest is — it grows with every signal.",

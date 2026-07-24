@@ -245,6 +245,10 @@ export const tr: Dict = {
   "brain.sub":
     "Her öğrenciye özel, her sinyalle büyüyen bir vektör deposu. Kümeler, ağırlıklar ve posteriorlar olduğu gibi gösterilir — hiçbir şey tahmin edilmez.",
   "brain.whatThinks": "bridge ne düşünüyor",
+  "brain.you": "Sen",
+  "brain.graphHint": "Bir ilgi alanına dokun, onun üzerinden ne öğrendiğini gör.",
+  "brain.graphSkills": "Bu ilgi üzerinden öğrenildi:",
+  "brain.graphNoSkills": "Bunun üzerinden henüz bir şey öğrenilmedi — sıradaki kavramını anlatmaya hazır.",
   "brain.numbers": "rakamlar",
   "brain.legendToggle": "Bu sayılar ne anlama geliyor?",
   "brain.legWeight": "Ağırlık: bir ilginin ne kadar güçlü olduğu — her sinyalle büyür.",

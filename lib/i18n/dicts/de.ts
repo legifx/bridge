@@ -245,6 +245,10 @@ export const de: Dict = {
   "brain.sub":
     "Ein Vektorspeicher pro Lernendem, der mit jedem Signal wächst. Cluster, Gewichte und Posteriors werden gezeigt, wie sie sind — nichts wird geraten.",
   "brain.whatThinks": "was bridge denkt",
+  "brain.you": "Du",
+  "brain.graphHint": "Tippe ein Interesse an, um zu sehen, was du darüber gelernt hast.",
+  "brain.graphSkills": "Darüber gelernt:",
+  "brain.graphNoSkills": "Darüber noch nichts gelernt — bereit, dein nächstes Konzept zu erklären.",
   "brain.numbers": "die Zahlen",
   "brain.legendToggle": "Was bedeuten diese Zahlen?",
   "brain.legWeight": "Gewicht: wie stark ein Interesse ausgeprägt ist — es wächst mit jedem Signal.",

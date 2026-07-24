@@ -245,6 +245,10 @@ export const pl: Dict = {
   "brain.sub":
     "Magazyn wektorów na ucznia, rosnący z każdym sygnałem. Klastry, wagi i posteriory pokazane są takie, jakie są — nic nie jest zgadywane.",
   "brain.whatThinks": "co myśli bridge",
+  "brain.you": "Ty",
+  "brain.graphHint": "Dotknij zainteresowania, aby zobaczyć, czego się przez nie nauczyłeś.",
+  "brain.graphSkills": "Nauczone przez to zainteresowanie:",
+  "brain.graphNoSkills": "Jeszcze nic tu nie nauczone — gotowe wyjaśnić kolejne pojęcie.",
   "brain.numbers": "liczby",
   "brain.legendToggle": "Co oznaczają te liczby?",
   "brain.legWeight": "Waga: jak silne jest zainteresowanie — rośnie z każdym sygnałem.",

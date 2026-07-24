@@ -245,6 +245,10 @@ export const es: Dict = {
   "brain.sub":
     "Un almacén vectorial por estudiante que crece con cada señal. Clústeres, pesos y posteriors se muestran tal cual — nada se adivina.",
   "brain.whatThinks": "lo que piensa bridge",
+  "brain.you": "Tú",
+  "brain.graphHint": "Toca un interés para ver qué has aprendido a través de él.",
+  "brain.graphSkills": "Aprendido a través de este interés:",
+  "brain.graphNoSkills": "Aún nada aprendido por aquí — listo para explicar tu próximo concepto.",
   "brain.numbers": "los números",
   "brain.legendToggle": "¿Qué significan estos números?",
   "brain.legWeight": "Peso: cuán fuerte es un interés — crece con cada señal.",

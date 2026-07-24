@@ -6,6 +6,7 @@ import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
 import { Led } from "@/components/Led";
 import { TickScale } from "@/components/TickScale";
+import { BrainGraph } from "@/components/BrainGraph";
 import { useT } from "@/components/LanguageProvider";
 
 type Branch = {
@@ -43,9 +44,16 @@ export default function Brain() {
 
       {data && (
         <>
+          {/* the memory map — the first thing you see, understandable at a glance */}
+          {data.branches.length > 0 && (
+            <div className="-mt-2 mb-5">
+              <BrainGraph branches={data.branches} />
+            </div>
+          )}
+
           {/* the human read: what you're into, in plain words */}
           <div
-            className="aura card -mt-2 p-6"
+            className="aura card p-6"
             style={
               {
                 "--glow": "var(--violet)",
