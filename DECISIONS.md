@@ -183,5 +183,7 @@ readout (font extended with A–F + comma).
 **Speak your answer.** Free-text and open answers can be dictated via the browser's speech
 recognition; the transcript is graded exactly like typed text.
 
-## Still open
-- Brain tab: an interactive, non-technical memory graph at the top (planned next).
+**Brain tab leads with a memory map.** A radial, tap-interactive graph (`BrainGraph`) — a 'You'
+core with interests sized by weight, tap to fan out the skills learned through each — is the first
+thing on the Brain tab, understandable without any technical background. The weights, coherence,
+posteriors and cluster tree stay below for the curious.
