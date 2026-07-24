@@ -16,7 +16,35 @@ const BodySchema = z.object({
   conceptId: z.string().min(1),
   // optional: the learner explicitly chose which interest to explain through
   domainId: z.string().min(1).optional(),
+  // optional: re-learn — the new explanation should target last time's mistakes
+  relearn: z.boolean().optional(),
 });
+
+/** Turn the last check's stored breakdown into a short natural-language hint. */
+function mistakesSummary(detailJson: string | null): string | undefined {
+  if (!detailJson) return undefined;
+  let d: {
+    freeCorrect?: boolean;
+    mcqCorrect?: boolean;
+    problems?: { correct: boolean; feedback: string | null }[];
+  };
+  try {
+    d = JSON.parse(detailJson);
+  } catch {
+    return undefined;
+  }
+  const parts: string[] = [];
+  if (d.freeCorrect === false) parts.push("recalling the definition in their own words");
+  if (d.mcqCorrect === false) parts.push("the multiple-choice question");
+  const wrongProblems = (d.problems ?? []).filter((p) => !p.correct);
+  if (wrongProblems.length) {
+    const notes = wrongProblems.map((p) => p.feedback).filter(Boolean);
+    parts.push(
+      `solving the practice problem(s)${notes.length ? ` (${notes.join("; ")})` : ""}`,
+    );
+  }
+  return parts.length ? parts.join(", ") : undefined;
+}
 
 export async function POST(req: Request) {
   const parsed = BodySchema.safeParse(await req.json().catch(() => null));
@@ -67,6 +95,18 @@ export async function POST(req: Request) {
     })),
   );
 
+  // On re-learn, pull what the learner got wrong last time so the new
+  // explanation can target it with a fresh angle.
+  let priorMistakes: string | undefined;
+  if (parsed.data.relearn) {
+    const last = await prisma.review.findFirst({
+      where: { conceptId: concept.id },
+      orderBy: { answeredAt: "desc" },
+      select: { detailJson: true },
+    });
+    priorMistakes = mistakesSummary(last?.detailJson ?? null);
+  }
+
   const charge = await chargeAi(learner.id, 1);
   if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
@@ -81,6 +121,7 @@ export async function POST(req: Request) {
       candidates,
       readingLevel: learner.readingLevel,
       language: learner.language,
+      priorMistakes,
     });
 
     // Interactive widgets for the concept, framed through the chosen interest.

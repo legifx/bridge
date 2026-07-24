@@ -154,6 +154,7 @@ export const pl: Dict = {
   "learn.loading": "Ładuję pojęcie…",
   "learn.concept": "pojęcie",
   "learn.explain": "Wyjaśnij przez mój świat",
+  "learn.relearnNote": "Wyjaśnione na nowo, z naciskiem na to, co ostatnio sprawiło trudność.",
   "learn.building": "buduję most do twojego świata…",
   "learn.couldNotBuild": "Nie udało się zbudować mostu.",
   "learn.attempt": "próba {n} · odrzucona",
@@ -179,6 +180,7 @@ export const pl: Dict = {
   "check.grading": "oceniam twoje przypomnienie…",
   "check.submit": "Wyślij odpowiedzi",
   "check.task": "Zadanie",
+  "check.recallLabel": "Swobodne przypomnienie",
   "check.yourAnswer": "Twoja odpowiedź",
   "check.solution": "Rozwiązanie",
   "check.taskRight": "poprawnie",
@@ -191,6 +193,26 @@ export const pl: Dict = {
   "check.backToMap": "Wróć do mapy",
 
   "review.eyebrow": "Powtórki rozłożone w czasie",
+
+  "review.logTitle": "Twój dziennik nauki",
+
+  "review.logSub": "Wszystko, czego się uczyłeś — dotknij, aby zobaczyć wynik i powtórzyć.",
+
+  "review.dueNote": "{n} do powtórki — dotknij, aby powtórzyć.",
+
+  "review.emptyLog": "Jeszcze nic. Naucz się pojęcia, a pojawi się tutaj.",
+
+  "review.yesterday": "wczoraj",
+
+  "review.daysAgo": "{n} dni temu",
+
+  "review.multipleChoice": "Wielokrotny wybór",
+
+  "review.noDetail": "Brak zapisanych szczegółów dla tego wpisu.",
+
+  "review.relearnBtn": "Powtórz",
+
+  "review.tasksBtn": "Zadania",
   "review.title": "Kolejka powtórek · {n} do zrobienia",
   "review.caughtUp": "Wszystko nadrobione",
   "review.next": "Następna powtórka {when}.",

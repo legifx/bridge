@@ -154,6 +154,7 @@ export const pt: Dict = {
   "learn.loading": "A carregar conceito…",
   "learn.concept": "conceito",
   "learn.explain": "Explicar através do meu mundo",
+  "learn.relearnNote": "Reexplicado para focar no que falhou da última vez.",
   "learn.building": "a construir uma ponte para o teu mundo…",
   "learn.couldNotBuild": "Não foi possível construir uma ponte.",
   "learn.attempt": "tentativa {n} · rejeitada",
@@ -179,6 +180,7 @@ export const pt: Dict = {
   "check.grading": "a avaliar a tua evocação…",
   "check.submit": "Enviar respostas",
   "check.task": "Exercício",
+  "check.recallLabel": "Evocação livre",
   "check.yourAnswer": "A tua resposta",
   "check.solution": "Solução",
   "check.taskRight": "correto",
@@ -191,6 +193,26 @@ export const pt: Dict = {
   "check.backToMap": "Voltar ao mapa",
 
   "review.eyebrow": "Repetição espaçada",
+
+  "review.logTitle": "O teu registo de aprendizagem",
+
+  "review.logSub": "Tudo o que estudaste — toca num para ver a pontuação e repetir.",
+
+  "review.dueNote": "{n} para rever — toca para repetir.",
+
+  "review.emptyLog": "Nada ainda. Aprende um conceito e ele aparece aqui.",
+
+  "review.yesterday": "ontem",
+
+  "review.daysAgo": "há {n} dias",
+
+  "review.multipleChoice": "Escolha múltipla",
+
+  "review.noDetail": "Nenhum detalhe guardado para este.",
+
+  "review.relearnBtn": "Rever",
+
+  "review.tasksBtn": "Exercícios",
   "review.title": "Fila de revisão · {n} pendentes",
   "review.caughtUp": "Tudo em dia",
   "review.next": "Próxima revisão {when}.",

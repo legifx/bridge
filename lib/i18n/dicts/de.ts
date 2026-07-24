@@ -154,6 +154,7 @@ export const de: Dict = {
   "learn.loading": "Lade Konzept…",
   "learn.concept": "Konzept",
   "learn.explain": "Durch meine Welt erklären",
+  "learn.relearnNote": "Neu erklärt — gezielt auf das, was letztes Mal hakte.",
   "learn.building": "baue eine Brücke in deine Welt…",
   "learn.couldNotBuild": "Brücke konnte nicht gebaut werden.",
   "learn.attempt": "Versuch {n} · abgelehnt",
@@ -179,6 +180,7 @@ export const de: Dict = {
   "check.grading": "bewerte deinen Abruf…",
   "check.submit": "Antworten abgeben",
   "check.task": "Aufgabe",
+  "check.recallLabel": "Freie Wiedergabe",
   "check.yourAnswer": "Deine Antwort",
   "check.solution": "Lösung",
   "check.taskRight": "richtig",
@@ -191,6 +193,26 @@ export const de: Dict = {
   "check.backToMap": "Zurück zur Karte",
 
   "review.eyebrow": "Spaced Repetition",
+
+  "review.logTitle": "Dein Lern-Log",
+
+  "review.logSub": "Alles, was du gelernt hast — tipp eins an für Score und Wiederholung.",
+
+  "review.dueNote": "{n} zur Wiederholung fällig — antippen zum Wiederholen.",
+
+  "review.emptyLog": "Noch nichts. Lerne ein Konzept, dann taucht es hier auf.",
+
+  "review.yesterday": "gestern",
+
+  "review.daysAgo": "vor {n} Tagen",
+
+  "review.multipleChoice": "Multiple Choice",
+
+  "review.noDetail": "Für diesen Eintrag ist keine Aufschlüsselung gespeichert.",
+
+  "review.relearnBtn": "Wiederholen",
+
+  "review.tasksBtn": "Aufgaben",
   "review.title": "Wiederholungs-Queue · {n} fällig",
   "review.caughtUp": "Alles erledigt",
   "review.next": "Nächste Wiederholung {when}.",

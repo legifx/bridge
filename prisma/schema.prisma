@@ -162,6 +162,7 @@ model Review {
   nextDueAt  DateTime
   easeFactor Float    @default(2.5)
   interval   Int      @default(0) // days
+  detailJson String?  // JSON snapshot of the check: mastery, free/mcq correctness, per-problem results
 
   concept Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
 

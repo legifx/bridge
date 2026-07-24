@@ -154,6 +154,7 @@ export const tr: Dict = {
   "learn.loading": "Kavram yükleniyor…",
   "learn.concept": "kavram",
   "learn.explain": "Benim dünyamla açıkla",
+  "learn.relearnNote": "Geçen sefer takıldığın noktaya odaklanarak yeniden anlatıldı.",
   "learn.building": "dünyana bir köprü kuruluyor…",
   "learn.couldNotBuild": "Köprü kurulamadı.",
   "learn.attempt": "deneme {n} · reddedildi",
@@ -179,6 +180,7 @@ export const tr: Dict = {
   "check.grading": "hatırlaman değerlendiriliyor…",
   "check.submit": "Cevapları gönder",
   "check.task": "Alıştırma",
+  "check.recallLabel": "Serbest hatırlama",
   "check.yourAnswer": "Cevabın",
   "check.solution": "Çözüm",
   "check.taskRight": "doğru",
@@ -191,6 +193,26 @@ export const tr: Dict = {
   "check.backToMap": "Haritaya dön",
 
   "review.eyebrow": "Aralıklı tekrar",
+
+  "review.logTitle": "Öğrenme günlüğün",
+
+  "review.logSub": "Çalıştığın her şey — puanını görmek ve tekrar etmek için birine dokun.",
+
+  "review.dueNote": "{n} tekrar için bekliyor — tekrar için dokun.",
+
+  "review.emptyLog": "Henüz bir şey yok. Bir kavram öğren, burada görünür.",
+
+  "review.yesterday": "dün",
+
+  "review.daysAgo": "{n} gün önce",
+
+  "review.multipleChoice": "Çoktan seçmeli",
+
+  "review.noDetail": "Bu kayıt için ayrıntı kaydedilmedi.",
+
+  "review.relearnBtn": "Tekrarla",
+
+  "review.tasksBtn": "Alıştırmalar",
   "review.title": "Tekrar kuyruğu · {n} bekliyor",
   "review.caughtUp": "Hepsi tamam",
   "review.next": "Sonraki tekrar {when}.",

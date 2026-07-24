@@ -49,6 +49,7 @@ async function generate(
   readingLevel: number,
   priorContradictions: Verdict["contradictions"] | undefined,
   language?: string,
+  priorMistakes?: string,
 ): Promise<BridgeBody> {
   return llmJson({
     system: GENERATE_SYSTEM,
@@ -62,6 +63,7 @@ async function generate(
       depth: domain.depth,
       readingLevel,
       priorContradictions,
+      priorMistakes,
     }),
     schema: BridgeBodySchema,
     temperature: 0.6,
@@ -121,10 +123,11 @@ async function tryDomain(
   language: string | undefined,
   attempts: BridgeAttempt[],
   maxAttempts: number,
+  priorMistakes?: string,
 ): Promise<{ bridgeId: string; body: BridgeBody } | null> {
   let contradictions: Verdict["contradictions"] | undefined;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const body = await generate(concept, domain, readingLevel, contradictions, language);
+    const body = await generate(concept, domain, readingLevel, contradictions, language, priorMistakes);
     const verdict = await verify(concept, body);
     const status: "accepted" | "rejected" = verdict.verdict === "accept" ? "accepted" : "rejected";
     const row = await persist(concept, domain, body, verdict, status, attempt);
@@ -162,8 +165,10 @@ export async function generateBestBridge(params: {
   candidates: { domain: EngineDomain; match: Match }[];
   readingLevel: number;
   language?: string;
+  /** When re-learning: what the learner got wrong, so the new explanation targets it. */
+  priorMistakes?: string;
 }): Promise<BridgeResult> {
-  const { concept, candidates, readingLevel, language } = params;
+  const { concept, candidates, readingLevel, language, priorMistakes } = params;
   const attempts: BridgeAttempt[] = [];
 
   // Cost guard: the best domain gets the full retry budget; each additional
@@ -172,7 +177,7 @@ export async function generateBestBridge(params: {
   for (let i = 0; i < candidates.length; i++) {
     const { domain, match } = candidates[i];
     const maxAttempts = i === 0 ? MAX_RETRIES + 1 : 1;
-    const accepted = await tryDomain(concept, domain, readingLevel, language, attempts, maxAttempts);
+    const accepted = await tryDomain(concept, domain, readingLevel, language, attempts, maxAttempts, priorMistakes);
     if (accepted) {
       return { bridgeId: accepted.bridgeId, body: accepted.body, match, attempts, isFallback: false };
     }

@@ -154,6 +154,7 @@ export const fr: Dict = {
   "learn.loading": "Chargement du concept…",
   "learn.concept": "concept",
   "learn.explain": "Expliquer à travers mon monde",
+  "learn.relearnNote": "Réexpliqué pour cibler ce qui a coincé la dernière fois.",
   "learn.building": "construction d'un pont vers ton monde…",
   "learn.couldNotBuild": "Impossible de construire un pont.",
   "learn.attempt": "tentative {n} · rejetée",
@@ -179,6 +180,7 @@ export const fr: Dict = {
   "check.grading": "évaluation de ton rappel…",
   "check.submit": "Envoyer les réponses",
   "check.task": "Exercice",
+  "check.recallLabel": "Rappel libre",
   "check.yourAnswer": "Ta réponse",
   "check.solution": "Solution",
   "check.taskRight": "correct",
@@ -191,6 +193,26 @@ export const fr: Dict = {
   "check.backToMap": "Retour à la carte",
 
   "review.eyebrow": "Répétition espacée",
+
+  "review.logTitle": "Ton journal d'apprentissage",
+
+  "review.logSub": "Tout ce que tu as étudié — touche un élément pour voir ton score et le refaire.",
+
+  "review.dueNote": "{n} à réviser — touche pour refaire.",
+
+  "review.emptyLog": "Rien pour l'instant. Apprends un concept et il apparaîtra ici.",
+
+  "review.yesterday": "hier",
+
+  "review.daysAgo": "il y a {n} jours",
+
+  "review.multipleChoice": "Choix multiple",
+
+  "review.noDetail": "Aucun détail enregistré pour celui-ci.",
+
+  "review.relearnBtn": "Revoir",
+
+  "review.tasksBtn": "Exercices",
   "review.title": "File de révision · {n} à faire",
   "review.caughtUp": "Tout est à jour",
   "review.next": "Prochaine révision {when}.",

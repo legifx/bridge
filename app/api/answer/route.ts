@@ -67,6 +67,12 @@ export async function POST(req: Request) {
     conceptId: concept.id,
     correct,
     confident: grade.confident && parsed.data.mcqCorrect && allProblemsCorrect,
+    detail: {
+      freeCorrect: grade.correct,
+      freeFeedback: grade.feedback,
+      mcqCorrect: parsed.data.mcqCorrect,
+      problems: problemResults.map((r) => ({ correct: r.correct, feedback: r.feedback ?? null })),
+    },
   });
 
   // Once a concept has actually been recalled, it belongs in the spaced-

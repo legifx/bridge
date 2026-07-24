@@ -37,7 +37,7 @@ export const QuizSchema = z.object({
     options: z.array(z.string().min(1)).length(4),
     answerIndex: z.number().int().min(0).max(3),
   }),
-  problems: z.array(ProblemSchema).min(1).max(3),
+  problems: z.array(ProblemSchema).min(1).max(6),
 });
 export type Quiz = z.infer<typeof QuizSchema>;
 
@@ -56,10 +56,18 @@ export type Grade = z.infer<typeof GradeSchema>;
 
 type Concept = { id: string; label: string; definition: string; sourceQuote: string };
 
-export async function generateQuiz(concept: Concept, language?: string): Promise<Quiz> {
+export async function generateQuiz(
+  concept: Concept,
+  language?: string,
+  opts?: { tasks?: boolean },
+): Promise<Quiz> {
+  // Tasks mode = a bigger, problem-heavy set (the "practice tasks" button).
+  const ask = opts?.tasks
+    ? "\n\nThis is a PRACTICE-TASKS set: generate 4 to 6 problems (favor solvable numeric/applied ones), varied in difficulty. The free/mcq are secondary here."
+    : "";
   return llmJson({
     system: QUIZ_SYSTEM,
-    user: `Concept: ${concept.label}\nDefinition: ${concept.definition}\nSource: "${concept.sourceQuote}"`,
+    user: `Concept: ${concept.label}\nDefinition: ${concept.definition}\nSource: "${concept.sourceQuote}"${ask}`,
     schema: QuizSchema,
     temperature: 0.4,
     language,

@@ -53,11 +53,13 @@ export default function Check() {
         setConcept(c);
         if (c) setSrs(c.reviewEnabled);
       });
-    // generate the questions (1 AI unit)
+    // generate the questions (1 AI unit). ?mode=tasks = the bigger practice set.
+    const tasksMode =
+      typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mode") === "tasks";
     fetch("/api/quiz", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ conceptId }),
+      body: JSON.stringify({ conceptId, ...(tasksMode ? { tasks: true } : {}) }),
     })
       .then((r) => r.json())
       .then((d) => {

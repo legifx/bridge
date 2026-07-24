@@ -154,6 +154,7 @@ export const it: Dict = {
   "learn.loading": "Carico il concetto…",
   "learn.concept": "concetto",
   "learn.explain": "Spiegalo attraverso il mio mondo",
+  "learn.relearnNote": "Rispiegato per mirare a ciò che ti ha bloccato l'ultima volta.",
   "learn.building": "costruisco un ponte verso il tuo mondo…",
   "learn.couldNotBuild": "Impossibile costruire un ponte.",
   "learn.attempt": "tentativo {n} · respinto",
@@ -179,6 +180,7 @@ export const it: Dict = {
   "check.grading": "valuto il tuo richiamo…",
   "check.submit": "Invia le risposte",
   "check.task": "Esercizio",
+  "check.recallLabel": "Richiamo libero",
   "check.yourAnswer": "La tua risposta",
   "check.solution": "Soluzione",
   "check.taskRight": "corretto",
@@ -191,6 +193,26 @@ export const it: Dict = {
   "check.backToMap": "Torna alla mappa",
 
   "review.eyebrow": "Ripetizione dilazionata",
+
+  "review.logTitle": "Il tuo registro di studio",
+
+  "review.logSub": "Tutto ciò che hai studiato — tocca un elemento per vedere il punteggio e rifarlo.",
+
+  "review.dueNote": "{n} da ripassare — tocca per rifare.",
+
+  "review.emptyLog": "Ancora niente. Impara un concetto e apparirà qui.",
+
+  "review.yesterday": "ieri",
+
+  "review.daysAgo": "{n} giorni fa",
+
+  "review.multipleChoice": "Scelta multipla",
+
+  "review.noDetail": "Nessun dettaglio salvato per questo.",
+
+  "review.relearnBtn": "Ripassa",
+
+  "review.tasksBtn": "Esercizi",
   "review.title": "Coda di ripasso · {n} in scadenza",
   "review.caughtUp": "Tutto in pari",
   "review.next": "Prossimo ripasso {when}.",

@@ -46,6 +46,10 @@ const RUNTIME_MIGRATIONS: RuntimeMigration[] = [
       `ALTER TABLE "Learner" ADD COLUMN "lockedUntil" DATETIME`,
     ],
   },
+  {
+    name: "20260724110000_review_detail",
+    statements: [`ALTER TABLE "Review" ADD COLUMN "detailJson" TEXT`],
+  },
 ];
 
 async function run(): Promise<void> {

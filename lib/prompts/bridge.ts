@@ -42,11 +42,16 @@ export function generateUser(params: {
   depth?: string;
   readingLevel: number;
   priorContradictions?: Array<{ claim: string; reason: string }>;
+  /** What the learner got wrong last time — the re-explanation should target it. */
+  priorMistakes?: string;
 }): string {
   const revise = params.priorContradictions?.length
     ? `\n\nThe previous attempt was rejected for these factual problems. FIX them:\n${params.priorContradictions
         .map((c) => `- "${c.claim}" — ${c.reason}`)
         .join("\n")}`
+    : "";
+  const relearn = params.priorMistakes
+    ? `\n\nThis is a RE-EXPLANATION. Last time the learner struggled here: ${params.priorMistakes}. Explain it a DIFFERENT way than a standard first pass — put extra care and a fresh angle on exactly those weak points, use a clearer correspondence for them, and make the plainRestatement address them head-on.`
     : "";
   const register = params.depth ? DEPTH_REGISTER[params.depth] : undefined;
   return `Concept: ${params.label}
@@ -54,7 +59,7 @@ Definition (authoritative, from the source): ${params.definition}
 Source quote: "${params.sourceQuote}"
 Learner's interest domain: ${params.domain}
 Usable vocabulary anchors: ${params.anchors.join(", ")}${register ? `\n${register}` : ""}
-Reading level (1 simplest .. 5 most advanced): ${params.readingLevel}${revise}`;
+Reading level (1 simplest .. 5 most advanced): ${params.readingLevel}${revise}${relearn}`;
 }
 
 export const VERIFY_SYSTEM = `You are an independent fact-checker. You receive a concept's authoritative definition and source quote, plus an analogical explanation of it. Judge ONLY whether the explanation is factually faithful to the subject.

@@ -18,6 +18,8 @@ export async function recordAnswer(params: {
   conceptId: string;
   correct: boolean;
   confident: boolean;
+  /** JSON snapshot of the check breakdown, for the review log detail view. */
+  detail?: unknown;
 }): Promise<{ elo: number; nextIntervalDays: number }> {
   const concept = await prisma.concept.findUniqueOrThrow({ where: { id: params.conceptId } });
 
@@ -47,6 +49,7 @@ export async function recordAnswer(params: {
         easeFactor: next.easeFactor,
         interval: next.interval,
         nextDueAt,
+        detailJson: params.detail === undefined ? null : JSON.stringify(params.detail),
       },
     }),
   ]);

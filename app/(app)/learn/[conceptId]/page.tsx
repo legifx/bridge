@@ -58,7 +58,20 @@ export default function Learn() {
       });
   }, [conceptId]);
 
-  async function makeBridge(domainId?: string) {
+  const [relearn, setRelearn] = useState(false);
+
+  // Re-learn entry (?relearn=1 from the review log): auto-build a fresh
+  // explanation that targets what was missed last time.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).get("relearn") === "1") {
+      setRelearn(true);
+      makeBridge(undefined, true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conceptId]);
+
+  async function makeBridge(domainId?: string, doRelearn?: boolean) {
     setLoadingBridge(true);
     setError(null);
     setFeedback(null);
@@ -66,7 +79,11 @@ export default function Learn() {
       const res = await fetch("/api/bridge", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ conceptId, ...(domainId ? { domainId } : {}) }),
+        body: JSON.stringify({
+          conceptId,
+          ...(domainId ? { domainId } : {}),
+          ...(doRelearn ? { relearn: true } : {}),
+        }),
       });
       if (res.status === 401) {
         window.location.href = "/signin?expired=1";
@@ -122,6 +139,7 @@ export default function Learn() {
           <p className="slabel text-curriculum-text">{t("learn.concept")}</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text">{concept.label}</h1>
           <p className="mt-3 text-base leading-relaxed text-dim">{concept.definition}</p>
+          {relearn && <p className="mt-3 slabel text-interest-text">↺ {t("learn.relearnNote")}</p>}
         </header>
 
         {!bridge && (

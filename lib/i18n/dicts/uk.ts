@@ -154,6 +154,7 @@ export const uk: Dict = {
   "learn.loading": "Завантажую поняття…",
   "learn.concept": "поняття",
   "learn.explain": "Пояснити через мій світ",
+  "learn.relearnNote": "Пояснено по-новому — з акцентом на те, що не вдалося минулого разу.",
   "learn.building": "будую міст у твій світ…",
   "learn.couldNotBuild": "Не вдалося збудувати міст.",
   "learn.attempt": "спроба {n} · відхилена",
@@ -179,6 +180,7 @@ export const uk: Dict = {
   "check.grading": "оцінюю твоє пригадування…",
   "check.submit": "Надіслати відповіді",
   "check.task": "Завдання",
+  "check.recallLabel": "Вільне пригадування",
   "check.yourAnswer": "Твоя відповідь",
   "check.solution": "Розв'язок",
   "check.taskRight": "правильно",
@@ -191,6 +193,26 @@ export const uk: Dict = {
   "check.backToMap": "Назад до мапи",
 
   "review.eyebrow": "Інтервальні повторення",
+
+  "review.logTitle": "Твій журнал навчання",
+
+  "review.logSub": "Усе, що ти вивчав — торкнись, щоб побачити результат і повторити.",
+
+  "review.dueNote": "{n} на повторення — торкнись, щоб повторити.",
+
+  "review.emptyLog": "Поки нічого. Вивчи поняття — і воно з'явиться тут.",
+
+  "review.yesterday": "вчора",
+
+  "review.daysAgo": "{n} днів тому",
+
+  "review.multipleChoice": "Множинний вибір",
+
+  "review.noDetail": "Для цього запису немає збережених деталей.",
+
+  "review.relearnBtn": "Повторити",
+
+  "review.tasksBtn": "Завдання",
   "review.title": "Черга повторень · {n} на часі",
   "review.caughtUp": "Усе зроблено",
   "review.next": "Наступне повторення {when}.",

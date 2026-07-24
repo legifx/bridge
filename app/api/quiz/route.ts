@@ -7,7 +7,7 @@ import { chargeAi, quotaExceededResponse } from "@/lib/quota";
 
 export const runtime = "nodejs";
 
-const BodySchema = z.object({ conceptId: z.string().min(1) });
+const BodySchema = z.object({ conceptId: z.string().min(1), tasks: z.boolean().optional() });
 
 export async function POST(req: Request) {
   const parsed = BodySchema.safeParse(await req.json().catch(() => null));
@@ -24,6 +24,6 @@ export async function POST(req: Request) {
   const charge = await chargeAi(learner.id, 1);
   if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
-  const quiz = await generateQuiz(concept, learner.language);
+  const quiz = await generateQuiz(concept, learner.language, { tasks: parsed.data.tasks });
   return NextResponse.json({ quiz, quota: charge.quota });
 }

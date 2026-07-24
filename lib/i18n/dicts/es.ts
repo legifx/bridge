@@ -154,6 +154,7 @@ export const es: Dict = {
   "learn.loading": "Cargando concepto…",
   "learn.concept": "concepto",
   "learn.explain": "Explicar a través de mi mundo",
+  "learn.relearnNote": "Reexplicado para atacar lo que falló la última vez.",
   "learn.building": "construyendo un puente hacia tu mundo…",
   "learn.couldNotBuild": "No se pudo construir un puente.",
   "learn.attempt": "intento {n} · rechazado",
@@ -179,6 +180,7 @@ export const es: Dict = {
   "check.grading": "evaluando tu recuerdo…",
   "check.submit": "Enviar respuestas",
   "check.task": "Ejercicio",
+  "check.recallLabel": "Recuerdo libre",
   "check.yourAnswer": "Tu respuesta",
   "check.solution": "Solución",
   "check.taskRight": "correcto",
@@ -191,6 +193,26 @@ export const es: Dict = {
   "check.backToMap": "Volver al mapa",
 
   "review.eyebrow": "Repetición espaciada",
+
+  "review.logTitle": "Tu registro de aprendizaje",
+
+  "review.logSub": "Todo lo que has estudiado: toca uno para ver tu puntuación y repetirlo.",
+
+  "review.dueNote": "{n} para repasar — toca para repetir.",
+
+  "review.emptyLog": "Nada aún. Aprende un concepto y aparecerá aquí.",
+
+  "review.yesterday": "ayer",
+
+  "review.daysAgo": "hace {n} días",
+
+  "review.multipleChoice": "Opción múltiple",
+
+  "review.noDetail": "No hay desglose guardado para este.",
+
+  "review.relearnBtn": "Repasar",
+
+  "review.tasksBtn": "Ejercicios",
   "review.title": "Cola de repaso · {n} pendientes",
   "review.caughtUp": "Todo al día",
   "review.next": "Próximo repaso {when}.",

@@ -154,6 +154,7 @@ export const ar: Dict = {
   "learn.loading": "جارٍ تحميل المفهوم…",
   "learn.concept": "المفهوم",
   "learn.explain": "اشرحه من خلال عالمي",
+  "learn.relearnNote": "أُعيد الشرح للتركيز على ما تعثّرت فيه المرة السابقة.",
   "learn.building": "أبني جسرًا إلى عالمك…",
   "learn.couldNotBuild": "تعذّر بناء الجسر.",
   "learn.attempt": "محاولة {n} · مرفوضة",
@@ -179,6 +180,7 @@ export const ar: Dict = {
   "check.grading": "أُقيّم استرجاعك…",
   "check.submit": "أرسل الإجابات",
   "check.task": "مسألة",
+  "check.recallLabel": "استرجاع حر",
   "check.yourAnswer": "إجابتك",
   "check.solution": "الحل",
   "check.taskRight": "صحيح",
@@ -191,6 +193,26 @@ export const ar: Dict = {
   "check.backToMap": "عودة إلى الخريطة",
 
   "review.eyebrow": "التكرار المتباعد",
+
+  "review.logTitle": "سجلّ تعلّمك",
+
+  "review.logSub": "كل ما درسته — اضغط على أحدها لرؤية نتيجتك وإعادته.",
+
+  "review.dueNote": "{n} للمراجعة — اضغط للإعادة.",
+
+  "review.emptyLog": "لا شيء بعد. تعلّم مفهومًا وسيظهر هنا.",
+
+  "review.yesterday": "أمس",
+
+  "review.daysAgo": "قبل {n} يوم",
+
+  "review.multipleChoice": "اختيار من متعدد",
+
+  "review.noDetail": "لا توجد تفاصيل محفوظة لهذا العنصر.",
+
+  "review.relearnBtn": "إعادة التعلّم",
+
+  "review.tasksBtn": "تمارين",
   "review.title": "قائمة المراجعة · {n} مستحقة",
   "review.caughtUp": "كل شيء منجز",
   "review.next": "المراجعة التالية {when}.",
