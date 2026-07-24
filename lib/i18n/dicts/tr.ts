@@ -166,6 +166,8 @@ export const tr: Dict = {
   "learn.notedLean": "Not edildi — bu alana daha çok yaslanacağız.",
   "learn.notedDifferent": "Not edildi — bir dahaki sefere başka bir alan deneriz.",
   "learn.check": "Aklında kalanı sına →",
+  "learn.explainedVia": "Şunun üzerinden anlatıldı",
+  "learn.orVia": "başka bir ilgi alanı dene",
 
   "check.eyebrow": "Sınama · hafızadan",
   "check.sub":

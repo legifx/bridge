@@ -166,6 +166,8 @@ export const pl: Dict = {
   "learn.notedLean": "Zapisane — mocniej postawimy na tę domenę.",
   "learn.notedDifferent": "Zapisane — następnym razem spróbujemy innej domeny.",
   "learn.check": "Sprawdź, co zostało →",
+  "learn.explainedVia": "Wyjaśnione przez",
+  "learn.orVia": "wypróbuj inne zainteresowanie",
 
   "check.eyebrow": "Sprawdzian · z pamięci",
   "check.sub":

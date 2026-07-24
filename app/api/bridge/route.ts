@@ -12,7 +12,11 @@ import { chargeAi, quotaExceededResponse } from "@/lib/quota";
 
 export const runtime = "nodejs";
 
-const BodySchema = z.object({ conceptId: z.string().min(1) });
+const BodySchema = z.object({
+  conceptId: z.string().min(1),
+  // optional: the learner explicitly chose which interest to explain through
+  domainId: z.string().min(1).optional(),
+});
 
 export async function POST(req: Request) {
   const parsed = BodySchema.safeParse(await req.json().catch(() => null));
@@ -36,12 +40,26 @@ export async function POST(req: Request) {
     ? bytesToVec(concept.embedding)
     : await embed(`${concept.label}. ${concept.definition}`);
 
-  // Rank domains and prepare the top few as candidates. If the best domain's
-  // analogies all get rejected by the verifier, the engine tries the next one
-  // before ever falling back to a plain, non-analogical explanation.
-  const ranked = rankDomainsForConcept(conceptVec, domains);
-  if (ranked.length === 0) return NextResponse.json({ error: "Could not match a domain." }, { status: 500 });
-  const top = ranked.slice(0, 2);
+  // If the learner explicitly chose an interest, explain through exactly that
+  // one and nudge the Brain toward it (a manual pick is a real preference
+  // signal). Otherwise rank domains and try the top two before a plain fallback.
+  const chosen = parsed.data.domainId ? domains.find((d) => d.id === parsed.data.domainId) : undefined;
+  let top: { domain: (typeof domains)[number]; bandit: number }[];
+  if (chosen) {
+    top = [{ domain: chosen, bandit: chosen.alpha / (chosen.alpha + chosen.beta) }];
+    // Brain effect: bump the chosen domain's bandit so it leans this way next time.
+    await prisma.interestDomain.update({
+      where: { id: chosen.id },
+      data: {
+        alpha: { increment: 0.5 },
+        confidence: (chosen.alpha + 0.5) / (chosen.alpha + 0.5 + chosen.beta),
+      },
+    });
+  } else {
+    const ranked = rankDomainsForConcept(conceptVec, domains);
+    if (ranked.length === 0) return NextResponse.json({ error: "Could not match a domain." }, { status: 500 });
+    top = ranked.slice(0, 2);
+  }
   const candidates = await Promise.all(
     top.map(async ({ domain, bandit }) => ({
       domain: { id: domain.id, name: domain.name, anchors: domain.anchors, depth: domain.depth },

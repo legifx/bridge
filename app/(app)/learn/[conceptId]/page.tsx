@@ -43,6 +43,7 @@ export default function Learn() {
   const router = useRouter();
 
   const [concept, setConcept] = useState<Concept | null>(null);
+  const [domains, setDomains] = useState<{ id: string; name: string }[]>([]);
   const [bridge, setBridge] = useState<BridgeResp | null>(null);
   const [loadingBridge, setLoadingBridge] = useState(false);
   const [feedback, setFeedback] = useState<null | boolean>(null);
@@ -51,17 +52,21 @@ export default function Learn() {
   useEffect(() => {
     fetch("/api/concepts")
       .then((r) => r.json())
-      .then((d) => setConcept(d.concepts?.find((c: Concept) => c.id === conceptId) ?? null));
+      .then((d) => {
+        setConcept(d.concepts?.find((c: Concept) => c.id === conceptId) ?? null);
+        setDomains(d.domains ?? []);
+      });
   }, [conceptId]);
 
-  async function makeBridge() {
+  async function makeBridge(domainId?: string) {
     setLoadingBridge(true);
     setError(null);
+    setFeedback(null);
     try {
       const res = await fetch("/api/bridge", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ conceptId }),
+        body: JSON.stringify({ conceptId, ...(domainId ? { domainId } : {}) }),
       });
       if (res.status === 401) {
         window.location.href = "/signin?expired=1";
@@ -121,7 +126,7 @@ export default function Learn() {
 
         {!bridge && (
           <button
-            onClick={makeBridge}
+            onClick={() => makeBridge()}
             disabled={loadingBridge}
             className={`btn w-full ${loadingBridge ? "btn-working" : "btn-gradient"}`}
           >
@@ -216,6 +221,30 @@ export default function Learn() {
             {bridge.visualizations && bridge.visualizations.length > 0 && (
               <div className="reveal" style={{ animationDelay: "420ms" }}>
                 <LearnWidgets widgets={bridge.visualizations} />
+              </div>
+            )}
+
+            {/* pick a different interest to explain this through (feeds the Brain) */}
+            {domains.length > 1 && (
+              <div className="reveal card p-4" style={{ animationDelay: "480ms" }}>
+                <p className="slabel text-faint">
+                  {t("learn.explainedVia")}{" "}
+                  <span className="text-interest-text">{bridge.match.domainName}</span> · {t("learn.orVia")}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {domains
+                    .filter((d) => d.name !== bridge.match.domainName)
+                    .map((d) => (
+                      <button
+                        key={d.id}
+                        onClick={() => makeBridge(d.id)}
+                        disabled={loadingBridge}
+                        className="chip chip-interest transition hover:opacity-80"
+                      >
+                        {d.name}
+                      </button>
+                    ))}
+                </div>
               </div>
             )}
 

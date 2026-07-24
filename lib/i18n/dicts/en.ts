@@ -183,6 +183,8 @@ export const en = {
   "learn.notedLean": "Noted — we'll lean on this domain more.",
   "learn.notedDifferent": "Noted — we'll try a different domain next time.",
   "learn.check": "Check what stuck →",
+  "learn.explainedVia": "Explained through",
+  "learn.orVia": "try another interest",
 
   // ---- check ----
   "check.eyebrow": "Check · from memory",

@@ -166,6 +166,8 @@ export const ar: Dict = {
   "learn.notedLean": "سُجّل — سنعتمد على هذا المجال أكثر.",
   "learn.notedDifferent": "سُجّل — سنجرب مجالًا آخر المرة القادمة.",
   "learn.check": "اختبر ما رسخ ←",
+  "learn.explainedVia": "موضّح عبر",
+  "learn.orVia": "جرّب اهتمامًا آخر",
 
   "check.eyebrow": "اختبار · من الذاكرة",
   "check.sub":

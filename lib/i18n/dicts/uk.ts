@@ -166,6 +166,8 @@ export const uk: Dict = {
   "learn.notedLean": "Занотовано — спиратимемось на цей домен більше.",
   "learn.notedDifferent": "Занотовано — наступного разу спробуємо інший домен.",
   "learn.check": "Перевірити, що лишилось →",
+  "learn.explainedVia": "Пояснено через",
+  "learn.orVia": "спробуй інший інтерес",
 
   "check.eyebrow": "Перевірка · з пам'яті",
   "check.sub":
