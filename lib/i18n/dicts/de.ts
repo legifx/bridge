@@ -12,6 +12,7 @@ export const de: Dict = {
   "nav.review": "Wiederholen",
   "nav.capture": "Erfassen",
   "nav.brain": "Brain",
+  "nav.settings": "Einstellungen",
   "nav.teacher": "Lehrkraft",
   "nav.compare": "vergleichen ↗",
   "shell.signOut": "Abmelden",
@@ -19,6 +20,12 @@ export const de: Dict = {
   "shell.aiEmpty": "leer",
   "shell.aiLabel": "KI",
   "shell.language": "Hauptsprache",
+  "settings.eyebrow": "Einstellungen",
+  "settings.title": "Deine Einstellungen",
+  "settings.sub": "Sprache und wie deine Noten angezeigt werden.",
+  "settings.language": "Sprache",
+  "settings.gradeSystem": "Noten — dein Land",
+  "settings.gradeSystemSub": "Bewertungen werden im Notensystem dieses Landes angezeigt. Dein Fortschritt wird so oder so gleich gespeichert.",
   "shell.publicDemo":
     "Öffentliche Test-Demo · Konten sind offen (wer einen Namen kennt, kann das Profil öffnen) · bitte keine privaten Daten eingeben · jedes Profil hat ein kleines KI-Budget.",
 

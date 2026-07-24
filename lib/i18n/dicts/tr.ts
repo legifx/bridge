@@ -12,6 +12,7 @@ export const tr: Dict = {
   "nav.review": "Tekrar",
   "nav.capture": "Yakala",
   "nav.brain": "Beyin",
+  "nav.settings": "Ayarlar",
   "nav.teacher": "Öğretmen",
   "nav.compare": "karşılaştır ↗",
   "shell.signOut": "Çıkış yap",
@@ -19,6 +20,12 @@ export const tr: Dict = {
   "shell.aiEmpty": "boş",
   "shell.aiLabel": "YZ",
   "shell.language": "Ana dil",
+  "settings.eyebrow": "Ayarlar",
+  "settings.title": "Tercihlerin",
+  "settings.sub": "Dil ve notlarının nasıl gösterileceği.",
+  "settings.language": "Dil",
+  "settings.gradeSystem": "Notlar — ülken",
+  "settings.gradeSystemSub": "Puanlar bu ülkenin not sisteminde gösterilir. İlerlemen her durumda aynı şekilde saklanır.",
   "shell.publicDemo":
     "Herkese açık test demosu · hesaplar açıktır (bir ismi bilen herkes o profili açabilir) · lütfen özel veri girme · her profilin küçük bir yapay zekâ bütçesi vardır.",
 

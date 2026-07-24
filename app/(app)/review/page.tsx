@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
-import { Led } from "@/components/Led";
+import { Grade } from "@/components/Grade";
 import { useT } from "@/components/LanguageProvider";
 
 type ProblemDetail = { correct: boolean; feedback: string | null };
@@ -111,7 +111,7 @@ export default function Review() {
                       )}
                     </span>
                   </span>
-                  <Led value={`${Math.round(e.mastery * 100)}`} dot={2.6} color={masteryColor(e.mastery)} suffix="%" />
+                  <Grade score={e.mastery} dot={2.6} color={masteryColor(e.mastery)} />
                 </button>
 
                 {/* detail */}

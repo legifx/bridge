@@ -19,12 +19,16 @@ type I18n = {
   dict: Dict;
   t: (key: MsgKey, vars?: Record<string, string | number>) => string;
   setLang: (code: string, opts?: { persistRemote?: boolean }) => void;
+  /** country grade system for score display (see lib/grades.ts) */
+  gradeSystem: string;
+  setGradeSystem: (code: string) => void;
 };
 
 const Ctx = createContext<I18n | null>(null);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState("en");
+  const [gradeSystem, setGradeSystemState] = useState("percent");
 
   // hydrate. A local choice (localStorage) ALWAYS wins for the UI — otherwise
   // opening a profile stored in another language (e.g. the seeded English demo
@@ -39,6 +43,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       fetch("/api/me")
         .then((r) => r.json())
         .then((d) => {
+          if (typeof d?.learner?.gradeSystem === "string") setGradeSystemState(d.learner.gradeSystem);
           const remote = d?.learner?.language;
           if (typeof remote === "string" && remote !== stored) {
             // signed in, but the profile is on a different language → align it
@@ -56,6 +61,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     fetch("/api/me")
       .then((r) => r.json())
       .then((d) => {
+        if (typeof d?.learner?.gradeSystem === "string") setGradeSystemState(d.learner.gradeSystem);
         const remote = d?.learner?.language;
         if (typeof remote === "string" && remote.length >= 2) {
           setLangState(remote);
@@ -63,6 +69,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .catch(() => {});
+  }, []);
+
+  const setGradeSystem = useCallback((code: string) => {
+    setGradeSystemState(code);
+    fetch("/api/me", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ gradeSystem: code }),
+    }).catch(() => {});
   }, []);
 
   // the document direction follows the language (Arabic is RTL)
@@ -91,8 +106,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       dict,
       t: (key, vars) => format(dict[key], vars),
       setLang,
+      gradeSystem,
+      setGradeSystem,
     };
-  }, [lang, setLang]);
+  }, [lang, setLang, gradeSystem, setGradeSystem]);
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

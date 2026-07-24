@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Led } from "./Led";
-import { LanguageSelect } from "./LanguageSelect";
 import { useT } from "./LanguageProvider";
 
 const NAV = [
@@ -58,7 +57,25 @@ export function Shell({
         <div className="flex items-center gap-4">
           {me?.learner && (
             <span className="flex items-center gap-2.5">
-              <LanguageSelect compact />
+              <Link
+                href="/settings"
+                title={t("nav.settings")}
+                aria-label={t("nav.settings")}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-dim transition hover:bg-white/[0.1] hover:text-text"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path
+                    d="M12 15a3 3 0 100-6 3 3 0 000 6z"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                  />
+                  <path
+                    d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008.6 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H2a2 2 0 010-4h.09A1.65 1.65 0 003.6 8.6a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H8a1.65 1.65 0 001-1.51V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V8a1.65 1.65 0 001.51 1H22a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                  />
+                </svg>
+              </Link>
               {me.quota && (
                 <span className="flex items-baseline gap-1" title={t("shell.aiBudget")}>
                   {me.quota.remaining === 0 ? (

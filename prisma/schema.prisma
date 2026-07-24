@@ -20,6 +20,7 @@ model Learner {
   lockedUntil    DateTime? // sign-in blocked until this time after too many failures
   readingLevel Int      @default(3) // 1..5
   language     String   @default("en") // main language for learner-facing AI text (set at onboarding, editable later)
+  gradeSystem  String   @default("percent") // country grade system for score display (see lib/grades.ts)
   aiUnits      Int      @default(0) // AI-call units used (quota enforced on public demo only)
   createdAt    DateTime @default(now())
 

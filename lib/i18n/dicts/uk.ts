@@ -12,6 +12,7 @@ export const uk: Dict = {
   "nav.review": "Повторення",
   "nav.capture": "Додати",
   "nav.brain": "Мозок",
+  "nav.settings": "Налаштування",
   "nav.teacher": "Вчитель",
   "nav.compare": "порівняти ↗",
   "shell.signOut": "Вийти",
@@ -19,6 +20,12 @@ export const uk: Dict = {
   "shell.aiEmpty": "порожньо",
   "shell.aiLabel": "ШІ",
   "shell.language": "Основна мова",
+  "settings.eyebrow": "Налаштування",
+  "settings.title": "Твої налаштування",
+  "settings.sub": "Мова та як показуються твої оцінки.",
+  "settings.language": "Мова",
+  "settings.gradeSystem": "Оцінки — твоя країна",
+  "settings.gradeSystemSub": "Оцінки показуються в системі цієї країни. Твій прогрес зберігається однаково.",
   "shell.publicDemo":
     "Публічна тестова демоверсія · акаунти відкриті (будь-хто, хто знає ім'я, може відкрити профіль) · не вводьте приватних даних · кожен профіль має невеликий ШІ-бюджет.",
 

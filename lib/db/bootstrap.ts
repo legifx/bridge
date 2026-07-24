@@ -54,6 +54,10 @@ const RUNTIME_MIGRATIONS: RuntimeMigration[] = [
     name: "20260724130000_concept_charged",
     statements: [`ALTER TABLE "Concept" ADD COLUMN "charged" BOOLEAN NOT NULL DEFAULT false`],
   },
+  {
+    name: "20260724150000_grade_system",
+    statements: [`ALTER TABLE "Learner" ADD COLUMN "gradeSystem" TEXT NOT NULL DEFAULT 'percent'`],
+  },
 ];
 
 async function run(): Promise<void> {

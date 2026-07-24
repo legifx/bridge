@@ -12,6 +12,7 @@ export const ar: Dict = {
   "nav.review": "المراجعة",
   "nav.capture": "إضافة",
   "nav.brain": "الدماغ",
+  "nav.settings": "الإعدادات",
   "nav.teacher": "المعلّم",
   "nav.compare": "قارن ↗",
   "shell.signOut": "تسجيل الخروج",
@@ -19,6 +20,12 @@ export const ar: Dict = {
   "shell.aiEmpty": "فارغ",
   "shell.aiLabel": "ذ.ا",
   "shell.language": "اللغة الرئيسية",
+  "settings.eyebrow": "الإعدادات",
+  "settings.title": "تفضيلاتك",
+  "settings.sub": "اللغة وطريقة عرض درجاتك.",
+  "settings.language": "اللغة",
+  "settings.gradeSystem": "الدرجات — بلدك",
+  "settings.gradeSystemSub": "تُعرض النتائج بنظام درجات هذا البلد. يُحفظ تقدّمك بنفس الطريقة في كل الأحوال.",
   "shell.publicDemo":
     "نسخة تجريبية عامة · الحسابات مفتوحة (أي شخص يعرف الاسم يمكنه فتح الملف) · لا تُدخل بيانات خاصة · لكل ملف رصيد صغير من الذكاء الاصطناعي.",
 

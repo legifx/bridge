@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
-import { Led } from "@/components/Led";
+import { Grade } from "@/components/Grade";
 import { useT } from "@/components/LanguageProvider";
 import type { Problem } from "@/lib/quiz";
 
@@ -244,14 +244,9 @@ export default function Check() {
             } as React.CSSProperties
           }
         >
-          {/* this check's grade — the headline, coherent with the points earned */}
+          {/* this check's grade — the headline, in the learner's country system */}
           <div className="flex items-center justify-center gap-3">
-            <Led
-              value={`${Math.round(result.score * 100)}`}
-              dot={5}
-              color={result.passed ? "#c9ff7a" : "#ffb877"}
-              suffix="%"
-            />
+            <Grade score={result.score} dot={6} color={result.passed ? "#c9ff7a" : "#ffb877"} />
           </div>
           <p
             className={`mt-3 text-lg font-semibold tracking-tight ${
@@ -267,7 +262,7 @@ export default function Check() {
           {/* long-term mastery + next review, secondary */}
           <div className="mt-5 flex items-center justify-center gap-2">
             <span className="slabel text-faint">{t("check.masteryLabel")}</span>
-            <Led value={`${Math.round(result.mastery * 100)}`} dot={2.6} color="#9dc0ff" suffix="%" />
+            <Grade score={result.mastery} dot={2.6} color="#9dc0ff" />
             <span className="slabel text-faint">· {t("check.mastery", { d: result.nextIntervalDays })}</span>
           </div>
 

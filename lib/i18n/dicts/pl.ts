@@ -12,6 +12,7 @@ export const pl: Dict = {
   "nav.review": "Powtórki",
   "nav.capture": "Dodaj",
   "nav.brain": "Mózg",
+  "nav.settings": "Ustawienia",
   "nav.teacher": "Nauczyciel",
   "nav.compare": "porównaj ↗",
   "shell.signOut": "Wyloguj",
@@ -19,6 +20,12 @@ export const pl: Dict = {
   "shell.aiEmpty": "pusto",
   "shell.aiLabel": "SI",
   "shell.language": "Główny język",
+  "settings.eyebrow": "Ustawienia",
+  "settings.title": "Twoje preferencje",
+  "settings.sub": "Język i sposób wyświetlania ocen.",
+  "settings.language": "Język",
+  "settings.gradeSystem": "Oceny — twój kraj",
+  "settings.gradeSystemSub": "Wyniki są pokazywane w systemie ocen tego kraju. Twoje postępy są zapisywane tak samo.",
   "shell.publicDemo":
     "Publiczna wersja testowa · konta są otwarte (każdy, kto zna imię, może otworzyć ten profil) · nie wpisuj prywatnych danych · każdy profil ma mały budżet AI.",
 

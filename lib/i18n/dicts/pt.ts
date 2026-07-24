@@ -12,6 +12,7 @@ export const pt: Dict = {
   "nav.review": "Revisão",
   "nav.capture": "Capturar",
   "nav.brain": "Cérebro",
+  "nav.settings": "Definições",
   "nav.teacher": "Docente",
   "nav.compare": "comparar ↗",
   "shell.signOut": "Terminar sessão",
@@ -19,6 +20,12 @@ export const pt: Dict = {
   "shell.aiEmpty": "vazio",
   "shell.aiLabel": "IA",
   "shell.language": "Idioma principal",
+  "settings.eyebrow": "Definições",
+  "settings.title": "As tuas preferências",
+  "settings.sub": "Idioma e como as tuas notas são mostradas.",
+  "settings.language": "Idioma",
+  "settings.gradeSystem": "Notas — o teu país",
+  "settings.gradeSystemSub": "As pontuações são mostradas no sistema de notas deste país. O teu progresso é guardado da mesma forma.",
   "shell.publicDemo":
     "Demo pública de teste · as contas são abertas (quem souber um nome pode abrir esse perfil) · não insiras dados privados · cada perfil tem um pequeno orçamento de IA.",
 

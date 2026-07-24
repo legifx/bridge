@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { LEARNER_COOKIE, isValidUsername, normalizeHandle } from "@/lib/db/learner";
 import { hashPassword, verifyPassword, isValidPassword, safeEqual } from "@/lib/auth/password";
 import { st } from "@/lib/i18n";
+import { defaultGradeSystem } from "@/lib/grades";
 
 export const runtime = "nodejs";
 
@@ -121,6 +122,7 @@ export async function POST(req: Request) {
           handle,
           passwordHash: await hashPassword(password),
           unlimited: ownerUnlock,
+          gradeSystem: defaultGradeSystem(lang), // sensible default from UI language
           ...(lang ? { language: lang } : {}),
         },
       });

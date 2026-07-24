@@ -19,6 +19,7 @@ export const en = {
   "nav.review": "Review",
   "nav.capture": "Capture",
   "nav.brain": "Brain",
+  "nav.settings": "Settings",
   "nav.teacher": "Teacher",
   "nav.compare": "compare ↗",
   "shell.signOut": "Sign out",
@@ -26,6 +27,12 @@ export const en = {
   "shell.aiEmpty": "empty",
   "shell.aiLabel": "AI",
   "shell.language": "Main language",
+  "settings.eyebrow": "Settings",
+  "settings.title": "Your preferences",
+  "settings.sub": "Language and how your grades are shown.",
+  "settings.language": "Language",
+  "settings.gradeSystem": "Grades — your country",
+  "settings.gradeSystemSub": "Scores are shown in this country's grading system. Your progress is stored the same either way.",
   "shell.publicDemo":
     "Public test demo · accounts are open (anyone who knows a name can open that profile) · please don't enter private data · each profile carries a small AI budget.",
 
