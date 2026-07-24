@@ -186,6 +186,7 @@ export const ar: Dict = {
   "check.writing": "أكتب أسئلتك…",
   "check.generating": "تُولَّد من المصدر لا من التشبيه",
   "check.freePlaceholder": "من الذاكرة، بكلماتك أنت…",
+  "check.speak": "انطق إجابتك",
   "check.grading": "أُقيّم استرجاعك…",
   "check.submit": "أرسل الإجابات",
   "check.points": "نقطة",

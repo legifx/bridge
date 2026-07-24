@@ -186,6 +186,7 @@ export const uk: Dict = {
   "check.writing": "пишу твої питання…",
   "check.generating": "генерується з джерела, а не з аналогії",
   "check.freePlaceholder": "З пам'яті, своїми словами…",
+  "check.speak": "Скажи відповідь",
   "check.grading": "оцінюю твоє пригадування…",
   "check.submit": "Надіслати відповіді",
   "check.points": "бал.",

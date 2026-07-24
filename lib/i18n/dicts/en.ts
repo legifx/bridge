@@ -204,6 +204,7 @@ export const en = {
   "check.writing": "writing your questions…",
   "check.generating": "generating from the source, not the analogy",
   "check.freePlaceholder": "From memory, in your own words…",
+  "check.speak": "Speak your answer",
   "check.grading": "grading your recall…",
   "check.submit": "Submit answers",
   "check.points": "pts",

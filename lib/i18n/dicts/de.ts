@@ -186,6 +186,7 @@ export const de: Dict = {
   "check.writing": "schreibe deine Fragen…",
   "check.generating": "erzeugt aus der Quelle, nicht aus der Analogie",
   "check.freePlaceholder": "Aus dem Gedächtnis, in eigenen Worten…",
+  "check.speak": "Antwort einsprechen",
   "check.grading": "bewerte deinen Abruf…",
   "check.submit": "Antworten abgeben",
   "check.points": "Pkt.",

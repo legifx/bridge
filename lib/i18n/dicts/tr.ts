@@ -186,6 +186,7 @@ export const tr: Dict = {
   "check.writing": "soruların yazılıyor…",
   "check.generating": "benzetmeden değil, kaynaktan üretiliyor",
   "check.freePlaceholder": "Hafızadan, kendi kelimelerinle…",
+  "check.speak": "Cevabını söyle",
   "check.grading": "hatırlaman değerlendiriliyor…",
   "check.submit": "Cevapları gönder",
   "check.points": "puan",

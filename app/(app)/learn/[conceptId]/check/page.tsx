@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { Grade } from "@/components/Grade";
+import { MicButton } from "@/components/MicButton";
 import { useT } from "@/components/LanguageProvider";
 import type { Problem } from "@/lib/quiz";
 
@@ -140,13 +141,16 @@ export default function Check() {
         <div className="card space-y-6 p-6">
           <div>
             <p className="text-sm font-medium text-text">{quiz.free.prompt}</p>
-            <textarea
-              value={freeAnswer}
-              onChange={(e) => setFreeAnswer(e.target.value)}
-              rows={4}
-              placeholder={t("check.freePlaceholder")}
-              className="input mt-3 resize-y text-sm"
-            />
+            <div className="mt-3 flex items-start gap-2">
+              <textarea
+                value={freeAnswer}
+                onChange={(e) => setFreeAnswer(e.target.value)}
+                rows={4}
+                placeholder={t("check.freePlaceholder")}
+                className="input flex-1 resize-y text-sm"
+              />
+              <MicButton onText={(txt) => setFreeAnswer((p) => (p.trim() ? `${p} ${txt}` : txt))} />
+            </div>
           </div>
           <div>
             <p className="text-sm font-medium text-text">{quiz.mcq.prompt}</p>
@@ -207,19 +211,31 @@ export default function Check() {
                 </div>
               )}
               {p.type === "open" && (
-                <textarea
-                  value={typeof responses[i] === "string" ? (responses[i] as string) : ""}
-                  onChange={(e) =>
-                    setResponses((r) => {
-                      const n = [...r];
-                      n[i] = e.target.value;
-                      return n;
-                    })
-                  }
-                  rows={3}
-                  placeholder={t("check.yourAnswer")}
-                  className="input mt-3 resize-y text-sm"
-                />
+                <div className="mt-3 flex items-start gap-2">
+                  <textarea
+                    value={typeof responses[i] === "string" ? (responses[i] as string) : ""}
+                    onChange={(e) =>
+                      setResponses((r) => {
+                        const n = [...r];
+                        n[i] = e.target.value;
+                        return n;
+                      })
+                    }
+                    rows={3}
+                    placeholder={t("check.yourAnswer")}
+                    className="input flex-1 resize-y text-sm"
+                  />
+                  <MicButton
+                    onText={(txt) =>
+                      setResponses((r) => {
+                        const n = [...r];
+                        const cur = typeof n[i] === "string" ? (n[i] as string) : "";
+                        n[i] = cur.trim() ? `${cur} ${txt}` : txt;
+                        return n;
+                      })
+                    }
+                  />
+                </div>
               )}
             </div>
           ))}
