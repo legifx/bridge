@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCurrentLearner } from "@/lib/db/learner";
 import { getLearnerGraph } from "@/lib/extraction/repo";
 import { getDomainVMs } from "@/lib/profile/repo";
+import { isPublicDemo } from "@/lib/quota";
 
 export const runtime = "nodejs";
 
@@ -17,5 +18,8 @@ export async function GET() {
     learner: { id: learner.id, displayName: learner.displayName, readingLevel: learner.readingLevel },
     ...graph,
     domains,
+    // Does starting a new aspect spend budget here? The learn screen uses this
+    // to decide whether it may generate on open or must ask first.
+    demo: isPublicDemo() && !learner.unlimited,
   });
 }

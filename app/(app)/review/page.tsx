@@ -100,7 +100,7 @@ export default function Review() {
                 {/* row */}
                 <button
                   onClick={() => setOpen(isOpen ? null : e.id)}
-                  className="flex w-full items-center gap-3 p-4 text-left transition hover:bg-white/[0.03]"
+                  className="flex w-full items-center gap-3 p-4 text-start transition hover:bg-white/[0.03]"
                 >
                   <span
                     className="h-2 w-2 shrink-0 rounded-full"

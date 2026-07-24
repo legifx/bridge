@@ -89,7 +89,7 @@ export function BridgeViz({
             <div className="grid grid-cols-[1fr_auto_1fr] items-baseline gap-4">
               <span className="truncate text-sm font-medium text-curriculum-text">{c.subject}</span>
               <span className="font-mono text-2xs text-faint">↔</span>
-              <span className="truncate text-right text-sm font-medium text-interest-text">
+              <span className="truncate text-end text-sm font-medium text-interest-text">
                 {c.yourWorld}
               </span>
             </div>

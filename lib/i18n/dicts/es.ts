@@ -328,6 +328,26 @@ export const es: Dict = {
     "Presupuesto de demo agotado para este perfil. Entra con otro nombre para seguir explorando — o clona el repo y ejecuta Bridge con tu propia clave.",
   "err.sessionStale":
     "Esta entrevista ya está terminada. Recarga la página para ver tu perfil.",
+  "common.retry":
+    "Intentar de nuevo",
+  "learn.costsUnit":
+    "Usa una de tus unidades de IA — todo lo demás sobre este concepto será gratis.",
+  "check.missingFree":
+    "Escribe tu respuesta con tus palabras para poder enviar.",
+  "check.missingMcq":
+    "Elige una de las opciones para poder enviar.",
+  "check.missingBoth":
+    "Responde con tus palabras y elige una opción para enviar.",
+  "widget.tryIt":
+    "pruébalo",
+  "learn.waitHint":
+    "tarda unos 10 segundos",
+  "learn.stillWorking":
+    "Está tardando más de lo normal — sigue en marcha.",
+  "flow.label": "Pasos de este concepto",
+  "flow.explain": "Explicación",
+  "flow.check": "Prueba",
+  "flow.result": "Resultado",
   "err.aiBusy":
     "El servicio de IA está saturado ahora mismo. Espera unos segundos e inténtalo de nuevo.",
   "err.aiSlow":

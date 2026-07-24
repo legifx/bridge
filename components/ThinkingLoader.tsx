@@ -23,12 +23,15 @@ export function ThinkingLoader({
   items = [],
   glow = "var(--interest)",
   expectedMs = 6000,
+  slowNote,
 }: {
   stages: ThinkingStage[];
   /** real data flowing through the pipeline (seeds, answers…) — shown as drifting chips */
   items?: string[];
   glow?: string;
   expectedMs?: number;
+  /** shown once the wait clearly exceeds what was promised (slow network/provider) */
+  slowNote?: string;
 }) {
   const [stage, setStage] = useState(0);
   const [itemIdx, setItemIdx] = useState(0);
@@ -52,6 +55,13 @@ export function ThinkingLoader({
     const t = setInterval(() => setStage((s) => Math.min(s + 1, count - 1)), perStage);
     return () => clearInterval(t);
   }, [count, perStage]);
+
+  // Past roughly double the expected time, silence starts to read as "stuck".
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setSlow(true), perStage * count * 2);
+    return () => clearTimeout(t);
+  }, [perStage, count]);
 
   useEffect(() => {
     if (itemCount < 2) return;
@@ -119,7 +129,7 @@ export function ThinkingLoader({
       )}
 
       {/* stage narration — done stages dim, the current one shimmers */}
-      <ol className="mx-auto inline-block space-y-2 text-left">
+      <ol className="mx-auto inline-block space-y-2 text-start">
         {stages.map((s, i) => (
           <li key={s.label} className="flex items-center gap-3 text-sm">
             <span
@@ -144,6 +154,7 @@ export function ThinkingLoader({
       {stages[stage]?.detail && (
         <p className="mt-3 text-xs leading-relaxed text-dim">{stages[stage].detail}</p>
       )}
+      {slow && slowNote && <p className="mt-3 text-xs leading-relaxed text-orange-text">{slowNote}</p>}
     </div>
   );
 }

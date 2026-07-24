@@ -187,7 +187,7 @@ export default function Home() {
                   </div>
 
                   <div
-                    className="space-y-10 border-l pl-4 min-[440px]:pl-5"
+                    className="space-y-10 border-s ps-4 min-[440px]:ps-5"
                     style={{ borderColor: `color-mix(in oklab, ${glow} 35%, transparent)` }}
                   >
                     {s.folders.map((f) => (

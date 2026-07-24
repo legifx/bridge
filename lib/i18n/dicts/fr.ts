@@ -328,6 +328,26 @@ export const fr: Dict = {
     "Budget démo épuisé pour ce profil. Connecte-toi avec un autre nom pour continuer — ou clone le dépôt et lance Bridge avec ta propre clé.",
   "err.sessionStale":
     "Cet entretien est déjà terminé. Recharge la page pour voir ton profil.",
+  "common.retry":
+    "Réessayer",
+  "learn.costsUnit":
+    "Utilise une de tes unités d'IA — tout le reste sur ce concept sera gratuit.",
+  "check.missingFree":
+    "Écris ta réponse avec tes mots pour pouvoir envoyer.",
+  "check.missingMcq":
+    "Choisis une des options pour pouvoir envoyer.",
+  "check.missingBoth":
+    "Réponds avec tes mots et choisis une option pour envoyer.",
+  "widget.tryIt":
+    "essaie",
+  "learn.waitHint":
+    "prend environ 10 secondes",
+  "learn.stillWorking":
+    "Plus long que d'habitude — ça continue.",
+  "flow.label": "Étapes de ce concept",
+  "flow.explain": "Explication",
+  "flow.check": "Contrôle",
+  "flow.result": "Résultat",
   "err.aiBusy":
     "Le service d'IA est surchargé pour le moment. Patiente quelques secondes et réessaie.",
   "err.aiSlow":

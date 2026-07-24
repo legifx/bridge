@@ -328,6 +328,26 @@ export const de: Dict = {
     "Demo-Budget dieses Profils aufgebraucht. Melde dich mit einem anderen Namen an, um weiterzumachen — oder klone das Repo und starte Bridge mit eigenem Key.",
   "err.sessionStale":
     "Dieses Interview ist schon abgeschlossen. Lade die Seite neu, um dein Profil zu sehen.",
+  "common.retry":
+    "Nochmal versuchen",
+  "learn.costsUnit":
+    "Verbraucht eine deiner KI-Einheiten — alles Weitere zu diesem Konzept ist dann gratis.",
+  "check.missingFree":
+    "Schreib deine Antwort in eigenen Worten, dann kannst du abgeben.",
+  "check.missingMcq":
+    "Wähle eine der Multiple-Choice-Optionen, dann kannst du abgeben.",
+  "check.missingBoth":
+    "Beantworte die Frage in eigenen Worten und wähle eine Multiple-Choice-Option.",
+  "widget.tryIt":
+    "ausprobieren",
+  "learn.waitHint":
+    "dauert etwa 10 Sekunden",
+  "learn.stillWorking":
+    "Dauert länger als sonst — läuft aber noch.",
+  "flow.label": "Schritte in diesem Konzept",
+  "flow.explain": "Erklärung",
+  "flow.check": "Check",
+  "flow.result": "Ergebnis",
   "err.aiBusy":
     "Der KI-Dienst ist gerade ausgelastet. Warte ein paar Sekunden und versuche es erneut.",
   "err.aiSlow":

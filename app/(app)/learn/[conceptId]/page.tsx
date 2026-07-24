@@ -6,10 +6,18 @@ import { Shell } from "@/components/Shell";
 import { BridgeViz } from "@/components/BridgeViz";
 import { LearnWidgets } from "@/components/LearnWidgets";
 import { ThinkingLoader } from "@/components/ThinkingLoader";
+import { FlowSteps } from "@/components/FlowSteps";
 import { useT } from "@/components/LanguageProvider";
 import type { Widget } from "@/lib/learn/widgets";
 
-type Concept = { id: string; label: string; definition: string; sourceQuote: string };
+type Concept = {
+  id: string;
+  label: string;
+  definition: string;
+  sourceQuote: string;
+  /** demo budget: already paid for, so re-opening this aspect costs nothing */
+  charged: boolean;
+};
 type Body = {
   opening: string;
   correspondences: { subject: string; yourWorld: string; explanation: string }[];
@@ -49,13 +57,19 @@ export default function Learn() {
   const [loadingBridge, setLoadingBridge] = useState(false);
   const [feedback, setFeedback] = useState<null | boolean>(null);
   const [error, setError] = useState<string | null>(null);
+  /** null until we know; true = starting an explanation would spend AI budget */
+  const [costsBudget, setCostsBudget] = useState<boolean | null>(null);
+  /** have we looked for a previously generated explanation yet? */
+  const [cacheChecked, setCacheChecked] = useState(false);
 
   useEffect(() => {
     fetch("/api/concepts")
       .then((r) => r.json())
       .then((d) => {
-        setConcept(d.concepts?.find((c: Concept) => c.id === conceptId) ?? null);
+        const c: Concept | null = d.concepts?.find((x: Concept) => x.id === conceptId) ?? null;
+        setConcept(c);
         setDomains(d.domains ?? []);
+        setCostsBudget(Boolean(d.demo) && !c?.charged);
       });
   }, [conceptId]);
 
@@ -64,11 +78,40 @@ export default function Learn() {
   // render pass and a chance to disagree with the address bar.
   const relearn = useSearchParams().get("relearn") === "1";
 
-  // …and auto-build a fresh explanation that targets what was missed last time.
+  // Was this aspect explained before? Then show THAT explanation — instantly,
+  // free, and identical to what the learner remembers reading. Re-generating on
+  // every visit spent money and time to produce a different text than the one
+  // they came back for.
   useEffect(() => {
-    if (relearn) makeBridge(undefined, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // …unless this is an explicit re-learn, which exists precisely to produce a
+    // NEW explanation aimed at last time's mistakes.
+    if (relearn) return;
+    let cancelled = false;
+    fetch(`/api/bridge?conceptId=${encodeURIComponent(conceptId)}`)
+      .then((r) => r.json())
+      .then((d) => {
+        if (!cancelled && d.bridge) setBridge(d.bridge);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!cancelled) setCacheChecked(true);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [conceptId, relearn]);
+
+  // Opening an aspect IS the request for its explanation, so it starts on its
+  // own — the extra tap only delayed a wait the learner had already accepted.
+  // The one exception is the public demo, where the first explanation for an
+  // aspect spends part of a small budget: nobody should lose a unit to a
+  // mis-tap, so there we still ask.
+  useEffect(() => {
+    // A re-learn never waits on the cache lookup — it skips it entirely.
+    if (costsBudget === null || !(cacheChecked || relearn) || bridge || loadingBridge) return;
+    if (relearn || !costsBudget) makeBridge(undefined, relearn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conceptId, relearn, costsBudget, cacheChecked]);
 
   async function makeBridge(domainId?: string, doRelearn?: boolean) {
     setLoadingBridge(true);
@@ -113,6 +156,8 @@ export default function Learn() {
   if (!concept) {
     return (
       <Shell>
+        {/* the stepper stays put across the load, so it does not pop in late */}
+        <FlowSteps current={1} />
         <p className="mt-16 text-center text-sm text-faint">{t("learn.loading")}</p>
       </Shell>
     );
@@ -120,6 +165,7 @@ export default function Learn() {
 
   return (
     <Shell>
+      <FlowSteps current={1} />
       <div className="space-y-6">
         {/* concept, plain, subject vocabulary — curriculum blue */}
         <header
@@ -171,10 +217,16 @@ export default function Learn() {
           </div>
         )}
 
-        {!bridge && !loadingBridge && (
-          <button onClick={() => makeBridge()} className="btn btn-gradient w-full">
-            {t("learn.explain")}
-          </button>
+        {/* Only the public demo still asks first — see the auto-start effect. */}
+        {!bridge && !loadingBridge && costsBudget === true && (
+          <div className="space-y-2">
+            <button onClick={() => makeBridge()} className="btn btn-gradient w-full">
+              {t("learn.explain")}
+            </button>
+            <p className="text-center text-xs text-faint">
+              {t("learn.costsUnit")} · {t("learn.waitHint")}
+            </p>
+          </div>
         )}
         {!bridge && loadingBridge && (
           <ThinkingLoader
@@ -185,15 +237,32 @@ export default function Learn() {
             ]}
             glow="var(--interest)"
             expectedMs={11000}
+            slowNote={t("learn.stillWorking")}
           />
         )}
         {error && (
-          <p className="bg-[rgba(255,51,85,0.1)] p-4 text-sm text-reject-text" style={{ borderRadius: "var(--r)" }}>
-            {error}
-          </p>
+          <div
+            className="bg-[rgba(255,51,85,0.1)] p-4"
+            style={{ borderRadius: "var(--r)" }}
+            role="alert"
+          >
+            <p className="text-sm text-reject-text">{error}</p>
+            {/* A failed generation is usually transient (busy provider, slow
+                upstream) — offer the retry here instead of making the learner
+                navigate away and back. */}
+            <button
+              onClick={() => makeBridge(undefined, relearn)}
+              disabled={loadingBridge}
+              className="btn btn-glass mt-3 w-full"
+            >
+              {t("common.retry")}
+            </button>
+          </div>
         )}
 
-        {/* regenerating (interest switch / relearn): show progress, not stale content */}
+        {/* Regenerating (interest switch / relearn): show the progress ABOVE the
+            current explanation instead of replacing it. Switching interests out
+            of curiosity used to blank the text mid-sentence for nine seconds. */}
         {bridge && loadingBridge && (
           <ThinkingLoader
             stages={[
@@ -202,11 +271,15 @@ export default function Learn() {
             ]}
             glow="var(--interest)"
             expectedMs={9000}
+            slowNote={t("learn.stillWorking")}
           />
         )}
 
-        {bridge && !loadingBridge && (
-          <>
+        {bridge && (
+          <div
+            className={loadingBridge ? "pointer-events-none space-y-6 opacity-40 transition-opacity" : "space-y-6"}
+            aria-busy={loadingBridge}
+          >
             {/* accepted bridge — signature viz */}
             {!bridge.isFallback ? (
               <>
@@ -271,7 +344,10 @@ export default function Learn() {
               <p className="mt-2 text-sm leading-relaxed text-dim">{bridge.body.plainRestatement}</p>
             </div>
 
-            {/* feedback -> Thompson */}
+            {/* Feedback feeds the interest bandit — but it must stay OPTIONAL.
+                Gating the way forward behind it made the rating the price of
+                continuing, which is both a wall and bad data: whoever wants to
+                move on taps whichever button unblocks them. */}
             {feedback === null ? (
               <div className="reveal flex gap-3" style={{ animationDelay: "520ms" }}>
                 <button onClick={() => sendFeedback(true)} className="btn btn-acid flex-1">
@@ -288,15 +364,13 @@ export default function Learn() {
             )}
 
             {/* the check lives on its own page: recall from memory, no scrolling back */}
-            {feedback !== null && (
-              <button
-                onClick={() => router.push(`/learn/${conceptId}/check`)}
-                className="btn btn-primary w-full"
-              >
-                {t("learn.check")}
-              </button>
-            )}
-          </>
+            <button
+              onClick={() => router.push(`/learn/${conceptId}/check`)}
+              className="btn btn-primary w-full"
+            >
+              {t("learn.check")}
+            </button>
+          </div>
         )}
       </div>
     </Shell>

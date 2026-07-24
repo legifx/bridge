@@ -162,11 +162,11 @@ export default function Brain() {
               </Link>
             </div>
           ) : (
-            <div className="relative mt-8 pl-9">
+            <div className="relative mt-8 ps-9">
               {/* spine */}
-              <span className="absolute bottom-6 left-3 top-0 w-px bg-hair" aria-hidden />
+              <span className="absolute bottom-6 start-3 top-0 w-px bg-hair" aria-hidden />
               {/* root */}
-              <div className="absolute -top-1 left-3 -translate-x-1/2" aria-hidden>
+              <div className="absolute -top-1 start-3 -translate-x-1/2" aria-hidden>
                 <span
                   className="block h-2.5 w-2.5 rounded-full"
                   style={{ background: "var(--violet)", boxShadow: "0 0 12px var(--violet)" }}
@@ -178,7 +178,7 @@ export default function Brain() {
                   <div key={i} className="reveal relative" style={{ animationDelay: `${i * 90}ms` }}>
                     {/* branch elbow */}
                     <svg
-                      className="absolute -left-6 top-7 h-6 w-6"
+                      className="absolute -start-6 top-7 h-6 w-6"
                       viewBox="0 0 24 24"
                       aria-hidden
                     >

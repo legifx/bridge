@@ -274,12 +274,12 @@ export default function Onboarding() {
                   <button
                     type="button"
                     onClick={() => toggleBroad(di)}
-                    className={`opt ring-focus w-full text-left ${active ? "opt-active" : ""}`}
+                    className={`opt ring-focus w-full text-start ${active ? "opt-active" : ""}`}
                   >
                     {d.label}
                   </button>
                   {open && (
-                    <div className="mt-2 flex flex-wrap gap-2 pl-1">
+                    <div className="mt-2 flex flex-wrap gap-2 ps-1">
                       {d.subs.map((sub, si) => {
                         const key = `${di}:${si}`;
                         return (

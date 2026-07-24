@@ -341,6 +341,26 @@ export const en = {
     "Demo budget used up for this profile. Sign in with a different name to keep exploring — or clone the repo and run Bridge with your own key.",
   "err.sessionStale":
     "This interview has already been completed. Reload the page to see your profile.",
+  "common.retry":
+    "Try again",
+  "learn.costsUnit":
+    "Uses one of your AI units — everything else about this concept is then free.",
+  "check.missingFree":
+    "Write your answer in your own words to submit.",
+  "check.missingMcq":
+    "Pick one of the multiple-choice options to submit.",
+  "check.missingBoth":
+    "Answer the recall question and pick a multiple-choice option to submit.",
+  "widget.tryIt":
+    "try it",
+  "learn.waitHint":
+    "takes about 10 seconds",
+  "learn.stillWorking":
+    "Taking longer than usual — still working.",
+  "flow.label": "Steps in this concept",
+  "flow.explain": "Explanation",
+  "flow.check": "Check",
+  "flow.result": "Result",
   "err.aiBusy":
     "The AI service is busy right now. Wait a few seconds and try again.",
   "err.aiSlow":

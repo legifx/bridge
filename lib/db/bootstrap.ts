@@ -58,6 +58,10 @@ const RUNTIME_MIGRATIONS: RuntimeMigration[] = [
     name: "20260724150000_grade_system",
     statements: [`ALTER TABLE "Learner" ADD COLUMN "gradeSystem" TEXT NOT NULL DEFAULT 'percent'`],
   },
+  {
+    name: "20260724210000_bridge_render_cache",
+    statements: [`ALTER TABLE "Bridge" ADD COLUMN "renderJson" TEXT`],
+  },
 ];
 
 async function run(): Promise<void> {

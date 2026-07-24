@@ -12,6 +12,8 @@ export type ConceptVM = {
   sourceId: string | null;
   reviewEnabled: boolean;
   dueAt: string | null; // next spaced-repetition due date, if any reviews exist
+  /** demo quota: this aspect is already paid for, so opening it costs nothing */
+  charged: boolean;
 };
 
 export type SourceVM = {
@@ -74,6 +76,7 @@ export async function getLearnerGraph(learnerId: string): Promise<LearnerGraph> 
       sourceId: c.sourceId,
       reviewEnabled: c.reviewEnabled,
       dueAt: c.reviews[0]?.nextDueAt.toISOString() ?? null,
+      charged: c.charged,
     })),
     sources: sources.map((s) => ({
       id: s.id,

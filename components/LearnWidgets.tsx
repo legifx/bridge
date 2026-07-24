@@ -18,6 +18,8 @@ export function LearnWidgets({ widgets }: { widgets: Widget[] }) {
 }
 
 function WidgetCard({ w }: { w: Widget }) {
+  const t = useT();
+  const interactive = w.type === "formula" || w.type === "steps";
   return (
     <div
       className="aura card p-5"
@@ -30,9 +32,14 @@ function WidgetCard({ w }: { w: Widget }) {
         } as React.CSSProperties
       }
     >
-      <p className="slabel" style={{ color: "#ffa6d8" }}>
-        {w.title}
-      </p>
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="slabel" style={{ color: "#ffa6d8" }}>
+          {w.title}
+        </p>
+        {/* Interactive widgets read as decoration unless they say they react to
+            touch — the formula sliders in particular went unused. */}
+        {interactive && <span className="slabel shrink-0 text-faint">{t("widget.tryIt")}</span>}
+      </div>
       {w.caption && <p className="mt-1.5 text-xs leading-relaxed text-faint">{w.caption}</p>}
       <div className="mt-4">
         {w.type === "scale" && <ScaleWidget w={w} />}
@@ -84,11 +91,11 @@ function ScaleWidget({ w }: { w: Extract<Widget, { type: "scale" }> }) {
                 style={{ background: "var(--interest)", boxShadow: "0 0 12px var(--interest)" }}
               />
               <div
-                className="absolute left-1/2 mt-1.5 -translate-x-1/2 whitespace-nowrap text-2xs font-medium text-dim"
+                className="absolute start-1/2 mt-1.5 -translate-x-1/2 whitespace-nowrap text-2xs font-medium text-dim"
                 style={{ top: "100%" }}
               >
                 {m.label}
-                <span className="ml-1 font-mono text-faint">
+                <span className="ms-1 font-mono text-faint">
                   {m.value}
                   {w.unit ?? ""}
                 </span>
@@ -156,7 +163,7 @@ function StepsWidget({ w }: { w: Extract<Widget, { type: "steps" }> }) {
         className="slabel mt-4 text-interest-text transition hover:opacity-80"
       >
         {done ? `↺ ${t("widget.replay")}` : `${t("widget.nextStep")} →`}
-        <span className="ml-2 font-mono text-faint">
+        <span className="ms-2 font-mono text-faint">
           {shown}/{w.steps.length}
         </span>
       </button>
@@ -181,7 +188,7 @@ function BarChartWidget({ w }: { w: Extract<Widget, { type: "barChart" }> }) {
               }}
             />
           </div>
-          <span className="w-14 shrink-0 text-right font-mono text-2xs text-faint">
+          <span className="w-14 shrink-0 text-end font-mono text-2xs text-faint">
             {b.value}
             {w.unit ?? ""}
           </span>
@@ -261,7 +268,7 @@ function FormulaWidget({ w }: { w: Extract<Widget, { type: "formula" }> }) {
         <span className="slabel text-dim">{w.result.label}</span>
         <span className="font-mono text-lg font-semibold" style={{ color: "#ffa6d8" }}>
           {result === null ? "—" : result.toFixed(decimals)}
-          {w.result.unit ? <span className="ml-1 text-xs text-faint">{w.result.unit}</span> : null}
+          {w.result.unit ? <span className="ms-1 text-xs text-faint">{w.result.unit}</span> : null}
         </span>
       </div>
     </div>

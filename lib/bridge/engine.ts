@@ -144,7 +144,10 @@ async function tryDomain(
     if (attempt > 1 && Date.now() + PAIR_COST_MS > deadline) break;
     const body = await generate(concept, domain, readingLevel, contradictions, language, priorMistakes);
     const verdict = await verify(concept, body);
-    const status: "accepted" | "rejected" = verdict.verdict === "accept" ? "accepted" : "rejected";
+    // An inappropriate image is a rejection even if every fact checks out — the
+    // retry loop then gets it as feedback and picks another correspondence.
+    const ok = verdict.verdict === "accept" && verdict.ageAppropriate !== false;
+    const status: "accepted" | "rejected" = ok ? "accepted" : "rejected";
     const row = await persist(concept, domain, body, verdict, status, attempt);
     attempts.push({ attempt, body, verdict, status });
     if (status === "accepted") return { bridgeId: row.id, body };
@@ -217,6 +220,7 @@ export async function generateBestBridge(params: {
     factuallyConsistent: true,
     contradictions: [],
     analogyOverreach: false,
+    ageAppropriate: true,
     verdict: "accept",
   };
   const row = await persist(concept, first.domain, plain, verdict, "accepted", 99, { fallback: true });

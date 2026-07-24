@@ -147,6 +147,7 @@ model Bridge {
   status      String // accepted | rejected
   attempt     Int    @default(1)
   verdictJson String // full Verdict from the verifier
+  renderJson  String? // cached match + widgets, so re-opening an aspect needs no model call
   createdAt   DateTime @default(now())
 
   concept  Concept        @relation(fields: [conceptId], references: [id], onDelete: Cascade)

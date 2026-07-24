@@ -51,6 +51,48 @@ function mistakesSummary(detailJson: string | null): string | undefined {
   return parts.length ? parts.join(", ") : undefined;
 }
 
+/**
+ * The explanation this learner last got for a concept — served straight from
+ * the database, with no model call and no budget spent. The learn screen asks
+ * for this first, so re-opening an aspect is instant and free; generating a
+ * fresh one stays an explicit act (POST).
+ */
+export async function GET(req: Request) {
+  const conceptId = new URL(req.url).searchParams.get("conceptId");
+  if (!conceptId) return NextResponse.json({ error: "conceptId required." }, { status: 400 });
+
+  const learner = await getCurrentLearner();
+  if (!learner) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
+
+  const bridge = await prisma.bridge.findFirst({
+    where: { status: "accepted", conceptId, concept: { learnerId: learner.id } },
+    orderBy: { createdAt: "desc" },
+    include: { domain: { select: { name: true } } },
+  });
+  if (!bridge?.renderJson) return NextResponse.json({ bridge: null });
+
+  let cached: { match?: unknown; visualizations?: unknown } = {};
+  try {
+    cached = JSON.parse(bridge.renderJson);
+  } catch {
+    return NextResponse.json({ bridge: null });
+  }
+  if (!cached.match) return NextResponse.json({ bridge: null });
+
+  return NextResponse.json({
+    bridge: {
+      bridgeId: bridge.id,
+      body: JSON.parse(bridge.body),
+      match: cached.match,
+      visualizations: cached.visualizations ?? [],
+      // The verification trail belongs to the run that produced it; the log
+      // page is where it lives. A cached view shows the explanation itself.
+      attempts: [],
+      isFallback: bridge.attempt === 99,
+    },
+  });
+}
+
 export async function POST(req: Request) {
   const parsed = BodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "conceptId required." }, { status: 400 });
@@ -156,6 +198,17 @@ export async function POST(req: Request) {
       language: learner.language,
       budgetMs: RESPONSE_BUDGET_MS - (Date.now() - startedAt),
     });
+
+    // Cache what this screen needs to render again, so re-opening the aspect
+    // costs nothing: the match line and the widgets are not reconstructible
+    // from the stored body alone. Non-fatal — a failed cache write only means
+    // the next visit regenerates, exactly as before.
+    await prisma.bridge
+      .update({
+        where: { id: result.bridgeId },
+        data: { renderJson: JSON.stringify({ match: result.match, visualizations }) },
+      })
+      .catch(() => {});
 
     return NextResponse.json({ ...result, visualizations, quota: charge.quota });
   } catch (err) {

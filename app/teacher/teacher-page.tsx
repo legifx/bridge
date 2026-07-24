@@ -56,9 +56,9 @@ export default function Teacher() {
         <div className="card overflow-hidden">
           <div className={`${GRID} px-6 py-4`}>
             <span className="slabel text-faint">{t("teach.concept")}</span>
-            <span className="slabel text-right text-faint">{t("teach.att")}</span>
+            <span className="slabel text-end text-faint">{t("teach.att")}</span>
             <span className="slabel text-faint">{t("teach.struggle")}</span>
-            <span className="slabel text-right text-faint">{t("teach.mastered")}</span>
+            <span className="slabel text-end text-faint">{t("teach.mastered")}</span>
           </div>
           {rows.map((r) => (
             <div key={r.conceptLabel} className={`${GRID} border-t border-hair px-6 py-5`}>

@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { Grade } from "@/components/Grade";
 import { MicButton } from "@/components/MicButton";
+import { FlowSteps } from "@/components/FlowSteps";
 import { useT } from "@/components/LanguageProvider";
 import type { Problem } from "@/lib/quiz";
 import type { MsgKey } from "@/lib/i18n";
@@ -22,6 +23,25 @@ type ProblemResult = { correct: boolean; score?: number; earned?: number; max?: 
  * the explanation isn't one scroll away. Nothing from the learn session is
  * shown here — just the concept name and the questions, in subject vocabulary.
  */
+type Draft = { freeAnswer: string; responses: (number | string | null)[] };
+
+/** The saved-but-unsubmitted answers for a concept (never throws). */
+function readDraft(conceptId: string): Draft {
+  const empty: Draft = { freeAnswer: "", responses: [] };
+  if (typeof window === "undefined") return empty;
+  try {
+    const raw = window.localStorage.getItem(`bridge.check-draft.${conceptId}`);
+    if (!raw) return empty;
+    const d = JSON.parse(raw) as Partial<Draft>;
+    return {
+      freeAnswer: typeof d.freeAnswer === "string" ? d.freeAnswer : "",
+      responses: Array.isArray(d.responses) ? d.responses : [],
+    };
+  } catch {
+    return empty; // a corrupt draft is simply no draft
+  }
+}
+
 export default function Check() {
   const t = useT();
   const { conceptId } = useParams<{ conceptId: string }>();
@@ -33,7 +53,7 @@ export default function Check() {
   const [errorKey, setErrorKey] = useState<MsgKey | null>(null);
   // one message, whichever arrived: a server text or a translated local key
 
-  const [freeAnswer, setFreeAnswer] = useState("");
+  const [freeAnswer, setFreeAnswer] = useState(() => readDraft(conceptId).freeAnswer);
   const [mcqChoice, setMcqChoice] = useState<number | null>(null);
   // one response slot per practice problem: number (numeric), index (mcq), or text (open)
   const [responses, setResponses] = useState<(number | string | null)[]>([]);
@@ -49,21 +69,49 @@ export default function Check() {
     problemResults?: ProblemResult[];
   }>(null);
   const [srs, setSrs] = useState<boolean | null>(null);
+  // Draft answers from a previous visit. Read once, at first render — an effect
+  // would have to write them into state, which costs an extra render pass and
+  // can flash an empty field first.
+  const saved = useRef<(number | string | null)[] | null>(null);
+  if (saved.current === null) saved.current = readDraft(conceptId).responses;
   // whichever arrived: a message from the server, or a local key translated now
   const shownError = error ?? (errorKey ? t(errorKey) : null);
+  // what still blocks submitting, as a message key (null = ready to submit)
+  const noFree = freeAnswer.trim().length === 0;
+  const noMcq = mcqChoice === null;
+  const missing: MsgKey | null = noFree && noMcq
+    ? "check.missingBoth"
+    : noFree
+      ? "check.missingFree"
+      : noMcq
+        ? "check.missingMcq"
+        : null;
+
+  // Typing a recall answer is real work, and a stray back-swipe or reload used
+  // to erase it (and hand back a different question set). Keep the draft in
+  // localStorage, keyed by concept, until the check is submitted.
+  const draftKey = `bridge.check-draft.${conceptId}`;
 
   useEffect(() => {
-    fetch("/api/concepts")
-      .then((r) => {
-        if (r.status === 401) window.location.href = "/signin?expired=1";
-        return r.json();
-      })
-      .then((d) => {
-        const c = d.concepts?.find((x: Concept) => x.id === conceptId) ?? null;
-        setConcept(c);
-        if (c) setSrs(c.reviewEnabled);
-      });
-    // generate the questions (1 AI unit). ?mode=tasks = the bigger practice set.
+    if (result) {
+      window.localStorage.removeItem(draftKey); // submitted — the draft is spent
+      return;
+    }
+    if (!freeAnswer.trim() && responses.every((r) => r === null || r === "")) return;
+    const id = setTimeout(() => {
+      try {
+        window.localStorage.setItem(draftKey, JSON.stringify({ freeAnswer, responses }));
+      } catch {
+        /* private mode / quota — the draft is a convenience, never a requirement */
+      }
+    }, 400);
+    return () => clearTimeout(id);
+  }, [draftKey, freeAnswer, responses, result]);
+
+  /** Generate the question set. No state is touched synchronously here, so the
+   *  mount effect can call it without kicking off a cascading render. */
+  const loadQuiz = useCallback(() => {
+    // ?mode=tasks = the bigger practice set from the review log.
     const tasksMode =
       typeof window !== "undefined" && new URLSearchParams(window.location.search).get("mode") === "tasks";
     fetch("/api/quiz", {
@@ -76,15 +124,29 @@ export default function Check() {
         if (d.error) setError(d.error);
         else {
           setQuiz(d.quiz);
-          setResponses((d.quiz?.problems ?? []).map(() => null));
+          // Restore a draft only where it still fits the freshly generated set.
+          setResponses((d.quiz?.problems ?? []).map((_: unknown, i: number) => saved.current?.[i] ?? null));
         }
       })
-      // Store a KEY, not a translated string: translating inside the effect
-      // would make `t` a dependency, and a language switch would then re-run the
-      // effect — regenerating the quiz (and charging another AI unit) for
+      // Store a KEY, not a translated string: translating here would make `t` a
+      // dependency, and a language switch would then regenerate the quiz for
       // nothing. Rendering translates it instead.
       .catch(() => setErrorKey("check.couldNotLoad"));
   }, [conceptId]);
+
+  useEffect(() => {
+    fetch("/api/concepts")
+      .then((r) => {
+        if (r.status === 401) window.location.href = "/signin?expired=1";
+        return r.json();
+      })
+      .then((d) => {
+        const c = d.concepts?.find((x: Concept) => x.id === conceptId) ?? null;
+        setConcept(c);
+        if (c) setSrs(c.reviewEnabled);
+      });
+    loadQuiz();
+  }, [conceptId, loadQuiz]);
 
   async function submit() {
     if (!quiz || mcqChoice === null) return;
@@ -121,6 +183,7 @@ export default function Check() {
 
   return (
     <Shell>
+      <FlowSteps current={result ? 3 : 2} />
       <header className="mb-8 mt-2">
         <p className="eyebrow">{t("check.eyebrow")}</p>
         <h1 className="mt-2.5 text-2xl font-semibold tracking-tight text-text">
@@ -130,11 +193,25 @@ export default function Check() {
       </header>
 
       {shownError && (
-        <div className="card p-5">
+        <div className="card p-5" role="alert">
           <p className="text-sm text-reject-text">{shownError}</p>
-          <button onClick={() => router.back()} className="btn btn-glass mt-4 w-full">
-            {t("common.back")}
-          </button>
+          <div className="mt-4 flex gap-3">
+            <button onClick={() => router.back()} className="btn btn-glass flex-1">
+              {t("common.back")}
+            </button>
+            {/* Usually a busy or slow provider — retrying beats leaving. */}
+            <button
+              onClick={() => {
+                setError(null);
+                setErrorKey(null);
+                setQuiz(null);
+                loadQuiz();
+              }}
+              className="btn btn-primary flex-1"
+            >
+              {t("common.retry")}
+            </button>
+          </div>
         </div>
       )}
 
@@ -150,9 +227,12 @@ export default function Check() {
       {quiz && !result && (
         <div className="card space-y-6 p-6">
           <div>
-            <p className="text-sm font-medium text-text">{quiz.free.prompt}</p>
+            <p id="free-prompt" className="text-sm font-medium text-text">
+              {quiz.free.prompt}
+            </p>
             <div className="mt-3 flex items-start gap-2">
               <textarea
+                aria-labelledby="free-prompt"
                 value={freeAnswer}
                 onChange={(e) => setFreeAnswer(e.target.value)}
                 rows={4}
@@ -163,11 +243,17 @@ export default function Check() {
             </div>
           </div>
           <div>
-            <p className="text-sm font-medium text-text">{quiz.mcq.prompt}</p>
-            <div className="mt-3 space-y-2">
+            <p id="mcq-prompt" className="text-sm font-medium text-text">
+              {quiz.mcq.prompt}
+            </p>
+            {/* A choice is a radio group, not a row of unrelated buttons: screen
+                readers announce "2 of 4 selected" and arrow keys work. */}
+            <div className="mt-3 space-y-2" role="radiogroup" aria-labelledby="mcq-prompt">
               {quiz.mcq.options.map((o, i) => (
                 <button
                   key={i}
+                  role="radio"
+                  aria-checked={mcqChoice === i}
                   onClick={() => setMcqChoice(i)}
                   className={`opt ${mcqChoice === i ? "opt-active-blue" : ""}`}
                 >
@@ -181,12 +267,15 @@ export default function Check() {
           {quiz.problems.map((p, i) => (
             <div key={i} className="border-t border-hair pt-5">
               <p className="slabel mb-2 text-curriculum-text">{t("check.task")}</p>
-              <p className="text-sm font-medium text-text">{p.prompt}</p>
+              <p id={`task-${i}`} className="text-sm font-medium text-text">
+                {p.prompt}
+              </p>
               {p.type === "numeric" && (
                 <div className="mt-3 flex items-center gap-2">
                   <input
                     type="number"
                     inputMode="decimal"
+                    aria-labelledby={`task-${i}`}
                     value={typeof responses[i] === "number" ? (responses[i] as number) : ""}
                     onChange={(e) =>
                       setResponses((r) => {
@@ -202,10 +291,12 @@ export default function Check() {
                 </div>
               )}
               {p.type === "mcq" && (
-                <div className="mt-3 space-y-2">
+                <div className="mt-3 space-y-2" role="radiogroup" aria-label={p.prompt}>
                   {p.options.map((o, oi) => (
                     <button
                       key={oi}
+                      role="radio"
+                      aria-checked={responses[i] === oi}
                       onClick={() =>
                         setResponses((r) => {
                           const n = [...r];
@@ -223,6 +314,7 @@ export default function Check() {
               {p.type === "open" && (
                 <div className="mt-3 flex items-start gap-2">
                   <textarea
+                    aria-labelledby={`task-${i}`}
                     value={typeof responses[i] === "string" ? (responses[i] as string) : ""}
                     onChange={(e) =>
                       setResponses((r) => {
@@ -250,18 +342,28 @@ export default function Check() {
             </div>
           ))}
 
-          <button
-            onClick={submit}
-            disabled={submitting || mcqChoice === null || freeAnswer.trim().length === 0}
-            className={`btn btn-primary w-full ${submitting ? "btn-working" : ""}`}
-          >
-            {submitting ? t("check.grading") : t("check.submit")}
-          </button>
+          {/* A disabled button that will not say why is a dead end. Name what is
+              still missing instead — the button stays enabled and the message
+              points at the gap. */}
+          <div>
+            <button
+              onClick={submit}
+              disabled={submitting || missing !== null}
+              className={`btn btn-primary w-full ${submitting ? "btn-working" : ""}`}
+            >
+              {submitting ? t("check.grading") : t("check.submit")}
+            </button>
+            {missing && !submitting && (
+              <p className="mt-2 text-center text-xs text-faint">{t(missing)}</p>
+            )}
+          </div>
         </div>
       )}
 
       {result && (
         <div
+          role="status"
+          aria-live="polite"
           className="aura card p-7 text-center"
           style={
             {
@@ -294,7 +396,7 @@ export default function Check() {
 
           {/* per-problem breakdown: what was right/wrong + the worked solution */}
           {result.problemResults && result.problemResults.length > 0 && (
-            <div className="mt-6 space-y-2 text-left">
+            <div className="mt-6 space-y-2 text-start">
               {result.problemResults.map((pr, i) => (
                 <div
                   key={i}
@@ -309,6 +411,8 @@ export default function Check() {
                       {t("check.task")} {i + 1}
                     </span>
                     <span className={`slabel ${pr.correct ? "text-acid-text" : "text-orange-text"}`}>
+                      {/* symbol as well as colour — colour alone is not a signal */}
+                      <span aria-hidden>{pr.correct ? "✓ " : "✕ "}</span>
                       {pr.earned !== undefined && pr.max !== undefined
                         ? `${Math.round(pr.earned * 10) / 10} / ${pr.max} ${t("check.points")}`
                         : pr.correct
@@ -328,7 +432,7 @@ export default function Check() {
           {/* spaced repetition opt-in, per concept */}
           <button
             onClick={() => toggleSrs(!srs)}
-            className="mt-6 w-full rounded-full px-4 py-3 text-left text-sm transition"
+            className="mt-6 w-full rounded-full px-4 py-3 text-start text-sm transition"
             style={{
               background: srs ? "rgba(179,255,60,0.1)" : "rgba(255,255,255,0.05)",
               boxShadow: srs

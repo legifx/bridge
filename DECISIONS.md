@@ -233,3 +233,48 @@ from the parent restarted the timer on every render and the narration could sit 
 forever. Time is now read through a minute-bucketed external store, and browser capabilities
 (speech recognition, reduced motion, stored language) through `useSyncExternalStore` instead of
 being mirrored into state from an effect.
+
+## Learn-flow UX pass (2026-07-24, after an external review round)
+
+**The rating no longer gates the way forward.** The button to the check only appeared once the
+learner had pressed "that clicked" or "didn't land". That is a wall in the middle of the core
+path, and it poisons the very signal it collects: whoever wants to continue presses whichever
+button unblocks them. Both buttons stay, the check is always reachable.
+
+**Opening an aspect starts the explanation.** The extra "explain it to me" tap only delayed a
+wait the learner had already accepted by opening the concept. The public demo is the one
+exception: there the first explanation for an aspect spends part of a small budget, so it still
+asks — with the cost and the expected wait stated on the button.
+
+**A second visit shows the explanation you already read.** Bridges are now cached for rendering
+(`Bridge.renderJson` holds the match line and the widgets, which are not reconstructible from the
+stored body). Re-opening an aspect is a 13 ms database read instead of an 8 s regeneration that
+produced a *different* text than the one the learner came back for. It also means leaving the
+screen mid-generation is safe: the result is waiting on return.
+
+**Switching interest keeps the current explanation on screen.** It used to blank the page for
+nine seconds, so a curious tap cost you the paragraph you were reading. The old text now stays,
+dimmed, under the progress display.
+
+**Dead ends became doors.** A failed generation and a failed question set both offer "try again"
+in place. The submit button no longer sits disabled and silent — it names which answer is still
+missing.
+
+**Answers survive a reload.** Recall answers are drafted to localStorage per concept and restored
+if the learner comes back, then discarded on submit.
+
+**Age-appropriateness is checked, not assumed.** Interests are learner-chosen and this is school
+material for minors: the generator is told to use the harmless, structural side of worlds like
+shooters or combat sports, and the independent verifier now returns `ageAppropriate`. A false
+verdict is a rejection that feeds the existing revise loop — the same machinery that already
+handles factual errors. Facts are never softened to pass it; the analogy changes instead.
+
+**RTL is a layout property, not a translation.** Arabic already flipped the document direction,
+but the UI used physical classes (`pl-`, `ml-`, `text-left`, `left-`, `border-l`) that stay put
+when the text flips. All of them are logical properties now (`ps-`, `ms-`, `text-start`, `start-`,
+`border-s`).
+
+**Small orientation and expectation cues.** A three-step marker (explanation → check → result)
+across both screens, an interactivity hint on widgets that respond to touch, an expected wait on
+the demo's start button, and a "taking longer than usual" note once a generation runs past twice
+its expected time.

@@ -328,6 +328,26 @@ export const tr: Dict = {
     "Bu profilin demo bütçesi tükendi. Keşfe devam etmek için başka bir isimle gir — ya da repoyu klonlayıp Bridge'i kendi anahtarınla çalıştır.",
   "err.sessionStale":
     "Bu görüşme zaten tamamlandı. Profilini görmek için sayfayı yenile.",
+  "common.retry":
+    "Tekrar dene",
+  "learn.costsUnit":
+    "Yapay zeka birimlerinden birini kullanır — bu kavramla ilgili geri kalan her şey ücretsiz olur.",
+  "check.missingFree":
+    "Göndermek için cevabını kendi cümlelerinle yaz.",
+  "check.missingMcq":
+    "Göndermek için seçeneklerden birini işaretle.",
+  "check.missingBoth":
+    "Kendi cümlelerinle cevap ver ve bir seçenek işaretle.",
+  "widget.tryIt":
+    "dene",
+  "learn.waitHint":
+    "yaklaşık 10 saniye sürer",
+  "learn.stillWorking":
+    "Her zamankinden uzun sürüyor — hâlâ çalışıyor.",
+  "flow.label": "Bu kavramdaki adımlar",
+  "flow.explain": "Açıklama",
+  "flow.check": "Kontrol",
+  "flow.result": "Sonuç",
   "err.aiBusy":
     "Yapay zeka servisi şu anda yoğun. Birkaç saniye bekleyip tekrar dene.",
   "err.aiSlow":
