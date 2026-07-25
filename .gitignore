@@ -48,3 +48,9 @@ next-env.d.ts
 
 # design reference images (not part of the app)
 UI/
+
+# database files and backups — never in the repo (a backup of the dev DB was
+# once committed by accident; it carried real profiles and their material)
+/prisma/*.db
+/prisma/*.db-journal
+/prisma/*.db.bak-*

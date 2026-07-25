@@ -1,0 +1,63 @@
+name: CI
+
+# Everything that must hold before a push can become a deployment. Vercel
+# builds straight from main, so without this a broken commit goes live and the
+# 81 tests only run if somebody remembers to run them.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      # Prisma needs a datasource URL to generate its client; the schema is
+      # SQLite, so a file path is enough. No secrets are needed to verify the
+      # build — every model call happens at request time, never at build time.
+      DATABASE_URL: "file:./dev.db"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` respects NODE_ENV=production and would skip devDependencies
+      # (vitest, eslint, typescript) — the exact trap that bit this project
+      # locally. Force the dev install.
+      - name: Install
+        run: NODE_ENV=development npm ci --include=dev
+
+      - name: Types
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npx eslint .
+
+      - name: Tests
+        run: npx vitest run
+
+      - name: Build
+        run: npm run build
+
+  # A blanket `git add -A` once swept a copy of the dev database into a commit,
+  # where it sat in a public repository with 25 learner profiles in it. Cheap
+  # insurance against the second time.
+  no-databases:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Refuse databases and env files
+        run: |
+          # prisma/demo.db is the seeded template and belongs in the repo.
+          offenders=$(git ls-files \
+            | grep -E '\.(db|sqlite|sqlite3)(\.bak.*|-journal)?$|^\.env$|\.env\.(local|production)$' \
+            | grep -v '^prisma/demo\.db$' || true)
+          if [ -n "$offenders" ]; then
+            echo "These must never be committed:" >&2
+            echo "$offenders" >&2
+            exit 1
+          fi
+          echo "No database or env files tracked."

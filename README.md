@@ -170,10 +170,14 @@ Two supported targets, same codebase:
 
 ## What's not built yet (honest status)
 
-- **Live vision** is wired end to end (camera + client downscale + `images[]` API), but the
-  bundled demo data is text-sourced; scanning a real handwritten page needs a live API key.
+- **Embeddings are English-trained** (all-MiniLM-L6-v2). Interests written in the other nine
+  interface languages are matched through an English vector space, which quietly disadvantages
+  them. Switching to a multilingual model means re-embedding everything stored.
+- **The teacher view is parked.** The cohort aggregation exists and is label-only by design, but
+  the page redirects home until it is worth showing.
+- **The PWA is installable, not offline.** Manifest and icons ship; there is no service worker.
 - The concept map is a linear, prerequisite-ordered timeline rather than a free-form 2-D graph.
-- No PNG icon rasterization (the PWA ships a single maskable SVG icon).
+- No PNG icon rasterization (a single maskable SVG icon).
 
 See [`DECISIONS.md`](./DECISIONS.md) for the reasoning behind each technical choice.
 
