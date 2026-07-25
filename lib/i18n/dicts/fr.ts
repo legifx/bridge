@@ -166,7 +166,6 @@ export const fr: Dict = {
   "learn.preparing": "Préparation du matériel",
   "learn.preparingDetail": "analyse de cet aspect pour la première fois",
   "learn.couldNotBuild": "Impossible de construire un pont.",
-  "learn.attempt": "tentative {n} · rejetée",
   "learn.factChecker": "↳ le vérificateur l'a repérée — révisée jusqu'à être exacte",
   "learn.breaksDown": "où cette analogie casse",
   "learn.plainNoAnalogy": "explication directe · aucune analogie n'a passé la vérification",

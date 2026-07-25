@@ -26,11 +26,8 @@ export type DomainForMatch = {
 const COSINE_WEIGHT = 0.5;
 const BANDIT_WEIGHT = 0.5;
 
-/**
- * Choose the best domain for a concept and the best anchor within it.
- * `rng` is injectable for deterministic behavior; defaults to a per-call seed.
- */
-/** Rank every domain for a concept (best first) by cosine + bandit score. */
+/** Rank every domain for a concept (best first) by cosine + bandit score.
+ *  `rng` is injectable for deterministic behaviour; defaults to a per-call seed. */
 export function rankDomainsForConcept(
   conceptEmbedding: Float32Array,
   domains: DomainForMatch[],
@@ -46,6 +43,24 @@ export function rankDomainsForConcept(
     .map(({ domain, bandit }) => ({ domain, bandit }));
 }
 
+/**
+ * Anchor vectors, memoised for the life of the process. Anchors are fixed
+ * strings on the domain row, but every bridge re-embedded all of them — and a
+ * bridge considers two domains, so a single request could run the local model a
+ * dozen times over text that had not changed since onboarding.
+ */
+const anchorVectors = new Map<string, Float32Array>();
+
+async function embedAnchor(text: string): Promise<Float32Array> {
+  const hit = anchorVectors.get(text);
+  if (hit) return hit;
+  const vec = await embed(text);
+  // Bounded so a long-running server cannot grow this without limit.
+  if (anchorVectors.size > 2000) anchorVectors.clear();
+  anchorVectors.set(text, vec);
+  return vec;
+}
+
 /** Build the Match (best anchor + similarity) for one already-chosen domain. */
 export async function buildMatch(
   conceptEmbedding: Float32Array,
@@ -59,7 +74,7 @@ export async function buildMatch(
   let similarity = cosine(conceptEmbedding, bytesToVec(domain.embedding));
   if (EMBEDDINGS_ENABLED) {
     for (const a of domain.anchors) {
-      const sim = cosine(conceptEmbedding, await embed(a));
+      const sim = cosine(conceptEmbedding, await embedAnchor(a));
       if (sim > similarity) {
         similarity = sim;
         anchor = a;

@@ -166,7 +166,6 @@ export const es: Dict = {
   "learn.preparing": "Preparando el material",
   "learn.preparingDetail": "analizando este aspecto por primera vez",
   "learn.couldNotBuild": "No se pudo construir un puente.",
-  "learn.attempt": "intento {n} · rechazado",
   "learn.factChecker": "↳ el verificador lo detectó — revisado hasta ser exacto",
   "learn.breaksDown": "dónde se rompe esta analogía",
   "learn.plainNoAnalogy": "explicación directa · ninguna analogía pasó la verificación",

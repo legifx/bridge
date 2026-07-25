@@ -1,14 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import { updateEloScore, difficultyToElo } from "./elo";
-import { scheduleReview, INITIAL_SRS, type SrsState } from "./sm2";
-
-/** Reconstruct SM-2 repetitions from the stored interval (we don't store it separately). */
-function repetitionsFromInterval(interval: number): number {
-  if (interval <= 0) return 0;
-  if (interval === 1) return 1;
-  if (interval === 6) return 2;
-  return 3;
-}
+import { scheduleReview, qualityFromScore, INITIAL_SRS, type SrsState } from "./sm2";
 
 /**
  * Record one quiz answer: update the concept's Elo mastery and schedule the next
@@ -34,10 +26,15 @@ export async function recordAnswer(params: {
     where: { conceptId: params.conceptId },
     orderBy: { answeredAt: "desc" },
   });
+  // Repetitions come from the row, not from the interval. Inferring them
+  // ("interval 6 means the second repetition") mistakes any later interval that
+  // happens to land on 6 for an early one and quietly restarts the ladder.
+  // Rows written before the column existed default to 0, which costs at most
+  // one shortened interval once.
   const prior: SrsState = last
-    ? { easeFactor: last.easeFactor, interval: last.interval, repetitions: repetitionsFromInterval(last.interval) }
+    ? { easeFactor: last.easeFactor, interval: last.interval, repetitions: last.repetitions }
     : INITIAL_SRS;
-  const quality = Math.round(score * 5); // 0..5 SM-2 quality
+  const quality = qualityFromScore(score);
   const next = scheduleReview(prior, quality);
 
   const nextDueAt = new Date(Date.now() + next.nextIntervalDays * 24 * 60 * 60 * 1000);
@@ -50,6 +47,7 @@ export async function recordAnswer(params: {
         correct,
         easeFactor: next.easeFactor,
         interval: next.interval,
+        repetitions: next.repetitions,
         nextDueAt,
         detailJson: params.detail === undefined ? null : JSON.stringify(params.detail),
       },

@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import { st } from "@/lib/i18n";
-import { buildProfileV2 } from "@/lib/profile/build2";
+import { buildProfile } from "@/lib/profile/build";
 import { planInterview, generateMagnets, synthesizeDomains } from "./generate";
 import { scoreMagnet, syncScore, shuffle, UNVERIFIED, MAX_STEPS } from "./score";
 import type {
@@ -141,7 +141,7 @@ async function finalize(learnerId: string, state: InterviewState, language?: str
       role: d.role,
     };
   });
-  return buildProfileV2(learnerId, inputs);
+  return buildProfile(learnerId, inputs);
 }
 
 type LogEntry = { t: string; at?: string } & Record<string, unknown>;

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useT } from "./LanguageProvider";
+import { masteryColor } from "@/lib/mastery";
 
 type Skill = { id: string; label: string; mastery: number };
 type Branch = {
@@ -25,12 +26,6 @@ const CX = W / 2;
 const CY = 168;
 const CORE_R = 26;
 const RING_R = 118;
-
-function masteryColor(m: number) {
-  if (m >= 0.66) return "#c9ff7a";
-  if (m >= 0.4) return "#9dc0ff";
-  return "#ffb877";
-}
 
 export function BrainGraph({ branches }: { branches: Branch[] }) {
   const t = useT();

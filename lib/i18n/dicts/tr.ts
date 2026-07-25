@@ -166,7 +166,6 @@ export const tr: Dict = {
   "learn.preparing": "Materyal hazırlanıyor",
   "learn.preparingDetail": "bu konu ilk kez analiz ediliyor",
   "learn.couldNotBuild": "Köprü kurulamadı.",
-  "learn.attempt": "deneme {n} · reddedildi",
   "learn.factChecker": "↳ doğrulayıcı yakaladı — doğru olana dek düzeltildi",
   "learn.breaksDown": "bu benzetmenin bozulduğu yer",
   "learn.plainNoAnalogy": "düz açıklama · hiçbir benzetme doğrulamayı geçemedi",

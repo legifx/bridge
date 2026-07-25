@@ -166,7 +166,6 @@ export const pt: Dict = {
   "learn.preparing": "A preparar o material",
   "learn.preparingDetail": "a analisar este aspeto pela primeira vez",
   "learn.couldNotBuild": "Não foi possível construir uma ponte.",
-  "learn.attempt": "tentativa {n} · rejeitada",
   "learn.factChecker": "↳ o verificador apanhou-a — revista até ficar exata",
   "learn.breaksDown": "onde esta analogia quebra",
   "learn.plainNoAnalogy": "explicação direta · nenhuma analogia passou na verificação",

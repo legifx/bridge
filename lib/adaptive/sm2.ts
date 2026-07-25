@@ -13,10 +13,10 @@ export type SrsState = {
 
 export const INITIAL_SRS: SrsState = { easeFactor: 2.5, interval: 0, repetitions: 0 };
 
-/** Map our binary/quiz outcome to an SM-2 quality score. */
-export function qualityFromAnswer(correct: boolean, confident = true): number {
-  if (!correct) return 1;
-  return confident ? 5 : 3;
+/** A check's score (0..1) as an SM-2 quality (0..5). Below 3 is a lapse, so
+ *  anything under 50 % of the points restarts the ladder. */
+export function qualityFromScore(score: number): number {
+  return Math.round(Math.max(0, Math.min(1, score)) * 5);
 }
 
 /**

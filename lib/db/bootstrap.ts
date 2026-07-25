@@ -62,6 +62,10 @@ const RUNTIME_MIGRATIONS: RuntimeMigration[] = [
     name: "20260724210000_bridge_render_cache",
     statements: [`ALTER TABLE "Bridge" ADD COLUMN "renderJson" TEXT`],
   },
+  {
+    name: "20260725090000_review_repetitions",
+    statements: [`ALTER TABLE "Review" ADD COLUMN "repetitions" INTEGER NOT NULL DEFAULT 0`],
+  },
 ];
 
 async function run(): Promise<void> {

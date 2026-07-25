@@ -165,6 +165,7 @@ model Review {
   nextDueAt  DateTime
   easeFactor Float    @default(2.5)
   interval   Int      @default(0) // days
+  repetitions Int     @default(0) // consecutive passes — SM-2 needs it, don't infer it
   detailJson String?  // JSON snapshot of the check: mastery, free/mcq correctness, per-problem results
 
   concept Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)

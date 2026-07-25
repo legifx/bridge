@@ -1,12 +1,3 @@
-import { z } from "zod";
-
-/** LLM enrichment of the free-text interest answer. */
-export const FreeTextDomainSchema = z.object({
-  name: z.string(),
-  vocabularyAnchors: z.array(z.string()),
-});
-export type FreeTextDomain = z.infer<typeof FreeTextDomainSchema>;
-
 /** A domain as stored + surfaced (mirrors InterestDomain row). */
 export type DomainVM = {
   id: string;

@@ -1,132 +1,102 @@
 import { prisma } from "@/lib/db/prisma";
 import { embed, vecToBytes } from "@/lib/ml/embeddings";
 import { recordSignal } from "@/lib/brain/record";
-import { llmJson } from "@/lib/llm/client";
-import { PROFILE_SYSTEM } from "@/lib/prompts/profile";
-import { OPTION_BY_ID } from "./questions";
-import { checkInterestText } from "./guard";
-import { FreeTextDomainSchema, type DomainVM } from "./types";
-import { successRate } from "@/lib/adaptive/thompson";
+import { depthToProfile } from "@/lib/onboarding/score";
+import type { Depth, MirrorDomain } from "@/lib/onboarding/types";
 
 /**
- * Intensity is the learner's own calibration, set during onboarding: picking
- * "music" as the least-bad option in a lineup is NOT the same as being deep
- * into music. The weights below flow into the interest domain's starting
- * confidence and into the second brain, so a "casual" pick starts light and
- * only grows if the evidence (clicked bridges) actually accumulates.
+ * Turn a finished interview into the learner's interest profile.
+ *
+ * Nothing here is self-reported: `depth` and `evidence` were earned through the
+ * word magnet, and the anchors are terms the learner actually recognized.
+ * depthToProfile turns that into confidence, a warm Thompson prior
+ * (alpha/beta) and second-brain seed weights.
+ *
+ * Existing domains with the same name are UPDATED, never deleted — a re-run
+ * must not destroy bridges/reviews hanging off an old domain row.
  */
-export type Intensity = "casual" | "into" | "deep";
 
-const INTENSITY = {
-  casual: { interest: 0.5, anchor: 0.2, confidence: 0.35 },
-  into: { interest: 1.2, anchor: 0.4, confidence: 0.5 },
-  deep: { interest: 2.4, anchor: 0.6, confidence: 0.7 },
-} as const;
-
-export type BuildInput = {
-  learnerId: string;
-  readingLevel: number;
-  picks: Array<{ id: string; intensity: Intensity }>;
-  custom: Array<{ text: string; intensity: Intensity }>;
+export type VerifiedDomainInput = {
+  name: string;
+  tagline: string;
+  anchors: string[];
+  depth: Depth;
+  evidence: number;
+  role?: string;
 };
 
-type RawDomain = { name: string; anchors: string[]; intensity: Intensity };
+export async function buildProfile(
+  learnerId: string,
+  inputs: VerifiedDomainInput[],
+): Promise<MirrorDomain[]> {
+  const existing = await prisma.interestDomain.findMany({ where: { learnerId } });
+  const byName = new Map(existing.map((d) => [d.name.trim().toLowerCase(), d]));
 
-const RANK: Record<Intensity, number> = { casual: 0, into: 1, deep: 2 };
+  const out: MirrorDomain[] = [];
+  for (const input of inputs) {
+    const seeds = depthToProfile(input.depth, input.evidence);
+    const text = input.anchors.length ? `${input.name}. ${input.anchors.join(", ")}` : input.name;
+    const emb = await embed(text);
 
-/** Merge tapped options + the learner's own free-text interests into domains. */
-async function collectDomains(input: BuildInput): Promise<RawDomain[]> {
-  const byName = new Map<string, RawDomain>();
+    const prev = byName.get(input.name.trim().toLowerCase());
+    const data = {
+      name: input.name,
+      anchors: JSON.stringify(input.anchors),
+      embedding: vecToBytes(emb),
+      confidence: seeds.confidence,
+      depth: input.depth,
+    };
+    const row = prev
+      ? await prisma.interestDomain.update({
+          where: { id: prev.id },
+          // Never shrink a learned posterior: keep the stronger alpha.
+          data: { ...data, alpha: Math.max(prev.alpha, seeds.alpha) },
+        })
+      : await prisma.interestDomain.create({
+          data: { ...data, learnerId, alpha: seeds.alpha, beta: seeds.beta },
+        });
 
-  const upsert = (name: string, anchors: string[], intensity: Intensity) => {
-    const prev = byName.get(name);
-    if (prev) {
-      anchors.forEach((a) => !prev.anchors.includes(a) && prev.anchors.push(a));
-      if (RANK[intensity] > RANK[prev.intensity]) prev.intensity = intensity;
-    } else {
-      byName.set(name, { name, anchors: [...anchors], intensity });
-    }
-  };
-
-  for (const pick of input.picks) {
-    const opt = OPTION_BY_ID[pick.id];
-    if (opt) upsert(opt.domain, opt.anchors, pick.intensity);
-  }
-
-  // Each custom interest is enriched by the LLM into a named domain + anchors.
-  for (const c of input.custom) {
-    const guard = checkInterestText(c.text);
-    if (!guard.ok || !guard.text) continue;
-    try {
-      const enriched = await llmJson({
-        system: PROFILE_SYSTEM,
-        user: guard.text,
-        schema: FreeTextDomainSchema,
-        temperature: 0.3,
-      });
-      if (enriched.name) upsert(enriched.name, enriched.vocabularyAnchors, c.intensity);
-    } catch {
-      // Best-effort: a failed enrichment must not sink the whole onboarding.
-    }
-  }
-
-  return [...byName.values()];
-}
-
-export async function buildProfile(input: BuildInput): Promise<{ learnerId: string; domains: DomainVM[] }> {
-  const domains = await collectDomains(input);
-
-  // Onboarding runs for the signed-in learner (created at sign-in).
-  const learner = await prisma.learner.update({
-    where: { id: input.learnerId },
-    data: { readingLevel: Math.max(1, Math.min(5, input.readingLevel || 3)) },
-  });
-
-  const created: DomainVM[] = [];
-  for (const d of domains) {
-    const w = INTENSITY[d.intensity];
-    const emb = await embed(`${d.name}. ${d.anchors.join(", ")}`);
-    const row = await prisma.interestDomain.create({
-      data: {
-        learnerId: learner.id,
-        name: d.name,
-        anchors: JSON.stringify(d.anchors),
-        embedding: vecToBytes(emb),
-        confidence: w.confidence,
-      },
-    });
-
-    // Seed the second brain, scaled by how deep the learner says this goes.
+    // Second brain: the domain as an interest item, its verified anchors as
+    // leaves, and the role as a plain signal — all weighted by evidence.
     await recordSignal({
-      learnerId: learner.id,
+      learnerId,
       kind: "interest",
-      label: d.name,
-      text: `${d.name}. ${d.anchors.join(", ")}`,
-      weight: w.interest,
+      label: input.name,
+      text,
+      weight: seeds.interestWeight,
       embedding: emb,
       sourceRef: row.id,
     });
-    for (const anchor of d.anchors.slice(0, 6)) {
+    for (const anchor of input.anchors.slice(0, 6)) {
       await recordSignal({
-        learnerId: learner.id,
+        learnerId,
         kind: "anchor",
         label: anchor,
-        text: `${anchor} (${d.name})`,
-        weight: w.anchor,
+        text: `${anchor} (${input.name})`,
+        weight: seeds.anchorWeight,
+        sourceRef: row.id,
+      });
+    }
+    if (input.role) {
+      await recordSignal({
+        learnerId,
+        kind: "signal",
+        label: `${input.name} · ${input.role}`,
+        text: `${input.role} — ${input.name}`,
+        weight: 0.6,
         sourceRef: row.id,
       });
     }
 
-    created.push({
+    out.push({
       id: row.id,
       name: row.name,
-      anchors: d.anchors,
-      alpha: row.alpha,
-      beta: row.beta,
+      tagline: input.tagline,
+      depth: input.depth,
+      evidence: input.evidence,
       confidence: row.confidence,
-      successRate: successRate(row),
+      anchors: input.anchors,
     });
   }
-
-  return { learnerId: learner.id, domains: created };
+  return out;
 }

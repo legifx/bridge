@@ -15,26 +15,11 @@ export function expectedScore(ratingA: number, ratingB: number): number {
 
 /**
  * Update both ratings after one answer.
- * `correct` = the learner "beat" the concept.
- */
-export function updateElo(
-  ability: number,
-  difficulty: number,
-  correct: boolean,
-  k = K_FACTOR,
-): { ability: number; difficulty: number } {
-  const expected = expectedScore(ability, difficulty);
-  const score = correct ? 1 : 0;
-  return {
-    ability: ability + k * (score - expected),
-    difficulty: difficulty + k * (expected - score),
-  };
-}
-
-/**
- * Continuous variant: the "match outcome" is a partial score 0..1 (e.g. the
- * fraction of a check's points earned) rather than a win/loss — so mastery moves
- * coherently with how well the learner actually did, not all-or-nothing.
+ *
+ * The "match outcome" is a partial score 0..1 — the fraction of a check's
+ * points earned — rather than a win or a loss, so mastery moves with how well
+ * the learner actually did. (A binary answer is just the score 0 or 1, which is
+ * why there is only one function here.)
  */
 export function updateEloScore(
   ability: number,

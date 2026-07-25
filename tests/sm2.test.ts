@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scheduleReview, qualityFromAnswer, INITIAL_SRS } from "@/lib/adaptive/sm2";
+import { scheduleReview, qualityFromScore, INITIAL_SRS } from "@/lib/adaptive/sm2";
 
 describe("SM-2-lite scheduling", () => {
   it("grows the interval 1 -> 6 -> ease-scaled on successive passes", () => {
@@ -30,9 +30,13 @@ describe("SM-2-lite scheduling", () => {
     expect(r.easeFactor).toBeGreaterThanOrEqual(INITIAL_SRS.easeFactor);
   });
 
-  it("qualityFromAnswer maps outcomes into SM-2 range", () => {
-    expect(qualityFromAnswer(false)).toBeLessThan(3);
-    expect(qualityFromAnswer(true, true)).toBe(5);
-    expect(qualityFromAnswer(true, false)).toBe(3);
+  it("qualityFromScore turns a check score into an SM-2 quality", () => {
+    // the boundary that matters: under half the points is a lapse
+    expect(qualityFromScore(0.4)).toBeLessThan(3);
+    expect(qualityFromScore(0.5)).toBeGreaterThanOrEqual(3);
+    expect(qualityFromScore(1)).toBe(5);
+    expect(qualityFromScore(0)).toBe(0);
+    expect(qualityFromScore(2)).toBe(5); // clamped
+    expect(qualityFromScore(-1)).toBe(0);
   });
 });

@@ -183,7 +183,6 @@ export const en = {
   "learn.preparing": "Preparing the material",
   "learn.preparingDetail": "analyzing this aspect for the first time",
   "learn.couldNotBuild": "Could not build a bridge.",
-  "learn.attempt": "attempt {n} · rejected",
   "learn.factChecker": "↳ the fact-checker caught it — revised until accurate",
   "learn.breaksDown": "where this analogy breaks down",
   "learn.plainNoAnalogy": "plain explanation · no analogy passed the fact-check",

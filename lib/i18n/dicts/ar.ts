@@ -166,7 +166,6 @@ export const ar: Dict = {
   "learn.preparing": "يتم تحضير المادة",
   "learn.preparingDetail": "يُحلَّل هذا الجانب لأول مرة",
   "learn.couldNotBuild": "تعذّر بناء الجسر.",
-  "learn.attempt": "محاولة {n} · مرفوضة",
   "learn.factChecker": "↳ التقطها مدقق الحقائق — رُوجعت حتى صارت دقيقة",
   "learn.breaksDown": "أين ينهار هذا التشبيه",
   "learn.plainNoAnalogy": "شرح مباشر · لم يجتز أي تشبيه التدقيق",

@@ -166,7 +166,6 @@ export const uk: Dict = {
   "learn.preparing": "Готуємо матеріал",
   "learn.preparingDetail": "цей аспект аналізується вперше",
   "learn.couldNotBuild": "Не вдалося збудувати міст.",
-  "learn.attempt": "спроба {n} · відхилена",
   "learn.factChecker": "↳ фактчекер це впіймав — виправлено до точності",
   "learn.breaksDown": "де ця аналогія ламається",
   "learn.plainNoAnalogy": "просте пояснення · жодна аналогія не пройшла перевірку",

@@ -8,6 +8,7 @@ import { Led } from "@/components/Led";
 import { TickScale } from "@/components/TickScale";
 import { useT } from "@/components/LanguageProvider";
 import { useNow } from "@/components/useNow";
+import { masteryColor, masteryGlow } from "@/lib/mastery";
 
 type Concept = {
   id: string;
@@ -37,14 +38,6 @@ type Data = {
   domains: Domain[];
 };
 
-function masteryGlow(m: number) {
-  if (m >= 0.66) return "var(--acid)";
-  if (m >= 0.4) return "var(--curriculum)";
-  return "#2a4a8f";
-}
-function masteryColor(m: number) {
-  return m >= 0.66 ? "#c9ff7a" : "#9dc0ff";
-}
 export default function Home() {
   const t = useT();
   const [data, setData] = useState<Data | null>(null);

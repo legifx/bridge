@@ -7,6 +7,7 @@ import { PageHead } from "@/components/PageHead";
 import { Grade } from "@/components/Grade";
 import { useT } from "@/components/LanguageProvider";
 import { useNow } from "@/components/useNow";
+import { masteryColor } from "@/lib/mastery";
 
 type ProblemDetail = { correct: boolean; feedback: string | null };
 type Detail = {
@@ -33,12 +34,6 @@ type LogEntry = {
   reviewEnabled: boolean;
   detail: Detail | null;
 };
-
-function masteryColor(m: number) {
-  if (m >= 0.66) return "#c9ff7a";
-  if (m >= 0.4) return "#9dc0ff";
-  return "#ffb877";
-}
 
 export default function Review() {
   const t = useT();

@@ -331,3 +331,50 @@ existed. `scripts/prune-orphans.mjs` reports them by default and only deletes wi
 **Charging an aspect is atomic.** Read-then-write let two requests for the same concept both see
 `charged=false` and both spend a unit. Only the request that flips the flag pays now. (A race
 across *different* concepts can still overshoot the budget by one; bounded, and not worth a lock.)
+
+## Read-through of the whole codebase (2026-07-25)
+
+A pass asking one question of every file: does this still make sense as written? Six things did
+not.
+
+**There were two onboarding systems, and the UI used one.** `/api/onboarding` (chip picking with a
+self-reported "intensity") had been superseded by the adaptive interview at
+`/api/onboarding/session`, which measures depth with the word magnet instead of asking. The old
+route, its profile builder, its question bank and its prompt were still in the tree — about 230
+lines describing a theory of the product that no longer holds. A reader would have found two
+competing answers to "how does a profile come to exist". Removed; `build2.ts` is now simply
+`build.ts` and `buildProfileV2` is `buildProfile`, because the "2" only meant anything while the
+first one existed.
+
+**The tests covered functions the app never calls.** `updateElo` (binary win/loss) had five tests;
+`updateEloScore`, which computes every learner's mastery on every check, had none. Same for
+`qualityFromAnswer` versus the inline `Math.round(score * 5)` in the review path. That is the worst
+kind of green: it reports that the mastery maths is tested when it is not. The unused variants are
+gone (the scored one generalises them), the mapping is a named function, and the suites now
+exercise what actually runs — including the continuity property that motivated the rework.
+
+**SM-2 was guessing its own state.** The repetition count was reconstructed from the stored
+interval ("interval 6 means the second repetition"), because the column did not exist. Any later
+interval that happened to land on 6 silently restarted the ladder. `Review.repetitions` is stored
+now; rows written before the column default to 0, which costs at most one shortened interval once.
+
+**The same mastery had three different colours.** The review log and the brain map used three
+bands, the concept map two — so a concept at 20 % looked shaky in one place and merely forming in
+another. One scale in `lib/mastery.ts` now, used everywhere.
+
+**The privacy guard only protected learners who type English.** A keyword screen refusing family,
+health, emotions, beliefs and identity is a stated §7 feature — and "Depression", "meine Mutter"
+and "мама" walked straight past it in an app that ships in ten languages. It covers all ten now,
+with two entry kinds (prefix stems for inflection, standalone words for short ones like Turkish
+`din`) and Unicode-aware boundaries, since JavaScript's `\b` is ASCII-only. Deliberately *not*
+blocked: bare deity names and "race" — "God of War" and "drag race" are ordinary interests for this
+audience, and refusing them teaches learners the field is broken rather than careful.
+
+**Anchor vectors were recomputed on every bridge.** Anchors are fixed strings from onboarding, but
+each request embedded all of them for both candidate domains — a dozen local model calls over text
+that had not changed in weeks. Memoised per process, bounded.
+
+Plus stale prose: `.env.example` still advertised a free default model and a per-request quota
+(both replaced long ago), `match.ts` carried a docblock for a function that had been renamed away,
+the systemd unit described a `DEMO_MODE` that no longer exists in the code, and `learn.attempt`
+lived on in ten dictionaries after the rejected-attempt cards left the learn screen.
