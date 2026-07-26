@@ -28,7 +28,26 @@ export const EMBED_DIM = 384;
  * Cost of the change: ~134 MB of model instead of ~27 MB, which is paid on a
  * cold serverless instance. Overridable for hosts where that trade is wrong.
  */
-const MODEL = process.env.EMBEDDING_MODEL || "Xenova/paraphrase-multilingual-MiniLM-L12-v2";
+const MULTILINGUAL_MODEL = "Xenova/paraphrase-multilingual-MiniLM-L12-v2";
+const ENGLISH_MODEL = "Xenova/all-MiniLM-L6-v2";
+
+/**
+ * The default stays on the ENGLISH model deliberately, even though it is the
+ * worse one. Vectors already in a database were produced by whichever model
+ * wrote them, and a deployment that starts embedding queries with a different
+ * model does not fail — it silently compares points from two unrelated spaces
+ * and ranks interests at random. Flipping this default alone would have done
+ * exactly that to the hosted database, whose vectors this repo cannot reach.
+ *
+ * Switching is therefore two deliberate steps, in this order:
+ *   1. node scripts/reembed.mjs --apply     (against that database)
+ *   2. EMBEDDING_MODEL=Xenova/paraphrase-multilingual-MiniLM-L12-v2
+ */
+const MODEL = process.env.EMBEDDING_MODEL || ENGLISH_MODEL;
+
+/** Is this host running the multilingual model? Surfaced by /api/health so the
+ *  answer is checkable rather than assumed. */
+export const IS_MULTILINGUAL = MODEL === MULTILINGUAL_MODEL;
 
 /** The model that produced the vectors currently in the database. */
 export const EMBEDDING_MODEL = MODEL;

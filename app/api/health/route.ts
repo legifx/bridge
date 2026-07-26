@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
-import { EMBEDDINGS_ENABLED } from "@/lib/ml/embeddings";
+import { EMBEDDINGS_ENABLED, EMBEDDING_MODEL, IS_MULTILINGUAL } from "@/lib/ml/embeddings";
 import { SESSIONS_SIGNED } from "@/lib/auth/session";
 import { reportError } from "@/lib/observability/report";
 
@@ -79,6 +79,13 @@ export async function GET() {
     embeddings: {
       ok: EMBEDDINGS_ENABLED,
       detail: EMBEDDINGS_ENABLED ? undefined : "disabled — onboarding and matching are off",
+    },
+    // Which model wrote the vectors this host compares against. Not a pass/fail
+    // condition: it is here so "did the re-embed actually happen" is a question
+    // with an answer, instead of a silent ranking-at-random.
+    embeddingModel: {
+      ok: true,
+      detail: `${EMBEDDING_MODEL}${IS_MULTILINGUAL ? "" : " (English-only — non-English interests match poorly)"}`,
     },
   };
 
