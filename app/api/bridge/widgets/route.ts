@@ -5,6 +5,7 @@ import { getCurrentLearner } from "@/lib/db/learner";
 import { generateVisualizations } from "@/lib/learn/visualize";
 import type { BridgeBody } from "@/lib/bridge/types";
 import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
+import { parseMisconceptions } from "@/lib/misconceptions";
 
 export const runtime = "nodejs";
 // Two model calls (generate + fact-check) on their own budget.
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
       plainRestatement: body.plainRestatement,
       domain: cached.match?.domainName ?? bridge.domain.name,
       anchor: cached.match?.anchor ?? "",
+      misconceptions: parseMisconceptions(bridge.concept.misconceptions),
       language: learner.language,
       budgetMs: (maxDuration - 8) * 1000,
     });

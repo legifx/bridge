@@ -10,6 +10,7 @@ import { generateBestBridge } from "@/lib/bridge/engine";
 import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 import { apiError } from "@/lib/api/errors";
 import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
+import { parseMisconceptions } from "@/lib/misconceptions";
 
 export const runtime = "nodejs";
 // Serverless ceiling: up to three generate/verify pairs plus the widget call.
@@ -187,6 +188,7 @@ export async function POST(req: Request) {
         label: concept.label,
         definition: concept.definition,
         sourceQuote: concept.sourceQuote,
+        misconceptions: parseMisconceptions(concept.misconceptions),
       },
       candidates,
       readingLevel: learner.readingLevel,

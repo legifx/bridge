@@ -8,6 +8,10 @@ export const ExtractedConceptSchema = z.object({
   sourceQuote: z.string().min(1),
   difficulty: z.number().int().min(1).max(5),
   prerequisiteIds: z.array(z.string()),
+  /** What learners reliably get wrong here. Fed to the bridge generator/verifier
+   *  and the quiz so an analogy cannot quietly teach the standard misconception.
+   *  Optional: older extractions and the seed fixtures predate the field. */
+  commonMisconceptions: z.array(z.string().min(1)).max(3).optional(),
 });
 export type ExtractedConcept = z.infer<typeof ExtractedConceptSchema>;
 

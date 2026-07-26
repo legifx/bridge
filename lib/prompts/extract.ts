@@ -18,7 +18,8 @@ Return ONLY a JSON object of this exact shape:
       "definition": "1-2 sentences, strictly from the source, in the subject's own vocabulary",
       "sourceQuote": "a short verbatim span copied from the source that supports the definition",
       "difficulty": 1,
-      "prerequisiteIds": ["ids of concepts that must be understood first"]
+      "prerequisiteIds": ["ids of concepts that must be understood first"],
+      "commonMisconceptions": ["0-3 short statements of what learners typically get WRONG about this concept"]
     }
   ]
 }
@@ -37,6 +38,13 @@ Rules for concepts:
 - difficulty is 1 (trivial) to 5 (hard) relative to the other concepts.
 - prerequisiteIds must reference ids that appear in this same concepts array. Only add an edge when concept A genuinely must be understood before concept B. Sparse, correct edges beat a dense guess.
 - ids must be stable, lowercase, kebab-case, derived from the label.
+- commonMisconceptions is the ONE field where your own subject knowledge is wanted, not the source's: name
+  what learners of this topic reliably get wrong — the classic wrong picture, not an exotic edge case.
+  Write each as the WRONG belief itself, one short sentence, e.g. "that the oxygen released comes from the
+  CO2 rather than from the water" or "that heavier objects fall faster". Downstream steps use these to
+  avoid teaching the misconception through an analogy and to build good distractors, so precision matters
+  more than count: 2-3 for a concept with well-known traps, an empty array when there genuinely are none.
+  Never contradict the source here, and never let this leak into the definition.
 - Never return zero if there is real content.
 - subject is the school-subject-level parent topic used to group captures. Prefer a well-known subject name over something narrow ("Chemistry", not "Ionic bonding").
 
@@ -81,4 +89,4 @@ export function extractVerifyUser(
   return `Material (transcription):\n<material>\n${material}\n</material>\n\nConcepts to check:\n\n${list}`;
 }
 
-export const EXTRACT_VERSION = "extract@5";
+export const EXTRACT_VERSION = "extract@6";

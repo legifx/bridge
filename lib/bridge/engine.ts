@@ -38,6 +38,9 @@ export type EngineConcept = {
   label: string;
   definition: string;
   sourceQuote: string;
+  /** Standard misunderstandings of this concept (from extraction). The generator
+   *  must not reinforce them and the verifier checks the explanation against them. */
+  misconceptions?: string[];
 };
 
 export type EngineDomain = {
@@ -75,6 +78,7 @@ async function generate(
       readingLevel,
       priorContradictions,
       priorMistakes,
+      misconceptions: concept.misconceptions,
     }),
     schema: BridgeBodySchema,
     temperature: 0.6,
@@ -89,6 +93,7 @@ async function verify(concept: EngineConcept, body: BridgeBody): Promise<Verdict
       definition: concept.definition,
       sourceQuote: concept.sourceQuote,
       explanation: bodyToText(body),
+      misconceptions: concept.misconceptions,
     }),
     schema: VerdictSchema,
     temperature: 0,

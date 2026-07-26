@@ -117,8 +117,13 @@ export type Grade = z.infer<typeof GradeSchema>;
 
 type Concept = { id: string; label: string; definition: string; sourceQuote: string };
 
+/** Question writing (unlike grading) also gets the concept's known traps: they
+ *  are the best distractors there are, and the one thing a question must never
+ *  assert as correct. */
+type QuizConcept = Concept & { misconceptions?: string[] };
+
 export async function generateQuiz(
-  concept: Concept,
+  concept: QuizConcept,
   language?: string,
   opts?: { tasks?: boolean },
 ): Promise<Quiz> {
@@ -126,12 +131,19 @@ export async function generateQuiz(
   const ask = opts?.tasks
     ? "\n\nThis is a PRACTICE-TASKS set. You MUST return AT LEAST 5 problems (5 or 6), varied in difficulty, favoring solvable numeric/applied ones. Fewer than 5 problems is not acceptable here. The free/mcq are secondary."
     : "";
+  // Known traps: they make the sharpest distractors, and naming them also stops
+  // a question from marking the misconception itself as the correct answer.
+  const traps = concept.misconceptions?.length
+    ? `\nWhat learners typically get WRONG about this concept:\n${concept.misconceptions
+        .map((m) => `- ${m}`)
+        .join("\n")}\nUse these as MCQ distractors where they fit — never as a correct answer, and never phrase a correct option so it agrees with one.`
+    : "";
   return llmJson({
     system: QUIZ_SYSTEM,
     // Only this concept's own definition + its supporting quote — deliberately
     // NOT the whole source, so questions can't drift onto material the learner
     // hasn't studied in this aspect.
-    user: `The learner has studied ONLY this one concept. Test strictly within it.\n\nConcept: ${concept.label}\nDefinition (the full scope of what may be tested): ${concept.definition}\nSupporting quote from the material: "${concept.sourceQuote}"${ask}`,
+    user: `The learner has studied ONLY this one concept. Test strictly within it.\n\nConcept: ${concept.label}\nDefinition (the full scope of what may be tested): ${concept.definition}\nSupporting quote from the material: "${concept.sourceQuote}"${traps}${ask}`,
     schema: QuizSchema,
     temperature: 0.4,
     language,

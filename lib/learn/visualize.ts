@@ -38,7 +38,7 @@ const VerifySchema = z.object({
 
 /** Independent fact-check: drop any widget flagged as factually wrong. */
 async function verifyVisualizations(
-  concept: { label: string; definition: string },
+  concept: { label: string; definition: string; misconceptions?: string[] },
   widgets: Widget[],
   timeoutMs?: number,
 ): Promise<Widget[]> {
@@ -72,6 +72,8 @@ export async function generateVisualizations(params: {
   plainRestatement: string;
   domain: string;
   anchor: string;
+  /** Standard misunderstandings of this concept — a widget must not suggest one. */
+  misconceptions?: string[];
   language?: string;
   /** Time left for this step (ms). Below one call's worth, skip it entirely. */
   budgetMs?: number;
@@ -99,7 +101,7 @@ export async function generateVisualizations(params: {
     });
     // Independent fact-check: drop widgets whose numbers/relationships are wrong.
     return verifyVisualizations(
-      { label: params.label, definition: params.definition },
+      { label: params.label, definition: params.definition, misconceptions: params.misconceptions },
       usable,
       params.budgetMs === undefined ? undefined : params.budgetMs - (Date.now() - started),
     );

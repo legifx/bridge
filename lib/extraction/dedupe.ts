@@ -78,8 +78,14 @@ export function dedupeConcepts(
         if (mapped !== base.id) prereqs.add(mapped);
       }
     }
+    // Merged duplicates may each have spotted a different trap — keep the union
+    // (still capped, so one concept cannot flood the downstream prompts).
+    const traps = new Set<string>();
+    for (const m of members) for (const t of concepts[m].commonMisconceptions ?? []) traps.add(t);
+
     merged.push({
       ...base,
+      commonMisconceptions: [...traps].slice(0, 3),
       prerequisiteIds: [...prereqs],
       mergedFrom: members.filter((m) => m !== root).map((m) => concepts[m].id),
     });

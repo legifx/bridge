@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentLearner } from "@/lib/db/learner";
 import { generateQuiz, verifyNumericProblems } from "@/lib/quiz";
+import { parseMisconceptions } from "@/lib/misconceptions";
 import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 import { st } from "@/lib/i18n";
 import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
@@ -38,7 +39,11 @@ export async function POST(req: Request) {
   if (!charge.ok) return quotaExceededResponse(charge.quota, learner.language);
 
   try {
-    const quiz = await generateQuiz(concept, learner.language, { tasks: parsed.data.tasks });
+    const quiz = await generateQuiz(
+      { ...concept, misconceptions: parseMisconceptions(concept.misconceptions) },
+      learner.language,
+      { tasks: parsed.data.tasks },
+    );
     // Verify BEFORE the learner sees anything: a problem whose stated answer is
     // wrong would mark a correct answer as wrong, push mastery down and
     // reschedule the concept — with a confident worked solution attached.

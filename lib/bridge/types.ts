@@ -34,6 +34,14 @@ export const VerdictSchema = z.object({
    * still parse; absent means "not assessed", which is treated as fine.
    */
   ageAppropriate: z.boolean().optional(),
+  /**
+   * Every "never / always / no … at all / constantly" claim about the subject,
+   * copied out before judging. This is a show-your-work slot, not a report: made
+   * to enumerate them the checker actually evaluates them, and without it these
+   * claims were the one error class it missed even when told to look (measured
+   * 0/5 → 5/5). Optional so verdicts stored before it still parse.
+   */
+  absoluteClaims: z.array(z.string()).optional(),
   verdict: z.enum(["accept", "revise", "reject"]),
 });
 export type Verdict = z.infer<typeof VerdictSchema>;

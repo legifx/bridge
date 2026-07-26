@@ -46,6 +46,7 @@ export async function saveConceptGraph(params: {
         definition: c.definition,
         sourceQuote: c.sourceQuote,
         difficulty: c.difficulty,
+        misconceptions: c.commonMisconceptions?.length ? JSON.stringify(c.commonMisconceptions) : null,
         embedding: emb ? vecToBytes(emb) : null,
       },
     });

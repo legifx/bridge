@@ -32,6 +32,14 @@ Choose the type that MOST fits the concept. Do not force a type that doesn't fit
 
 Rules:
 - Content must be FACTUALLY correct and consistent with the concept's definition. Never invent numbers that misrepresent the subject.
+- A widget is read as the authoritative picture of the concept, so its wording carries the same weight as the explanation:
+  · Say "converts/transforms/stores/releases", never "creates/produces/makes energy" — nothing conserved is created.
+  · For "steps": the order must be the REAL order of the mechanism, not a tidier story. If parts run at the
+    same time or continuously, say so in the step detail or caption instead of implying a strict queue, and
+    never place a product later just because it is mentioned later in the definition.
+  · Never imply an output comes from the wrong input, and never describe the subject as wanting, deciding or choosing.
+- If known misconceptions for this concept are listed below, the widget must not state or suggest any of them —
+  a well-chosen widget is the cheapest place to correct one.
 - For "formula": expression may only use the declared variable symbols, numbers, + - * / ^, parentheses, and functions sqrt/abs/min/max/pow/sin/cos/tan/log/log10/exp/round and the constants pi/e. Keep it a real, correct relationship for the subject. Give sensible min/max/default so the default shows a realistic value.
 - Where natural, phrase titles/captions/labels through the learner's interest (given below) — but NEVER at the cost of correctness. If the interest doesn't fit a widget, keep it subject-accurate.
 - Keep captions to one short line. Keep labels short.
@@ -45,11 +53,17 @@ export function visualizeUser(params: {
   plainRestatement: string;
   domain: string;
   anchor: string;
+  misconceptions?: string[];
 }): string {
+  const traps = params.misconceptions?.length
+    ? `\nKnown misconceptions about this concept — do not state or suggest any of them:\n${params.misconceptions
+        .map((m) => `- ${m}`)
+        .join("\n")}`
+    : "";
   return `Concept: ${params.label}
 Definition (authoritative): ${params.definition}
 Plain restatement: ${params.plainRestatement}
-Learner's interest to frame through where natural: ${params.domain} (anchor: ${params.anchor})
+Learner's interest to frame through where natural: ${params.domain} (anchor: ${params.anchor})${traps}
 
 Design 1–2 best-fit widgets.`;
 }
@@ -65,14 +79,29 @@ Return ONLY a JSON object:
 Rules:
 - factual = false if any number, zone, bar value, diagram part, or (for a formula) the relationship/expression is WRONG or misrepresents the subject as defined. Example: a formula whose expression is not the real relationship, a pH scale with wrong zones, a bar chart with invented proportions.
 - factual = true if the widget is a correct, faithful representation, even if simplified.
+- A widget will necessarily carry detail the short definition does not spell out. Do NOT mark it false just
+  for going beyond the definition — judge that surplus against established knowledge of the subject at
+  school level, and mark it false when it is wrong or would leave a wrong picture.
+- Also mark false when: a "steps" widget puts the real steps in the WRONG ORDER or presents simultaneous /
+  continuous processes as a strict pipeline; a title, caption or label says something conserved is
+  "created/produced/made" rather than converted, transformed or stored; a label implies an output comes
+  from the wrong input; or the subject is described as wanting, deciding or choosing.
+- If misconceptions are listed for this concept, mark a widget false when it states or suggests one, even
+  if no single number is wrong.
 - Judge facts only, not style. Keep each reason to a short phrase.`;
 
-export function visualizeVerifyUser(concept: { label: string; definition: string }, rendered: string[]): string {
+export function visualizeVerifyUser(
+  concept: { label: string; definition: string; misconceptions?: string[] },
+  rendered: string[],
+): string {
+  const traps = concept.misconceptions?.length
+    ? `Known misconceptions about this concept:\n${concept.misconceptions.map((m) => `- ${m}`).join("\n")}\n\n`
+    : "";
   return `Concept: ${concept.label}
 Authoritative definition: ${concept.definition}
 
-Widgets to check (in order):
+${traps}Widgets to check (in order):
 ${rendered.map((r, i) => `#${i + 1}: ${r}`).join("\n")}`;
 }
 
-export const VISUALIZE_VERSION = "visualize@1";
+export const VISUALIZE_VERSION = "visualize@2";
