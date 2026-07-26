@@ -98,10 +98,13 @@ export function generateUser(params: {
   const register = params.depth ? DEPTH_REGISTER[params.depth] : undefined;
   // The traps of this specific topic, named up front — cheaper and far more
   // reliable than hoping the model rediscovers them while writing.
+  // Hints, not gospel: these are generated, not verified, and a mis-stated
+  // "misconception" that is in fact true would otherwise push the explanation
+  // away from a correct statement. Accuracy outranks the list.
   const traps = params.misconceptions?.length
-    ? `\nLearners typically get these WRONG about this concept — your explanation and its imagery must not state or suggest any of them, and where it is natural, quietly steer away from them:\n${params.misconceptions
+    ? `\nHINTS — things learners are often said to get wrong about this concept. Do not state or suggest any of them, and where it is natural, quietly steer away from them:\n${params.misconceptions
         .map((m) => `- ${m}`)
-        .join("\n")}`
+        .join("\n")}\nThese hints are unverified. If one of them is actually TRUE of the subject, ignore that entry — never distort a fact or omit a correct statement in order to avoid an item on this list.`
     : "";
   return `Concept: ${params.label}
 Definition (authoritative, from the source): ${params.definition}
@@ -190,7 +193,7 @@ export function verifyUser(params: {
   // otherwise treats it as the whole job and stops running checks 1-6 — measured
   // as a drop from 5/5 to 0/5 on absolute-claim errors once traps were supplied.
   const traps = params.misconceptions?.length
-    ? `\nKnown standard misconceptions about this concept, for check #7. This list is an ADDITION to checks 1-8, never a replacement: run every one of them in full on this text first, then also flag the explanation if it states or suggests any of these:\n${params.misconceptions
+    ? `\nReported misconceptions about this concept, for check #7. This list is an ADDITION to checks 1-8, never a replacement: run every one of them in full on this text first, then also flag the explanation if it states or suggests any of these. The list itself is unverified — if an entry is actually TRUE of the subject, skip it rather than flagging a correct statement:\n${params.misconceptions
         .map((m) => `- ${m}`)
         .join("\n")}\n`
     : "";
