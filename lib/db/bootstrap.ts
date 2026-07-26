@@ -17,7 +17,7 @@ type RuntimeMigration = { name: string; statements: string[] };
 
 // Keep names identical to the prisma/migrations folder so the ledger stays
 // consistent no matter which path applied a migration first.
-const RUNTIME_MIGRATIONS: RuntimeMigration[] = [
+export const RUNTIME_MIGRATIONS: RuntimeMigration[] = [
   {
     name: "20260722183446_main_language_and_subject_folders",
     statements: [
@@ -65,6 +65,10 @@ const RUNTIME_MIGRATIONS: RuntimeMigration[] = [
   {
     name: "20260725090000_review_repetitions",
     statements: [`ALTER TABLE "Review" ADD COLUMN "repetitions" INTEGER NOT NULL DEFAULT 0`],
+  },
+  {
+    name: "20260726_concept_misconceptions",
+    statements: [`ALTER TABLE "Concept" ADD COLUMN "misconceptions" TEXT`],
   },
 ];
 
