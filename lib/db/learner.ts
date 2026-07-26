@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { prisma } from "./prisma";
 import { decodeSession } from "@/lib/auth/session";
+import { reportError } from "@/lib/observability/report";
 
 export const LEARNER_COOKIE = "learnerId";
 
@@ -29,7 +30,7 @@ export async function getCurrentLearner() {
   } catch (err) {
     // Treat an unreachable database as "signed out" rather than crashing every
     // guarded page with a 500.
-    console.error("getCurrentLearner: database unavailable", err);
+    reportError("db/learner", "database unavailable resolving session", err);
     return null;
   }
 }

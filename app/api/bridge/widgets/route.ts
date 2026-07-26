@@ -6,6 +6,7 @@ import { generateVisualizations } from "@/lib/learn/visualize";
 import type { BridgeBody } from "@/lib/bridge/types";
 import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
 import { parseMisconceptions } from "@/lib/misconceptions";
+import { reportError } from "@/lib/observability/report";
 
 export const runtime = "nodejs";
 // Two model calls (generate + fact-check) on their own budget.
@@ -86,7 +87,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ visualizations });
   } catch (err) {
     // Widgets are a bonus: never let their failure look like a broken lesson.
-    console.error("bridge/widgets:", err);
+    reportError("api/bridge/widgets", "widget generation failed", err);
     return NextResponse.json({ visualizations: [] });
   }
 }

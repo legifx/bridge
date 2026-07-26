@@ -325,6 +325,8 @@ export const de: Dict = {
   "cap.extractFailed": "Extraktion fehlgeschlagen.",
   "err.quota":
     "Demo-Budget dieses Profils aufgebraucht. Melde dich mit einem anderen Namen an, um weiterzumachen — oder klone das Repo und starte Bridge mit eigenem Key.",
+  "err.budget":
+    "Das KI-Budget des Dienstes ist für heute aufgebraucht. Es ging nichts verloren — versuche es morgen wieder oder betreibe Bridge mit eigenem API-Key.",
   "err.sessionStale":
     "Dieses Interview ist schon abgeschlossen. Lade die Seite neu, um dein Profil zu sehen.",
   "common.retry":

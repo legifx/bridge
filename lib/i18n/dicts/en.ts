@@ -338,6 +338,8 @@ export const en = {
   "cap.extractFailed": "Extraction failed.",
   "err.quota":
     "Demo budget used up for this profile. Sign in with a different name to keep exploring — or clone the repo and run Bridge with your own key.",
+  "err.budget":
+    "The service has reached its AI budget for today. Nothing was lost — try again tomorrow, or run Bridge with your own API key.",
   "err.sessionStale":
     "This interview has already been completed. Reload the page to see your profile.",
   "common.retry":

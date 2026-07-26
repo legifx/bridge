@@ -10,6 +10,7 @@
  */
 import { NextResponse } from "next/server";
 import { st } from "@/lib/i18n";
+import { reportError } from "@/lib/observability/report";
 import type { MsgKey } from "@/lib/i18n";
 
 type Statused = { status?: number; name?: string };
@@ -17,6 +18,10 @@ type Statused = { status?: number; name?: string };
 /** Which localized message fits this failure? */
 export function messageKeyFor(err: unknown): MsgKey {
   const e = (err ?? {}) as Statused;
+  // The deployment (or its provider account) is out of AI budget. This used to
+  // surface as "the AI could not be reached", which is both untrue and leaves
+  // the learner retrying against a wall.
+  if (e.name === "BudgetExhaustedError") return "err.budget";
   if (e.status === 429) return "err.aiBusy";
   if (e.name === "APIConnectionTimeoutError" || e.name === "AbortError") return "err.aiSlow";
   return "err.aiFailed";
@@ -35,9 +40,10 @@ export function apiError(
   /** Override the message when the caller knows better than the heuristic. */
   messageKey?: MsgKey,
 ): NextResponse {
-  console.error(`${where}:`, err);
+  reportError(where, "request failed", err, { status });
   const key = messageKey ?? messageKeyFor(err);
   const body: { error: string; detail?: string } = { error: st(language, key) };
   if (process.env.NODE_ENV !== "production" && err instanceof Error) body.detail = err.message;
-  return NextResponse.json(body, { status: status ?? (key === "err.aiBusy" ? 429 : 502) });
+  const fallbackStatus = key === "err.aiBusy" || key === "err.budget" ? 429 : 502;
+  return NextResponse.json(body, { status: status ?? fallbackStatus });
 }

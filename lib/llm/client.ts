@@ -9,6 +9,12 @@
 import OpenAI from "openai";
 import type { ZodType } from "zod";
 import { languageName } from "@/lib/i18n";
+import {
+  assertWithinBudget,
+  recordSpend,
+  isProviderBudgetError,
+  BudgetExhaustedError,
+} from "./budget";
 
 // Per-task model routing — each task runs on the model that is best-in-class
 // for it AND cheap, instead of one expensive generalist (measured 2026-07-23
@@ -111,6 +117,10 @@ export async function llmJson<T>(call: LlmCall<T>): Promise<T> {
           { role: "system", content: withLanguage(call.system, call.language) },
           { role: "user", content },
         ],
+        // OpenRouter extension, not part of the OpenAI schema: return what the
+        // call actually cost. An estimate from a hard-coded price table drifts
+        // the moment a model is re-priced or routed to a different upstream.
+        ...({ usage: { include: true } } as Record<string, unknown>),
       },
       // Never wait forever on an upstream that has gone quiet: a bridge runs up
       // to three generate/verify pairs in sequence, so one hung call would eat
@@ -126,14 +136,26 @@ export async function llmJson<T>(call: LlmCall<T>): Promise<T> {
   // keeps the onboarding magnets from silently degrading to the English fixture.
   const attempt = async (model: string): Promise<T> => {
     const res = await complete(model);
+    // Bill first: the call is already paid for whether or not its JSON parses,
+    // so recording only on success would under-count exactly the failures that
+    // burn budget fastest.
+    const cost = (res as { usage?: { cost?: number } }).usage?.cost;
+    if (typeof cost === "number") await recordSpend(cost, model);
     const raw = res.choices[0]?.message?.content ?? "";
     return call.schema.parse(extractJson(raw));
   };
+
+  // Our own ceiling, checked before spending anything. Cheaper than finding out
+  // from the provider, and it produces a message a learner can act on.
+  await assertWithinBudget();
 
   const primary = call.model ?? MODEL;
   try {
     return await attempt(primary);
   } catch (err) {
+    // The provider is out of credit: a second model on the same account will
+    // fail identically, so retrying only wastes the learner's time.
+    if (isProviderBudgetError(err)) throw new BudgetExhaustedError(0, 0);
     if (!FALLBACK_MODEL || FALLBACK_MODEL === primary) throw err;
     // Retry on rate-limit/upstream errors AND on malformed-JSON / schema errors.
     const status = (err as { status?: number })?.status;

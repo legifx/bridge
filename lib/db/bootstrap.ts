@@ -13,6 +13,8 @@
  * rewrites tables still belongs in migrate-remote.mjs, run manually.
  */
 
+import { reportError } from "@/lib/observability/report";
+
 type RuntimeMigration = { name: string; statements: string[] };
 
 // Keep names identical to the prisma/migrations folder so the ledger stays
@@ -70,6 +72,34 @@ export const RUNTIME_MIGRATIONS: RuntimeMigration[] = [
     name: "20260726_concept_misconceptions",
     statements: [`ALTER TABLE "Concept" ADD COLUMN "misconceptions" TEXT`],
   },
+  {
+    name: "20260726_roles_and_classes",
+    statements: [
+      `ALTER TABLE "Learner" ADD COLUMN "role" TEXT NOT NULL DEFAULT 'learner'`,
+      `ALTER TABLE "Learner" ADD COLUMN "classId" TEXT`,
+      `CREATE TABLE IF NOT EXISTS "SchoolClass" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "name" TEXT NOT NULL,
+        "joinCode" TEXT NOT NULL,
+        "teacherId" TEXT NOT NULL,
+        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )`,
+      `CREATE UNIQUE INDEX IF NOT EXISTS "SchoolClass_joinCode_key" ON "SchoolClass"("joinCode")`,
+      `CREATE INDEX IF NOT EXISTS "SchoolClass_teacherId_idx" ON "SchoolClass"("teacherId")`,
+      `CREATE INDEX IF NOT EXISTS "Learner_classId_idx" ON "Learner"("classId")`,
+    ],
+  },
+  {
+    name: "20260726_ai_spend",
+    statements: [
+      `CREATE TABLE IF NOT EXISTS "AiSpend" (
+        "day" TEXT NOT NULL PRIMARY KEY,
+        "microUsd" INTEGER NOT NULL DEFAULT 0,
+        "calls" INTEGER NOT NULL DEFAULT 0,
+        "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      )`,
+    ],
+  },
 ];
 
 async function run(): Promise<void> {
@@ -104,7 +134,7 @@ async function run(): Promise<void> {
     client.close();
   } catch (err) {
     // Never brick the app over bootstrap — queries will surface real problems.
-    console.error("turso bootstrap failed", err);
+    reportError("db/bootstrap", "runtime schema bootstrap failed", err);
   }
 }
 

@@ -8,6 +8,7 @@ import { st } from "@/lib/i18n";
 import { defaultGradeSystem } from "@/lib/grades";
 import { isDemoHandle } from "@/lib/demo/profiles";
 import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
+import { reportError } from "@/lib/observability/report";
 
 export const runtime = "nodejs";
 
@@ -139,7 +140,7 @@ export async function POST(req: Request) {
   } catch (err) {
     // Never fall through with an empty body: the client would only see
     // "Unexpected end of JSON input" instead of what actually broke.
-    console.error("signin: database unavailable", err);
+    reportError("api/signin", "database unavailable", err);
     return NextResponse.json(
       { error: "The database is unavailable right now. Please try again in a moment." },
       { status: 503 },

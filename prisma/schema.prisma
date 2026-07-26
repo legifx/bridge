@@ -22,6 +22,8 @@ model Learner {
   language     String   @default("en") // main language for learner-facing AI text (set at onboarding, editable later)
   gradeSystem  String   @default("percent") // country grade system for score display (see lib/grades.ts)
   aiUnits      Int      @default(0) // AI-call units used (quota enforced on public demo only)
+  role         String   @default("learner") // learner | teacher (see lib/auth/roles.ts)
+  classId      String? // the class this learner belongs to; teachers own one via SchoolClass.teacherId
   createdAt    DateTime @default(now())
 
   domains    InterestDomain[]
@@ -29,6 +31,37 @@ model Learner {
   concepts   Concept[]
   brainItems BrainItem[]
   interviews OnboardingSession[]
+  ownedClasses SchoolClass[] @relation("classTeacher")
+  memberOf     SchoolClass?  @relation("classMembers", fields: [classId], references: [id], onDelete: SetNull)
+
+  @@index([classId])
+}
+
+/// A teaching group. Exists so the cohort view has a boundary: before it, the
+/// "class aggregate" was every learner in the database, served to anyone.
+/// Learners join with the code; only the owning teacher may read the roll-up.
+model SchoolClass {
+  id        String   @id @default(cuid())
+  name      String
+  joinCode  String   @unique // shared with learners; rotatable
+  teacherId String
+  createdAt DateTime @default(now())
+
+  teacher Learner   @relation("classTeacher", fields: [teacherId], references: [id], onDelete: Cascade)
+  members Learner[] @relation("classMembers")
+
+  @@index([teacherId])
+}
+
+/// Daily AI spend, one row per UTC day. Serverless runs many instances, so the
+/// only place a shared budget can live is the database. Exists because the
+/// provider key hit its own daily cap on 2026-07-26 and the app answered with a
+/// generic "AI failed" — the ceiling has to be ours, and it has to be readable.
+model AiSpend {
+  day       String   @id // YYYY-MM-DD (UTC)
+  microUsd  Int      @default(0) // millionths of a dollar; integers avoid float drift
+  calls     Int      @default(0)
+  updatedAt DateTime @updatedAt
 }
 
 // One adaptive onboarding interview. The full state (candidate domains, served

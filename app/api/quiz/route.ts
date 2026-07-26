@@ -7,6 +7,7 @@ import { parseMisconceptions } from "@/lib/misconceptions";
 import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 import { st } from "@/lib/i18n";
 import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
+import { reportError } from "@/lib/observability/report";
 
 export const runtime = "nodejs";
 // Serverless ceiling: one generation call, plus a fallback-model retry.
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
     // The model occasionally returns unparseable output even after the fallback
     // retry — surface a readable error instead of an empty 500 the client can't
     // show. The learner can simply try again.
-    console.error("quiz: generation failed", err);
+    reportError("api/quiz", "quiz generation failed", err);
     return NextResponse.json({ error: st(learner.language, "check.couldNotLoad") }, { status: 502 });
   }
 }

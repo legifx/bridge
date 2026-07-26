@@ -1,9 +1,18 @@
 import { prisma } from "@/lib/db/prisma";
 
 /**
- * Teacher view data (§5, §7). Aggregates ONLY: concept-level counts across the
- * whole cohort. No learner ids, no names, no interest profiles ever leave here.
+ * Teacher view data (§5, §7). Aggregates ONLY: concept-level counts. No learner
+ * ids, no names, no interest profiles ever leave here.
  * "Bridge profiles material, not children."
+ *
+ * The scope is the part that was missing. This used to read every Review row in
+ * the database and roll them up as "the cohort" — which made one school's
+ * numbers visible to another, and with few learners made an "aggregate" of one.
+ * It now takes a class and never leaves it.
+ *
+ * A class with very few answers is also a privacy problem in aggregate form: at
+ * n=1 the "cohort struggle rate" IS that child's result. Rows below
+ * MIN_COHORT_ANSWERS are withheld rather than shown.
  */
 export type CohortConcept = {
   conceptLabel: string;
@@ -14,11 +23,26 @@ export type CohortConcept = {
 };
 
 const MASTERY_ELO = 1350;
+/** Below this many answers a row describes an individual, not a cohort. */
+export const MIN_COHORT_ANSWERS = 3;
 
-export async function getCohortStruggles(): Promise<CohortConcept[]> {
-  // Reviews carry the answer outcomes; group by the concept's label so two
-  // learners studying "Ionic bond" roll up together, with no per-learner data.
+export type CohortResult = {
+  concepts: CohortConcept[];
+  /** Rows withheld because the class is too small to anonymize them. */
+  withheld: number;
+  learners: number;
+};
+
+export async function getCohortStruggles(classId: string): Promise<CohortResult> {
+  const members = await prisma.learner.findMany({
+    where: { classId },
+    select: { id: true },
+  });
+  const memberIds = members.map((m) => m.id);
+  if (memberIds.length === 0) return { concepts: [], withheld: 0, learners: 0 };
+
   const reviews = await prisma.review.findMany({
+    where: { concept: { learnerId: { in: memberIds } } },
     select: { correct: true, concept: { select: { label: true } } },
   });
 
@@ -31,15 +55,14 @@ export async function getCohortStruggles(): Promise<CohortConcept[]> {
     byLabel.set(key, agg);
   }
 
-  // Mastered counts: distinct concepts (per learner) above the mastery Elo.
   const mastered = await prisma.concept.groupBy({
     by: ["label"],
-    where: { elo: { gte: MASTERY_ELO } },
+    where: { elo: { gte: MASTERY_ELO }, learnerId: { in: memberIds } },
     _count: { _all: true },
   });
   const masteredByLabel = new Map(mastered.map((m) => [m.label, m._count._all]));
 
-  const rows: CohortConcept[] = [...byLabel.entries()].map(([conceptLabel, agg]) => ({
+  const all: CohortConcept[] = [...byLabel.entries()].map(([conceptLabel, agg]) => ({
     conceptLabel,
     attempts: agg.attempts,
     correct: agg.correct,
@@ -47,7 +70,9 @@ export async function getCohortStruggles(): Promise<CohortConcept[]> {
     masteredCount: masteredByLabel.get(conceptLabel) ?? 0,
   }));
 
+  const concepts = all.filter((c) => c.attempts >= MIN_COHORT_ANSWERS);
   // Hardest first.
-  rows.sort((a, b) => b.struggleRate - a.struggleRate || b.attempts - a.attempts);
-  return rows;
+  concepts.sort((a, b) => b.struggleRate - a.struggleRate || b.attempts - a.attempts);
+
+  return { concepts, withheld: all.length - concepts.length, learners: memberIds.length };
 }

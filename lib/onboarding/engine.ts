@@ -157,7 +157,25 @@ function appendLog(logJson: string, entry: LogEntry): string {
   return JSON.stringify(log);
 }
 
+/**
+ * Rows this learner will never finish. An interview that was closed, reloaded
+ * or restarted leaves its session behind as `active` forever, and nothing ever
+ * removed them — one abandoned row per abandoned attempt, growing without
+ * bound. Finished interviews are NOT touched: their log is the profile's
+ * provenance and the verification story depends on it.
+ */
+async function discardAbandonedInterviews(learnerId: string): Promise<void> {
+  try {
+    await prisma.onboardingSession.deleteMany({
+      where: { learnerId, status: { not: "done" } },
+    });
+  } catch {
+    // Housekeeping must never stop a learner from starting their interview.
+  }
+}
+
 export async function startInterview(learnerId: string, seeds: string[], language?: string): Promise<StepBatch> {
+  await discardAbandonedInterviews(learnerId);
   const plan = await planInterview(seeds, language);
   const domains: DomainState[] = plan.domains.map((p, i) => ({
     key: slugify(p.name, i),

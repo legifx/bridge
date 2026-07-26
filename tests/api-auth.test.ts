@@ -14,6 +14,7 @@ const PUBLIC_BY_DESIGN = new Set([
   "signin", // establishes the session
   "signout", // clearing a session needs no session
   "compare", // public showcase, hard-scoped to the seeded demo handles
+  "health", // uptime monitors cannot log in; booleans only, no values or counts
 ]);
 
 describe("API routes guard the session", () => {

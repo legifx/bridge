@@ -325,6 +325,8 @@ export const pt: Dict = {
   "cap.extractFailed": "A extração falhou.",
   "err.quota":
     "Orçamento de demo esgotado para este perfil. Entra com outro nome para continuar — ou clona o repo e corre o Bridge com a tua própria chave.",
+  "err.budget":
+    "O orçamento de IA do serviço acabou por hoje. Nada se perdeu — tenta amanhã ou executa o Bridge com a tua própria chave de API.",
   "err.sessionStale":
     "Esta entrevista já foi concluída. Recarrega a página para veres o teu perfil.",
   "common.retry":

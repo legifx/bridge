@@ -170,11 +170,11 @@ Two supported targets, same codebase:
 
 ## What's not built yet (honest status)
 
-- **Embeddings are English-trained** (all-MiniLM-L6-v2). Interests written in the other nine
-  interface languages are matched through an English vector space, which quietly disadvantages
-  them. Switching to a multilingual model means re-embedding everything stored.
-- **The teacher view is parked.** The cohort aggregation exists and is label-only by design, but
-  the page redirects home until it is worth showing.
+- **The teacher view has no UI.** The API is done — roles, classes with join codes, a cohort
+  roll-up scoped to the class you own, and small classes withheld rather than shown — but the page
+  still redirects home. What is missing is the screen, not the boundary.
+- **Model spend has a ceiling, the provider account still needs one.** `AI_DAILY_BUDGET_USD` stops
+  the app before it spends, but nothing here can create or fund a provider account.
 - **The PWA is installable, not offline.** Manifest and icons ship; there is no service worker.
 - The concept map is a linear, prerequisite-ordered timeline rather than a free-form 2-D graph.
 - No PNG icon rasterization (a single maskable SVG icon).
