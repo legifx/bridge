@@ -375,6 +375,42 @@ export const en = {
     "This removes your profile, your uploaded material, every explanation, all answers and your interest profile. It cannot be undone. Enter your password to confirm.",
   "settings.deleteConfirm":
     "Delete permanently",
+  "map.nextUp":
+    "next up",
+  "map.nextDue":
+    "Due for review — catch it before it fades.",
+  "map.nextReady":
+    "You already have everything this one builds on.",
+  "map.nextWeakest":
+    "This one sits least well of all — worth another pass.",
+  "learn.buildsOn":
+    "Builds on {names}, which is not solid yet.",
+  "learn.buildsOnAction":
+    "learn that first →",
+  "settings.readingLevel":
+    "Reading level",
+  "settings.readingLevelSub":
+    "How demanding the explanations are written. Change it any time — the next explanation follows.",
+  "settings.simpler":
+    "simpler",
+  "settings.harder":
+    "more advanced",
+  "learn.fix":
+    "Correct this",
+  "learn.fixHint":
+    "Extraction got it wrong? Fix the wording — the next explanation uses your version.",
+  "learn.deleteConcept":
+    "Remove this concept",
+  "learn.deleteConfirm":
+    "Remove it, with its explanations and answers? This cannot be undone.",
+  "common.save":
+    "Save",
+  "common.delete":
+    "Delete",
+  "map.deleteFolder":
+    "Delete this capture",
+  "map.deleteFolderConfirm":
+    "Delete this capture and its {n} concept(s)? This cannot be undone.",
   "err.aiBusy":
     "The AI service is busy right now. Wait a few seconds and try again.",
   "err.aiSlow":

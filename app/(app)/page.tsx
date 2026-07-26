@@ -9,6 +9,7 @@ import { TickScale } from "@/components/TickScale";
 import { useT } from "@/components/LanguageProvider";
 import { useNow } from "@/components/useNow";
 import { masteryColor, masteryGlow } from "@/lib/mastery";
+import { recommendNext } from "@/lib/learn/next";
 
 type Concept = {
   id: string;
@@ -41,6 +42,21 @@ type Data = {
 export default function Home() {
   const t = useT();
   const [data, setData] = useState<Data | null>(null);
+
+  async function deleteFolder(sourceId: string, count: number) {
+    if (!window.confirm(t("map.deleteFolderConfirm", { n: count }))) return;
+    const res = await fetch("/api/sources", {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ sourceId }),
+    });
+    if (!res.ok) return;
+    // Re-read rather than patch local state: deleting a capture also removes
+    // its concepts, which changes the order, the edges and the suggestion.
+    const fresh = await fetch("/api/concepts").then((r) => r.json());
+    setData(fresh);
+  }
+
   const fmtDate = (iso: string) =>
     new Date(iso).toLocaleDateString(undefined, { day: "numeric", month: "short" });
   const [loading, setLoading] = useState(true);
@@ -79,6 +95,24 @@ export default function Home() {
     else subjects.push({ subject: name, folders: [f] });
   }
   const SUBJECT_GLOWS = ["var(--curriculum)", "var(--interest)", "var(--violet)", "var(--orange)", "var(--acid)"];
+
+  // What to open next, from the prerequisite graph and the mastery estimate —
+  // both of which existed already and were used only for sorting.
+  const suggestion = data
+    ? recommendNext(
+        ordered.map((c) => ({
+          id: c.id,
+          mastery: c.mastery,
+          reviewEnabled: c.reviewEnabled,
+          dueAt: c.dueAt,
+          started: c.dueAt !== null, // a due date exists only once a check was sat
+        })),
+        data.edges,
+        data.order,
+        now,
+      )
+    : null;
+  const suggested = suggestion ? byId.get(suggestion.id) : undefined;
 
   // Stable reading position per concept, computed up front in exactly the order
   // the list renders (subject → folder → concept, then loose ones). Counting
@@ -123,6 +157,32 @@ export default function Home() {
               </span>
             ))}
           </div>
+
+          {/* what to open next — one concept, with the reason for it */}
+          {suggested && suggestion && (
+            <Link
+              href={`/learn/${suggested.id}`}
+              className="aura card card-link ring-focus mb-8 block p-5"
+              style={
+                {
+                  "--glow": "var(--interest)",
+                  "--aura-x": "88%",
+                  "--aura-y": "30%",
+                  "--aura-strength": 0.4,
+                } as React.CSSProperties
+              }
+            >
+              <p className="slabel text-interest-text">{t("map.nextUp")}</p>
+              <p className="mt-2 text-lg font-semibold tracking-tight text-text">{suggested.label}</p>
+              <p className="mt-1 text-xs leading-relaxed text-faint">
+                {suggestion.kind === "due"
+                  ? t("map.nextDue")
+                  : suggestion.kind === "ready"
+                    ? t("map.nextReady")
+                    : t("map.nextWeakest")}
+              </p>
+            </Link>
+          )}
 
           {/* due for review — the spaced-repetition queue */}
           {due.length > 0 && (
@@ -195,12 +255,22 @@ export default function Home() {
                               {f.source.title}
                             </h3>
                           </div>
-                          <Link
-                            href={`/capture?source=${f.source.id}`}
-                            className="slabel shrink-0 pb-0.5 text-curriculum-text transition hover:opacity-80"
-                          >
-                            {t("map.addMaterial")}
-                          </Link>
+                          <div className="flex shrink-0 items-baseline gap-3 pb-0.5">
+                            <Link
+                              href={`/capture?source=${f.source.id}`}
+                              className="slabel text-curriculum-text transition hover:opacity-80"
+                            >
+                              {t("map.addMaterial")}
+                            </Link>
+                            <button
+                              onClick={() => deleteFolder(f.source.id, f.concepts.length)}
+                              aria-label={t("map.deleteFolder")}
+                              title={t("map.deleteFolder")}
+                              className="slabel text-faint transition hover:text-reject-text"
+                            >
+                              ✕
+                            </button>
+                          </div>
                         </div>
                         <ol className="space-y-5">
                           {f.concepts.map((c) => (

@@ -412,3 +412,33 @@ material a learner photographed is worse than letting a borderline definition th
 check exists to catch misreadings, not to second-guess reasonable summaries. Verified live against
 a fabricated definition ("plants take their carbon from rock, not the air"), which came back
 unsupported with the reason quoted from the material.
+
+## Making the adaptive parts actually adapt (2026-07-26)
+
+**The check outcome now moves the interest bandit.** Only the thumbs tap did — a self-report made
+in the moment of wanting to move on — while the score, the one number that says whether an analogy
+actually worked, went nowhere. `updateBetaScore` splits a single observation between the two
+counters (0.8 is mostly a success and a little a failure), which is the Bayesian update for a
+reward observed with partial credit. Attempt 99 is excluded: the plain fallback involves no
+analogy, so its outcome says nothing about the interest and must not be credited or blamed on it.
+Verified live: a check scoring 0.556 moved α 2.0 → 2.556 and β 1.0 → 1.444.
+
+**The prerequisite graph guides instead of only sorting.** The edges and the mastery estimate were
+both computed and then used to order a list; nobody was ever told "this builds on something you
+have not got yet", which is the most useful thing a prerequisite edge can say. `lib/learn/next.ts`
+is pure and tested: due reviews first (forgetting beats new material), then the first unstarted
+concept whose prerequisites are solid, then the shakiest one — with the material's own order as
+the tie-break. The map leads with the suggestion and its reason; the learn screen names the shaky
+prerequisite and links to it.
+
+**Material can be corrected and removed.** A misread definition was permanent, and was dutifully
+explained, tested and rescheduled forever. Concepts can now be edited or deleted from the learn
+screen, and a capture folder deleted from the map. Two details that matter: editing clears the
+stored embedding, so the next bridge matches interests against the corrected text rather than the
+old wording, and it drops the cached explanation, so nobody reads a bridge to a definition that no
+longer exists. Deleting a capture removes its concepts explicitly — the schema only nulls the
+foreign key, which would strand them on the map with no folder.
+
+**Reading level is adjustable.** It was set once during onboarding and never again, although "too
+easy" and "too hard" is the most obvious feedback a learner has. It sits in Settings and steers
+every explanation written after it.

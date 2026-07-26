@@ -362,6 +362,42 @@ export const ar: Dict = {
     "هذا يحذف ملفك، وموادك المرفوعة، وكل الشروح، وكل الإجابات، وملف اهتماماتك. لا يمكن التراجع. أدخل كلمة المرور للتأكيد.",
   "settings.deleteConfirm":
     "حذف نهائي",
+  "map.nextUp":
+    "التالي",
+  "map.nextDue":
+    "حان وقت المراجعة — استدركه قبل أن يتلاشى.",
+  "map.nextReady":
+    "لديك بالفعل كل ما يبني عليه هذا المفهوم.",
+  "map.nextWeakest":
+    "هذا أقلها رسوخاً — يستحق جولة أخرى.",
+  "learn.buildsOn":
+    "يبني على {names}، وهو غير راسخ بعد.",
+  "learn.buildsOnAction":
+    "تعلّم ذلك أولاً ←",
+  "settings.readingLevel":
+    "مستوى القراءة",
+  "settings.readingLevelSub":
+    "مدى صعوبة صياغة الشروح. غيّره متى شئت — الشرح التالي يتبعه.",
+  "settings.simpler":
+    "أبسط",
+  "settings.harder":
+    "أكثر تقدماً",
+  "learn.fix":
+    "صحّح هذا",
+  "learn.fixHint":
+    "استُخرج بشكل خاطئ؟ عدّل الصياغة — الشرح التالي يستخدم نسختك.",
+  "learn.deleteConcept":
+    "إزالة هذا المفهوم",
+  "learn.deleteConfirm":
+    "إزالته مع شروحه وإجاباته؟ لا يمكن التراجع.",
+  "common.save":
+    "حفظ",
+  "common.delete":
+    "حذف",
+  "map.deleteFolder":
+    "حذف هذه المادة",
+  "map.deleteFolderConfirm":
+    "حذف هذه المادة و{n} مفهوماً منها؟ لا يمكن التراجع.",
   "err.aiBusy":
     "خدمة الذكاء الاصطناعي مشغولة الآن. انتظر بضع ثوانٍ ثم أعد المحاولة.",
   "err.aiSlow":

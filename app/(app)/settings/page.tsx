@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Shell } from "@/components/Shell";
 import { PageHead } from "@/components/PageHead";
 import { LanguageSelect } from "@/components/LanguageSelect";
@@ -9,10 +9,31 @@ import { GRADE_SYSTEMS, formatGrade } from "@/lib/grades";
 
 export default function Settings() {
   const { t, gradeSystem, setGradeSystem } = useI18n();
+  const [readingLevel, setReadingLevel] = useState<number | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [password, setPassword] = useState("");
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // The current level comes from the profile; the setter writes straight
+  // through so the next explanation already follows it.
+  useEffect(() => {
+    fetch("/api/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (typeof d?.learner?.readingLevel === "number") setReadingLevel(d.learner.readingLevel);
+      })
+      .catch(() => {});
+  }, []);
+
+  function chooseReadingLevel(level: number) {
+    setReadingLevel(level);
+    fetch("/api/me", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ readingLevel: level }),
+    }).catch(() => {});
+  }
 
   async function deleteAccount() {
     setDeleting(true);
@@ -73,6 +94,38 @@ export default function Settings() {
             })}
           </div>
         </div>
+        {/* reading level — set once at onboarding, and until now never again */}
+        <div className="card p-5">
+          <p className="slabel text-faint">{t("settings.readingLevel")}</p>
+          <p className="mt-1 text-xs leading-relaxed text-faint">{t("settings.readingLevelSub")}</p>
+          <div className="mt-4 flex items-center gap-2" role="radiogroup" aria-label={t("settings.readingLevel")}>
+            {[1, 2, 3, 4, 5].map((lvl) => (
+              <button
+                key={lvl}
+                role="radio"
+                aria-checked={readingLevel === lvl}
+                onClick={() => chooseReadingLevel(lvl)}
+                className={`flex-1 rounded-full py-2.5 text-sm transition ${
+                  readingLevel === lvl ? "text-curriculum-text" : "text-dim"
+                }`}
+                style={{
+                  background: readingLevel === lvl ? "rgba(90,140,255,0.14)" : "rgba(255,255,255,0.05)",
+                  boxShadow:
+                    readingLevel === lvl
+                      ? "inset 0 0 0 1px rgba(90,140,255,0.4)"
+                      : "inset 0 1px 0 rgba(255,255,255,0.08)",
+                }}
+              >
+                {lvl}
+              </button>
+            ))}
+          </div>
+          <div className="mt-2 flex justify-between">
+            <span className="slabel text-faint">{t("settings.simpler")}</span>
+            <span className="slabel text-faint">{t("settings.harder")}</span>
+          </div>
+        </div>
+
         {/* your data: take it with you, or remove it */}
         <div className="card p-5">
           <p className="slabel text-faint">{t("settings.yourData")}</p>

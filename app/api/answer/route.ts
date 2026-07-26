@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db/prisma";
 import { getCurrentLearner } from "@/lib/db/learner";
 import { gradeFreeRecall, gradeOpenProblems, checkNumeric, ProblemSchema } from "@/lib/quiz";
 import { recordAnswer } from "@/lib/adaptive/review";
+import { updateBetaScore } from "@/lib/adaptive/thompson";
 import { eloToMastery } from "@/lib/extraction/repo";
 import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
@@ -114,6 +115,30 @@ export async function POST(req: Request) {
       })),
     },
   });
+
+  // Feed the outcome back to the interest that explained this concept. Until
+  // now only the thumbs tap moved the bandit — a self-report made while wanting
+  // to move on — while the score, which says whether the analogy actually
+  // worked, went nowhere. Non-fatal: a failure here must not cost the learner
+  // their graded check.
+  try {
+    const studied = await prisma.bridge.findFirst({
+      where: { conceptId: concept.id, status: "accepted" },
+      orderBy: { createdAt: "desc" },
+      include: { domain: true },
+    });
+    // Attempt 99 is the plain fallback: no analogy was involved, so this outcome
+    // says nothing about the interest and must not be credited or blamed on it.
+    if (studied && studied.attempt !== 99) {
+      const { alpha, beta } = updateBetaScore(studied.domain, scorePct);
+      await prisma.interestDomain.update({
+        where: { id: studied.domain.id },
+        data: { alpha, beta, confidence: alpha / (alpha + beta) },
+      });
+    }
+  } catch (err) {
+    console.warn("answer: could not feed the check outcome back to the bandit", err);
+  }
 
   // Once a concept has actually been recalled, it belongs in the spaced-
   // repetition rotation by default — otherwise the whole review flow only works

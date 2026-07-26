@@ -362,6 +362,42 @@ export const de: Dict = {
     "Das entfernt dein Profil, dein hochgeladenes Material, jede Erklärung, alle Antworten und dein Interessensprofil. Das lässt sich nicht rückgängig machen. Gib zur Bestätigung dein Passwort ein.",
   "settings.deleteConfirm":
     "Endgültig löschen",
+  "map.nextUp":
+    "als Nächstes",
+  "map.nextDue":
+    "Fällig zur Wiederholung — hol es dir, bevor es verblasst.",
+  "map.nextReady":
+    "Alles, worauf das aufbaut, sitzt bei dir schon.",
+  "map.nextWeakest":
+    "Das sitzt von allen am wenigsten — noch ein Durchgang lohnt sich.",
+  "learn.buildsOn":
+    "Baut auf {names} auf — und das sitzt noch nicht.",
+  "learn.buildsOnAction":
+    "zuerst das lernen →",
+  "settings.readingLevel":
+    "Lesegrad",
+  "settings.readingLevelSub":
+    "Wie anspruchsvoll die Erklärungen geschrieben sind. Jederzeit änderbar — die nächste Erklärung folgt dem.",
+  "settings.simpler":
+    "einfacher",
+  "settings.harder":
+    "anspruchsvoller",
+  "learn.fix":
+    "Das korrigieren",
+  "learn.fixHint":
+    "Falsch erkannt? Formulierung anpassen — die nächste Erklärung nimmt deine Version.",
+  "learn.deleteConcept":
+    "Konzept entfernen",
+  "learn.deleteConfirm":
+    "Mitsamt Erklärungen und Antworten entfernen? Das lässt sich nicht rückgängig machen.",
+  "common.save":
+    "Speichern",
+  "common.delete":
+    "Löschen",
+  "map.deleteFolder":
+    "Aufnahme löschen",
+  "map.deleteFolderConfirm":
+    "Diese Aufnahme und ihre {n} Konzept(e) löschen? Das lässt sich nicht rückgängig machen.",
   "err.aiBusy":
     "Der KI-Dienst ist gerade ausgelastet. Warte ein paar Sekunden und versuche es erneut.",
   "err.aiSlow":

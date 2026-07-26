@@ -362,6 +362,42 @@ export const es: Dict = {
     "Esto borra tu perfil, tu material subido, todas las explicaciones, todas las respuestas y tu perfil de intereses. No se puede deshacer. Escribe tu contraseña para confirmar.",
   "settings.deleteConfirm":
     "Eliminar definitivamente",
+  "map.nextUp":
+    "a continuación",
+  "map.nextDue":
+    "Toca repasarlo — recupéralo antes de que se borre.",
+  "map.nextReady":
+    "Ya tienes todo aquello sobre lo que se apoya.",
+  "map.nextWeakest":
+    "Este es el que peor te sale — merece otra pasada.",
+  "learn.buildsOn":
+    "Se apoya en {names}, y eso aún no lo tienes firme.",
+  "learn.buildsOnAction":
+    "aprende eso primero →",
+  "settings.readingLevel":
+    "Nivel de lectura",
+  "settings.readingLevelSub":
+    "Qué tan exigentes son las explicaciones. Cámbialo cuando quieras: la próxima explicación lo seguirá.",
+  "settings.simpler":
+    "más sencillo",
+  "settings.harder":
+    "más avanzado",
+  "learn.fix":
+    "Corregir esto",
+  "learn.fixHint":
+    "¿Se extrajo mal? Ajusta el texto: la próxima explicación usará tu versión.",
+  "learn.deleteConcept":
+    "Eliminar este concepto",
+  "learn.deleteConfirm":
+    "¿Eliminarlo con sus explicaciones y respuestas? No se puede deshacer.",
+  "common.save":
+    "Guardar",
+  "common.delete":
+    "Eliminar",
+  "map.deleteFolder":
+    "Eliminar esta captura",
+  "map.deleteFolderConfirm":
+    "¿Eliminar esta captura y sus {n} concepto(s)? No se puede deshacer.",
   "err.aiBusy":
     "El servicio de IA está saturado ahora mismo. Espera unos segundos e inténtalo de nuevo.",
   "err.aiSlow":

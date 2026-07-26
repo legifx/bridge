@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { Shell } from "@/components/Shell";
 import { BridgeViz } from "@/components/BridgeViz";
 import { LearnWidgets } from "@/components/LearnWidgets";
 import { ThinkingLoader } from "@/components/ThinkingLoader";
 import { FlowSteps } from "@/components/FlowSteps";
+import { blockingPrerequisites } from "@/lib/learn/next";
 import { useT } from "@/components/LanguageProvider";
 import type { Widget } from "@/lib/learn/widgets";
 
@@ -61,6 +63,13 @@ export default function Learn() {
   const [error, setError] = useState<string | null>(null);
   /** null until we know; true = starting an explanation would spend AI budget */
   const [costsBudget, setCostsBudget] = useState<boolean | null>(null);
+  /** prerequisites of this concept the learner has not got solid yet */
+  const [shakyPrereqs, setShakyPrereqs] = useState<{ id: string; label: string }[]>([]);
+  /** inline correction of a misread concept */
+  const [editing, setEditing] = useState(false);
+  const [draftLabel, setDraftLabel] = useState("");
+  const [draftDefinition, setDraftDefinition] = useState("");
+  const [saving, setSaving] = useState(false);
   /** have we looked for a previously generated explanation yet? */
   const [cacheChecked, setCacheChecked] = useState(false);
   const [widgetsLoading, setWidgetsLoading] = useState(false);
@@ -73,6 +82,24 @@ export default function Learn() {
         setConcept(c);
         setDomains(d.domains ?? []);
         setCostsBudget(Boolean(d.demo) && !c?.charged);
+
+        // The prerequisite graph knows when a learner has opened something too
+        // early. It was only ever used to sort the map; saying it out loud is
+        // the whole point of having the edges.
+        const all = (d.concepts ?? []).map((x: Concept & { mastery: number; dueAt: string | null; reviewEnabled: boolean }) => ({
+          id: x.id,
+          mastery: x.mastery,
+          reviewEnabled: x.reviewEnabled,
+          dueAt: x.dueAt,
+          started: x.dueAt !== null,
+        }));
+        const labels = new Map<string, string>((d.concepts ?? []).map((x: Concept) => [x.id, x.label]));
+        setShakyPrereqs(
+          blockingPrerequisites(conceptId, all, d.edges ?? [])
+            .slice(0, 2)
+            .map((x) => ({ id: x.id, label: labels.get(x.id) ?? "" }))
+            .filter((x) => x.label),
+        );
       });
   }, [conceptId]);
 
@@ -170,6 +197,42 @@ export default function Learn() {
     }
   }
 
+  async function saveConcept() {
+    if (!concept) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/concepts", {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          conceptId: concept.id,
+          label: draftLabel.trim(),
+          definition: draftDefinition.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.concept) {
+        setConcept({ ...concept, label: data.concept.label, definition: data.concept.definition });
+        setEditing(false);
+        // The old explanation was built from the old wording — drop it so the
+        // learner does not read a bridge to a definition that no longer exists.
+        setBridge(null);
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function deleteConcept() {
+    if (!concept || !window.confirm(t("learn.deleteConfirm"))) return;
+    const res = await fetch("/api/concepts", {
+      method: "DELETE",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ conceptId: concept.id }),
+    });
+    if (res.ok) router.push("/");
+  }
+
   function sendFeedback(clicked: boolean) {
     if (!bridge) return;
     setFeedback(clicked);
@@ -209,9 +272,63 @@ export default function Learn() {
           }
         >
           <p className="slabel text-curriculum-text">{t("learn.concept")}</p>
-          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text">{concept.label}</h1>
-          <p className="mt-3 text-base leading-relaxed text-dim">{concept.definition}</p>
+          {!editing ? (
+            <>
+              <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text">{concept.label}</h1>
+              <p className="mt-3 text-base leading-relaxed text-dim">{concept.definition}</p>
+              <button
+                onClick={() => {
+                  setDraftLabel(concept.label);
+                  setDraftDefinition(concept.definition);
+                  setEditing(true);
+                }}
+                className="slabel mt-3 text-faint underline transition hover:text-dim"
+              >
+                {t("learn.fix")}
+              </button>
+            </>
+          ) : (
+            <div className="mt-2 space-y-3">
+              <p className="text-xs leading-relaxed text-faint">{t("learn.fixHint")}</p>
+              <input
+                value={draftLabel}
+                onChange={(e) => setDraftLabel(e.target.value)}
+                aria-label={t("learn.concept")}
+                className="input w-full text-lg font-semibold"
+              />
+              <textarea
+                value={draftDefinition}
+                onChange={(e) => setDraftDefinition(e.target.value)}
+                rows={4}
+                aria-label={t("learn.plainTerms")}
+                className="input w-full resize-y text-sm"
+              />
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={saveConcept}
+                  disabled={saving || !draftLabel.trim() || !draftDefinition.trim()}
+                  className={`btn btn-primary flex-1 ${saving ? "btn-working" : ""}`}
+                >
+                  {t("common.save")}
+                </button>
+                <button onClick={() => setEditing(false)} className="btn btn-glass flex-1">
+                  {t("common.cancel")}
+                </button>
+              </div>
+              <button onClick={deleteConcept} className="slabel text-reject-text underline">
+                {t("learn.deleteConcept")}
+              </button>
+            </div>
+          )}
           {relearn && <p className="mt-3 slabel text-interest-text">↺ {t("learn.relearnNote")}</p>}
+          {shakyPrereqs.length > 0 && (
+            <p className="mt-3 text-xs leading-relaxed text-orange-text">
+              {t("learn.buildsOn", { names: shakyPrereqs.map((p) => p.label).join(", ") })}{" "}
+              <Link href={`/learn/${shakyPrereqs[0].id}`} className="underline">
+                {t("learn.buildsOnAction")}
+              </Link>
+            </p>
+          )}
         </header>
 
         {/* interest selector at the TOP — switch which interest explains this */}

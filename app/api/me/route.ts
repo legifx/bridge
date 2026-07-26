@@ -26,6 +26,7 @@ export async function GET() {
           displayName: learner.displayName,
           language: learner.language,
           gradeSystem: learner.gradeSystem,
+          readingLevel: learner.readingLevel,
         }
       : null,
     publicDemo: isPublicDemo(),
@@ -77,9 +78,11 @@ export async function DELETE(req: Request) {
 const PatchSchema = z.object({
   language: z.string().min(2).max(8).regex(/^[a-z-]+$/i).optional(),
   gradeSystem: z.string().min(2).max(16).regex(/^[a-z]+$/i).optional(),
+  // 1 = simplest .. 5 = most advanced; steers how every explanation is written
+  readingLevel: z.number().int().min(1).max(5).optional(),
 });
 
-/** Update learner settings — main language and/or country grade system. */
+/** Update learner settings — language, grade system and/or reading level. */
 export async function PATCH(req: Request) {
   const learner = await getCurrentLearner();
   if (!learner) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
@@ -94,9 +97,10 @@ export async function PATCH(req: Request) {
   const parsed = PatchSchema.safeParse(raw);
   if (!parsed.success) return NextResponse.json({ error: "Invalid settings." }, { status: 400 });
 
-  const data: { language?: string; gradeSystem?: string } = {};
+  const data: { language?: string; gradeSystem?: string; readingLevel?: number } = {};
   if (parsed.data.language) data.language = parsed.data.language.toLowerCase();
   if (parsed.data.gradeSystem) data.gradeSystem = parsed.data.gradeSystem.toLowerCase();
+  if (parsed.data.readingLevel) data.readingLevel = parsed.data.readingLevel;
   if (Object.keys(data).length === 0) return NextResponse.json({ error: "Nothing to update." }, { status: 400 });
 
   await prisma.learner.update({ where: { id: learner.id }, data });

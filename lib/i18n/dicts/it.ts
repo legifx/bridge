@@ -362,6 +362,42 @@ export const it: Dict = {
     "Questo rimuove il tuo profilo, il materiale caricato, ogni spiegazione, tutte le risposte e il tuo profilo di interessi. Non è reversibile. Inserisci la password per confermare.",
   "settings.deleteConfirm":
     "Elimina definitivamente",
+  "map.nextUp":
+    "prossimo",
+  "map.nextDue":
+    "Da ripassare — riprendilo prima che svanisca.",
+  "map.nextReady":
+    "Hai già tutto ciò su cui questo si basa.",
+  "map.nextWeakest":
+    "È quello che ti riesce meno — vale un altro giro.",
+  "learn.buildsOn":
+    "Si basa su {names}, che non è ancora saldo.",
+  "learn.buildsOnAction":
+    "impara prima quello →",
+  "settings.readingLevel":
+    "Livello di lettura",
+  "settings.readingLevelSub":
+    "Quanto sono impegnative le spiegazioni. Modificabile quando vuoi — la prossima spiegazione lo segue.",
+  "settings.simpler":
+    "più semplice",
+  "settings.harder":
+    "più avanzato",
+  "learn.fix":
+    "Correggi",
+  "learn.fixHint":
+    "Estratto male? Sistema il testo — la prossima spiegazione userà la tua versione.",
+  "learn.deleteConcept":
+    "Rimuovi questo concetto",
+  "learn.deleteConfirm":
+    "Rimuoverlo con spiegazioni e risposte? Non è reversibile.",
+  "common.save":
+    "Salva",
+  "common.delete":
+    "Elimina",
+  "map.deleteFolder":
+    "Elimina questa acquisizione",
+  "map.deleteFolderConfirm":
+    "Eliminare questa acquisizione e i suoi {n} concetti? Non è reversibile.",
   "err.aiBusy":
     "Il servizio di IA è occupato in questo momento. Aspetta qualche secondo e riprova.",
   "err.aiSlow":

@@ -362,6 +362,42 @@ export const pt: Dict = {
     "Isto remove o teu perfil, o material carregado, todas as explicações, todas as respostas e o teu perfil de interesses. Não pode ser desfeito. Escreve a tua palavra-passe para confirmar.",
   "settings.deleteConfirm":
     "Apagar definitivamente",
+  "map.nextUp":
+    "a seguir",
+  "map.nextDue":
+    "Toca rever — apanha-o antes que desapareça.",
+  "map.nextReady":
+    "Já tens tudo aquilo em que este assenta.",
+  "map.nextWeakest":
+    "É o que assenta menos — vale outra passagem.",
+  "learn.buildsOn":
+    "Assenta em {names}, e isso ainda não está firme.",
+  "learn.buildsOnAction":
+    "aprende isso primeiro →",
+  "settings.readingLevel":
+    "Nível de leitura",
+  "settings.readingLevelSub":
+    "Quão exigentes são as explicações. Podes mudar quando quiseres — a próxima explicação segueisso.",
+  "settings.simpler":
+    "mais simples",
+  "settings.harder":
+    "mais avançado",
+  "learn.fix":
+    "Corrigir isto",
+  "learn.fixHint":
+    "Foi mal extraído? Ajusta o texto — a próxima explicação usa a tua versão.",
+  "learn.deleteConcept":
+    "Remover este conceito",
+  "learn.deleteConfirm":
+    "Remover com as explicações e respostas? Não pode ser desfeito.",
+  "common.save":
+    "Guardar",
+  "common.delete":
+    "Apagar",
+  "map.deleteFolder":
+    "Apagar esta captura",
+  "map.deleteFolderConfirm":
+    "Apagar esta captura e os seus {n} conceito(s)? Não pode ser desfeito.",
   "err.aiBusy":
     "O serviço de IA está sobrecarregado neste momento. Espera alguns segundos e tenta de novo.",
   "err.aiSlow":

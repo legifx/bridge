@@ -362,6 +362,42 @@ export const fr: Dict = {
     "Cela supprime ton profil, ton matériel importé, toutes les explications, toutes les réponses et ton profil d'intérêts. C'est irréversible. Saisis ton mot de passe pour confirmer.",
   "settings.deleteConfirm":
     "Supprimer définitivement",
+  "map.nextUp":
+    "la suite",
+  "map.nextDue":
+    "À réviser — reprends-le avant qu'il ne s'efface.",
+  "map.nextReady":
+    "Tu as déjà tout ce sur quoi celui-ci s'appuie.",
+  "map.nextWeakest":
+    "C'est celui qui tient le moins — un tour de plus vaut le coup.",
+  "learn.buildsOn":
+    "S'appuie sur {names}, qui n'est pas encore solide.",
+  "learn.buildsOnAction":
+    "apprends d'abord ça →",
+  "settings.readingLevel":
+    "Niveau de lecture",
+  "settings.readingLevelSub":
+    "À quel point les explications sont exigeantes. Modifiable à tout moment — la prochaine explication suit.",
+  "settings.simpler":
+    "plus simple",
+  "settings.harder":
+    "plus avancé",
+  "learn.fix":
+    "Corriger",
+  "learn.fixHint":
+    "Mal extrait ? Ajuste le texte — la prochaine explication prendra ta version.",
+  "learn.deleteConcept":
+    "Supprimer ce concept",
+  "learn.deleteConfirm":
+    "Le supprimer avec ses explications et réponses ? Irréversible.",
+  "common.save":
+    "Enregistrer",
+  "common.delete":
+    "Supprimer",
+  "map.deleteFolder":
+    "Supprimer cette capture",
+  "map.deleteFolderConfirm":
+    "Supprimer cette capture et ses {n} concept(s) ? Irréversible.",
   "err.aiBusy":
     "Le service d'IA est surchargé pour le moment. Patiente quelques secondes et réessaie.",
   "err.aiSlow":

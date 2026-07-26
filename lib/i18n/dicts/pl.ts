@@ -362,6 +362,42 @@ export const pl: Dict = {
     "To usuwa twój profil, wgrane materiały, wszystkie wyjaśnienia, wszystkie odpowiedzi i profil zainteresowań. Tego nie da się cofnąć. Wpisz hasło, aby potwierdzić.",
   "settings.deleteConfirm":
     "Usuń trwale",
+  "map.nextUp":
+    "następne",
+  "map.nextDue":
+    "Czas na powtórkę — złap to, zanim wyblaknie.",
+  "map.nextReady":
+    "Masz już wszystko, na czym to się opiera.",
+  "map.nextWeakest":
+    "To siedzi najsłabiej ze wszystkich — warto jeszcze raz.",
+  "learn.buildsOn":
+    "Opiera się na {names}, a to jeszcze nie siedzi.",
+  "learn.buildsOnAction":
+    "naucz się najpierw tego →",
+  "settings.readingLevel":
+    "Poziom trudności",
+  "settings.readingLevelSub":
+    "Jak wymagająco pisane są wyjaśnienia. Zmienisz w każdej chwili — kolejne wyjaśnienie to uwzględni.",
+  "settings.simpler":
+    "prościej",
+  "settings.harder":
+    "trudniej",
+  "learn.fix":
+    "Popraw to",
+  "learn.fixHint":
+    "Źle odczytane? Popraw treść — kolejne wyjaśnienie użyje twojej wersji.",
+  "learn.deleteConcept":
+    "Usuń to pojęcie",
+  "learn.deleteConfirm":
+    "Usunąć wraz z wyjaśnieniami i odpowiedziami? Tego nie da się cofnąć.",
+  "common.save":
+    "Zapisz",
+  "common.delete":
+    "Usuń",
+  "map.deleteFolder":
+    "Usuń ten materiał",
+  "map.deleteFolderConfirm":
+    "Usunąć ten materiał i jego {n} pojęć? Tego nie da się cofnąć.",
   "err.aiBusy":
     "Usługa AI jest w tej chwili przeciążona. Odczekaj kilka sekund i spróbuj ponownie.",
   "err.aiSlow":

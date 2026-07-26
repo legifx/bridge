@@ -362,6 +362,42 @@ export const tr: Dict = {
     "Bu, profilini, yüklediğin materyali, tüm açıklamaları, tüm cevapları ve ilgi profilini siler. Geri alınamaz. Onaylamak için şifreni gir.",
   "settings.deleteConfirm":
     "Kalıcı olarak sil",
+  "map.nextUp":
+    "sırada",
+  "map.nextDue":
+    "Tekrar zamanı — silinmeden yakala.",
+  "map.nextReady":
+    "Bunun dayandığı her şey sende zaten var.",
+  "map.nextWeakest":
+    "En az oturan bu — bir tur daha değer.",
+  "learn.buildsOn":
+    "{names} üzerine kuruluyor ve o henüz oturmadı.",
+  "learn.buildsOnAction":
+    "önce onu öğren →",
+  "settings.readingLevel":
+    "Okuma seviyesi",
+  "settings.readingLevelSub":
+    "Açıklamaların ne kadar zorlayıcı yazıldığı. İstediğin zaman değiştir — sonraki açıklama buna uyar.",
+  "settings.simpler":
+    "daha basit",
+  "settings.harder":
+    "daha ileri",
+  "learn.fix":
+    "Bunu düzelt",
+  "learn.fixHint":
+    "Yanlış mı çıkarıldı? Metni düzelt — sonraki açıklama senin sürümünü kullanır.",
+  "learn.deleteConcept":
+    "Bu kavramı kaldır",
+  "learn.deleteConfirm":
+    "Açıklamaları ve cevaplarıyla kaldırılsın mı? Geri alınamaz.",
+  "common.save":
+    "Kaydet",
+  "common.delete":
+    "Sil",
+  "map.deleteFolder":
+    "Bu kaydı sil",
+  "map.deleteFolderConfirm":
+    "Bu kayıt ve {n} kavramı silinsin mi? Geri alınamaz.",
   "err.aiBusy":
     "Yapay zeka servisi şu anda yoğun. Birkaç saniye bekleyip tekrar dene.",
   "err.aiSlow":
