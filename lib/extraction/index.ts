@@ -8,8 +8,9 @@
  * embeddings are computed lazily at first-learn (bridge route), not here — so
  * capture doesn't pay the local embedding model's load time.
  */
+import { z } from "zod";
 import { llmJson, CAPTURE_MODEL, type ImageInput } from "@/lib/llm/client";
-import { EXTRACT_SYSTEM } from "@/lib/prompts/extract";
+import { EXTRACT_SYSTEM, EXTRACT_VERIFY_SYSTEM, extractVerifyUser } from "@/lib/prompts/extract";
 import { topologicalSort, type Edge } from "./graph";
 import { ExtractionResultSchema, type ConceptGraph, type GraphConcept } from "./types";
 
@@ -27,6 +28,57 @@ export type ExtractOutput = {
   /** faithful Markdown transcription of the material (stored instead of the binary). */
   markdown: string | null;
 };
+
+
+const VerifySchema = z.object({
+  results: z.array(z.object({
+    index: z.number().int().min(0),
+    supported: z.boolean(),
+    reason: z.string().optional(),
+  })),
+});
+
+/** How much of the transcription the checker gets. Long enough to contain the
+ *  quotes, short enough not to turn capture into a second full-length call. */
+const VERIFY_MATERIAL_CHARS = 12_000;
+
+/**
+ * Drop concepts whose definition the material does not support.
+ *
+ * Deliberately one-sided: a concept is removed ONLY on an explicit
+ * `supported: false`. A missing verdict, a failed call or an unsure model keeps
+ * it — losing real material the learner photographed is a worse outcome than
+ * letting a borderline definition through, and the check is here for
+ * misreadings, not for style.
+ */
+async function verifyExtraction<T extends { label: string; definition: string; sourceQuote: string }>(
+  concepts: T[],
+  material: string,
+): Promise<T[]> {
+  if (concepts.length === 0 || material.trim().length === 0) return concepts;
+  try {
+    const { results } = await llmJson({
+      system: EXTRACT_VERIFY_SYSTEM,
+      user: extractVerifyUser(concepts, material.slice(0, VERIFY_MATERIAL_CHARS)),
+      schema: VerifySchema,
+      temperature: 0,
+    });
+    const rejected = new Map(
+      results.filter((r) => r.supported === false).map((r) => [r.index, r.reason ?? ""]),
+    );
+    if (rejected.size === 0) return concepts;
+    const kept = concepts.filter((_, i) => !rejected.has(i));
+    for (const [i, reason] of rejected) {
+      console.warn(`extract: dropped "${concepts[i]?.label}" — unsupported by the material: ${reason}`);
+    }
+    // Never hand back an empty capture: if the checker rejects everything, it is
+    // far likelier that the checker is wrong than that the page said nothing.
+    return kept.length > 0 ? kept : concepts;
+  } catch (err) {
+    console.warn("extract: verification unavailable, keeping concepts unchecked", err);
+    return concepts;
+  }
+}
 
 export async function extractConceptGraph(input: ExtractInput): Promise<ExtractOutput> {
   // Wrap untrusted material in explicit delimiters so injected commands inside
@@ -51,13 +103,20 @@ export async function extractConceptGraph(input: ExtractInput): Promise<ExtractO
     timeoutMs: input.images?.length ? 180_000 : undefined,
   });
 
+  // Check the extraction against its own transcription before anything is
+  // stored. This is the one step the rest of the pipeline cannot repair: a
+  // misread definition is verified faithfully by the bridge engine, then taught,
+  // tested and revised. Best-effort — if the check fails or the model is
+  // unsure, concepts are kept.
+  const checked = await verifyExtraction(concepts, markdown ?? input.text ?? "");
+
   // Concept vectors are NOT computed here — they are deferred to first-learn
   // (the bridge route embeds and stores them on demand), so capture returns fast
   // without the local embedding model load. Dedupe here is a cheap label match.
   const seen = new Map<string, string>();
   const idMap = new Map<string, string>();
   const merged: GraphConcept[] = [];
-  for (const c of concepts) {
+  for (const c of checked) {
     const key = c.label.trim().toLowerCase();
     const existing = seen.get(key);
     if (existing) {

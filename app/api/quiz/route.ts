@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db/prisma";
 import { getCurrentLearner } from "@/lib/db/learner";
-import { generateQuiz } from "@/lib/quiz";
+import { generateQuiz, verifyNumericProblems } from "@/lib/quiz";
 import { chargeConcept, quotaExceededResponse } from "@/lib/quota";
 import { st } from "@/lib/i18n";
 import { readJson, tooLargeResponse, BodyTooLargeError } from "@/lib/api/body";
@@ -39,7 +39,12 @@ export async function POST(req: Request) {
 
   try {
     const quiz = await generateQuiz(concept, learner.language, { tasks: parsed.data.tasks });
-    return NextResponse.json({ quiz, quota: charge.quota });
+    // Verify BEFORE the learner sees anything: a problem whose stated answer is
+    // wrong would mark a correct answer as wrong, push mastery down and
+    // reschedule the concept — with a confident worked solution attached.
+    // Dropping it here means the learner never meets it.
+    const problems = await verifyNumericProblems(quiz.problems, learner.language);
+    return NextResponse.json({ quiz: { ...quiz, problems }, quota: charge.quota });
   } catch (err) {
     // The model occasionally returns unparseable output even after the fallback
     // retry — surface a readable error instead of an empty 500 the client can't

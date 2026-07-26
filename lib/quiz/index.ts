@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { llmJson } from "@/lib/llm/client";
 import { st } from "@/lib/i18n";
-import { QUIZ_SYSTEM, GRADE_SYSTEM, OPEN_GRADE_SYSTEM } from "@/lib/prompts/quiz";
+import { QUIZ_SYSTEM, GRADE_SYSTEM, OPEN_GRADE_SYSTEM, SOLVE_SYSTEM, solveUser } from "@/lib/prompts/quiz";
 
 /** A real, solvable practice problem. The agent picks the type that fits the
  *  subject: numeric for quantitative work, mcq for recognition, open for applied
@@ -45,6 +45,68 @@ export type Quiz = z.infer<typeof QuizSchema>;
 export function checkNumeric(expected: number, tolerance: number | undefined, given: number): boolean {
   const tol = tolerance ?? Math.max(1e-9, Math.abs(expected) * 0.01);
   return Math.abs(given - expected) <= tol;
+}
+
+const SolveSchema = z.object({
+  results: z.array(z.object({ index: z.number().int().min(0), value: z.number().finite().nullable() })),
+});
+
+/**
+ * Which numeric problems did a second, independent solve agree with?
+ *
+ * Pure on purpose: the decision rule is the part worth testing, and the rule is
+ * deliberately strict. A problem is kept only when the two answers agree inside
+ * the problem's own tolerance. Anything else — a disagreement, a missing
+ * result, an unsolvable verdict — drops the problem, because the failure we are
+ * preventing is marking a correct learner wrong, and a check with three
+ * trustworthy questions beats one with four where one lies.
+ */
+export function agreedNumerics(
+  problems: Problem[],
+  solved: { index: number; value: number | null }[],
+): { kept: Problem[]; dropped: number } {
+  const byIndex = new Map(solved.map((r) => [r.index, r.value]));
+  let dropped = 0;
+  const kept = problems.filter((p, i) => {
+    if (p.type !== "numeric") return true; // only numeric answers are checkable this way
+    const second = byIndex.get(i);
+    if (second === null || second === undefined || !Number.isFinite(second)) {
+      dropped++;
+      return false;
+    }
+    const agrees = checkNumeric(p.answer, p.tolerance, second);
+    if (!agrees) dropped++;
+    return agrees;
+  });
+  return { kept, dropped };
+}
+
+/**
+ * Re-solve every numeric problem without showing the model the answer it is
+ * meant to reproduce, and drop the ones the two runs disagree on. Best-effort:
+ * if the verification call itself fails, the quiz ships unchanged rather than
+ * leaving the learner with no problems at all.
+ */
+export async function verifyNumericProblems(problems: Problem[], language?: string): Promise<Problem[]> {
+  const numericIdx = problems.map((p, i) => (p.type === "numeric" ? i : -1)).filter((i) => i >= 0);
+  if (numericIdx.length === 0) return problems;
+  try {
+    const { results } = await llmJson({
+      system: SOLVE_SYSTEM,
+      user: solveUser(problems.map((p) => p.prompt)),
+      schema: SolveSchema,
+      temperature: 0,
+      language,
+    });
+    const { kept, dropped } = agreedNumerics(problems, results);
+    if (dropped > 0) {
+      console.warn(`quiz: dropped ${dropped} numeric problem(s) the second solve disagreed with`);
+    }
+    return kept;
+  } catch (err) {
+    console.warn("quiz: numeric verification unavailable, shipping problems unchecked", err);
+    return problems;
+  }
 }
 
 export const GradeSchema = z.object({

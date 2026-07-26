@@ -378,3 +378,37 @@ Plus stale prose: `.env.example` still advertised a free default model and a per
 (both replaced long ago), `match.ts` carried a docblock for a function that had been renamed away,
 the systemd unit described a `DEMO_MODE` that no longer exists in the code, and `learn.attempt`
 lived on in ten dictionaries after the rejected-attempt cards left the learn screen.
+
+## Closing the two unverified gaps (2026-07-26)
+
+**A practice problem's answer is now checked before a learner can be marked wrong by it.** The
+generator returned a problem *and* its answer, and that answer was simply believed. When the model
+miscalculated, a correct learner was marked wrong, their mastery moved down, the concept was
+rescheduled — and a confident worked solution was shown to justify it. That is the worst failure
+an assessment app has: not a weak explanation, but the app being confidently wrong *about the
+learner*.
+
+Every numeric problem is now solved a second time by an independent call that never sees the first
+answer, and a problem survives only if both agree inside its own tolerance. Anything else — a
+disagreement, a skipped index, an "unsolvable" verdict — drops the problem before the learner ever
+meets it. A check with three trustworthy questions beats one with four where one lies. The rule is
+a pure function (`agreedNumerics`) with eight tests, because that is the part worth pinning down;
+the call around it degrades to shipping the problems unchecked if verification is unavailable,
+rather than leaving a check with nothing in it. Verified live: a problem stating 7 N for a 5 kg ×
+2 m/s² force was caught and dropped.
+
+**The extraction is checked against its own transcription.** Everything downstream of extraction
+was verified and extraction was not — the bridge engine rigorously checks each analogy against the
+definition, while the definition itself came from a model reading a photograph and was taken on
+trust. A misread definition therefore passed every later gate: the verifier confirms, correctly,
+that the analogy matches the definition it was given, and the learner then studies, is tested on,
+and revises something the material never said. The chain was hardened everywhere except at its
+root.
+
+Concepts are now checked against the stored transcription and dropped on an explicit
+`supported: false`. The check is deliberately one-sided: a missing verdict, an unsure model or a
+failed call keeps the concept, and if it rejects *everything* the whole set is kept — losing
+material a learner photographed is worse than letting a borderline definition through, and the
+check exists to catch misreadings, not to second-guess reasonable summaries. Verified live against
+a fabricated definition ("plants take their carbon from rock, not the air"), which came back
+unsupported with the reason quoted from the material.
