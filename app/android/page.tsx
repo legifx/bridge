@@ -21,7 +21,7 @@ const FACTS = [
   { label: "Version", value: "1.0.0" },
   { label: "Size", value: "1.5 MB" },
   { label: "Requires", value: "Android 8.0 (API 26) or newer" },
-  { label: "Permissions", value: "Internet only — no camera, no storage, no location" },
+  { label: "Permissions", value: "Internet and notifications — no camera, no storage, no location" },
 ];
 
 export default function Android() {
@@ -68,6 +68,23 @@ export default function Android() {
         </a>
         <p className="mt-3 text-center text-2xs leading-relaxed text-faint">
           Signed release build. Android will ask you to allow installs from your browser once.
+        </p>
+      </div>
+
+      <div className="card mt-6 p-5">
+        <p className="eyebrow mb-2">Android will warn you. Here is what that warning means</p>
+        <p className="text-sm leading-relaxed text-dim">
+          Play Protect flags every app that did not come from the Play Store and is not signed by a
+          developer Google has registered. It is a statement about <em>where the file came from</em>,
+          not about what is in it — nothing was scanned and found; the app is simply unknown. The
+          same build stops triggering it once it is published through the Play Console, because
+          Google signs and reviews it there.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-dim">
+          What you can check yourself, instead of taking that on trust: the app asks for two
+          permissions — internet access and permission to show notifications. No camera permission
+          (photographs are taken by your camera app), no storage, no location, no contacts. The
+          fingerprint below tells you the file is the one built from this repository.
         </p>
       </div>
 
