@@ -54,6 +54,7 @@ export const en = {
     "Public test demo — accounts are open: anyone who knows a name can open that profile. Please don't enter private or personal data. Each profile has a small AI budget.",
   "signin.footer2":
     "This demo exists so you can see how Bridge reads your interests — and tell us whether it got you right.",
+  "signin.android": "Android app — for your own Bridge instance",
 
   // ---- onboarding ----
   "ob.eyebrow": "Bridge · your world",

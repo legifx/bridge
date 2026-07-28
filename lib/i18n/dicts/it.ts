@@ -46,6 +46,7 @@ export const it: Dict = {
     "Demo pubblica di prova — gli account sono aperti: chi conosce un nome può aprire quel profilo. Non inserire dati privati o personali. Ogni profilo ha un piccolo budget IA.",
   "signin.footer2":
     "Questa demo esiste perché tu veda come Bridge legge i tuoi interessi — e ci dica se ha visto giusto.",
+  "signin.android": "App Android — per la tua istanza di Bridge",
 
   "ob.eyebrow": "Bridge · il tuo mondo",
   "ob.seedTitle": "Cosa ti appassiona davvero?",

@@ -46,6 +46,7 @@ export const pl: Dict = {
     "Publiczna wersja testowa — konta są otwarte: każdy, kto zna imię, może otworzyć ten profil. Nie wpisuj prywatnych ani osobistych danych. Każdy profil ma mały budżet AI.",
   "signin.footer2":
     "Ta wersja demo istnieje po to, byś zobaczył, jak Bridge czyta twoje zainteresowania — i powiedział nam, czy trafił.",
+  "signin.android": "Aplikacja na Androida — dla twojej własnej instancji Bridge",
 
   "ob.eyebrow": "Bridge · twój świat",
   "ob.seedTitle": "Co cię naprawdę kręci?",

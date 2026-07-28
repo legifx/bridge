@@ -197,6 +197,15 @@ export default function Project() {
             <p className="text-sm text-dim">bridge-livid-one.vercel.app</p>
           </Link>
           <Link
+            href="/android"
+            className="card ring-focus block p-5 transition hover:bg-white/[0.06]"
+          >
+            <p className="font-semibold text-text">Android app</p>
+            <p className="text-sm text-dim">
+              Signed APK, 1.5 MB — the native client for a self-hosted Bridge server
+            </p>
+          </Link>
+          <Link
             href="https://github.com/legifx/bridge/blob/main/DECISIONS.md"
             target="_blank"
             rel="noopener noreferrer"

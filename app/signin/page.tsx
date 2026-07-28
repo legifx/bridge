@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useI18n } from "@/components/LanguageProvider";
 import { LanguageSelect } from "@/components/LanguageSelect";
@@ -141,9 +142,15 @@ function SignInForm() {
         </div>
       </div>
 
-      <footer className="mt-12 space-y-2 text-center">
+      <footer className="mt-12 space-y-3 text-center">
         <p className="text-2xs leading-relaxed text-faint">{t("signin.footer1")}</p>
         <p className="text-2xs leading-relaxed text-faint">{t("signin.footer2")}</p>
+        {/* The app is a client for a self-hosted server, not for this demo —
+            which is why the link leads to a page that explains that first,
+            rather than straight to the file. */}
+        <Link href="/android" className="slabel inline-block text-faint transition hover:text-dim">
+          {t("signin.android")} ↓
+        </Link>
       </footer>
     </main>
   );

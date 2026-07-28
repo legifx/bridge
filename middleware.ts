@@ -77,8 +77,16 @@ export function middleware(req: NextRequest) {
   return res;
 }
 
-/** Pages that stay open to visitors without a session. */
-const PUBLIC_PATH = /^\/(signin|compare|teacher|project|api|_next|icons|manifest\.webmanifest|favicon\.ico)(\/|$)/;
+/**
+ * Pages that stay open to visitors without a session.
+ *
+ * `/android` and the APK itself belong here for the obvious reason: a download
+ * page you must sign in to reach is not a download page. The binary needs its
+ * own entry because the matcher below only exempts Next's own static output —
+ * a file in `public/` is otherwise treated like a page and redirected.
+ */
+const PUBLIC_PATH =
+  /^\/(signin|compare|teacher|project|android|bridge-app\.apk|api|_next|icons|manifest\.webmanifest|favicon\.ico)(\/|$)/;
 
 export const config = {
   // Everything except static assets: the headers belong on every document, and

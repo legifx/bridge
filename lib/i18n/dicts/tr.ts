@@ -46,6 +46,7 @@ export const tr: Dict = {
     "Herkese açık test demosu — hesaplar açıktır: bir ismi bilen herkes o profili açabilir. Lütfen özel veya kişisel veri girme. Her profilin küçük bir yapay zekâ bütçesi vardır.",
   "signin.footer2":
     "Bu demo, Bridge'in ilgi alanlarını nasıl okuduğunu görmen — ve doğru bilip bilmediğini bize söylemen için var.",
+  "signin.android": "Android uygulaması — kendi Bridge sunucun için",
 
   "ob.eyebrow": "Bridge · senin dünyan",
   "ob.seedTitle": "Seni gerçekten ne ilgilendiriyor?",
