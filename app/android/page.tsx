@@ -18,7 +18,7 @@ export const metadata = {
 };
 
 const FACTS = [
-  { label: "Version", value: "1.0.0" },
+  { label: "Version", value: "1.0.1" },
   { label: "Size", value: "1.5 MB" },
   { label: "Requires", value: "Android 8.0 (API 26) or newer" },
   { label: "Permissions", value: "Internet and notifications — no camera, no storage, no location" },
@@ -55,6 +55,12 @@ export default function Android() {
         <p className="mt-3 text-sm leading-relaxed text-dim">
           On first launch the app asks for that address. Without one it will show you a sign-in
           screen and nothing else — that is expected, not a bug.
+        </p>
+        <p className="mt-3 text-sm leading-relaxed text-dim">
+          The address has to be <code className="font-mono text-xs text-text">https://</code>.
+          Android blocks unencrypted connections outright, so a plain-HTTP instance on your local
+          network will not answer no matter how correct the address is — put it behind Tailscale or
+          a reverse proxy first.
         </p>
       </div>
 
@@ -104,7 +110,7 @@ export default function Android() {
             Sideloaded software should be checkable. SHA-256 of the file served here:
           </p>
           <code className="mt-3 block break-all font-mono text-xs text-text">
-            e2a5b1a9f5f0c9a54b2026035668478c0706b7d590ee63da43b44648e5a32855
+            387237289af0cded4c08ab2b134d514e64b7ff7a6b4b760b7fa4901881dd6059
           </code>
           <p className="mt-3 text-sm leading-relaxed text-dim">
             Signing certificate (SHA-256), the same key every future build carries:
@@ -119,8 +125,13 @@ export default function Android() {
           <p className="text-sm leading-relaxed text-dim">
             Photographed pages are downscaled on the phone and sent to your server, which keeps only
             the text transcription — the image itself is never stored, on the phone or on the
-            server. There is no analytics SDK, no crash reporter and no third-party network call:
-            the app talks to the address you entered and to nothing else.
+            server. There is no analytics SDK and no third-party network call: the app talks to the
+            address you entered and to nothing else.
+          </p>
+          <p className="mt-3 text-sm leading-relaxed text-dim">
+            If the app crashes it writes the stack trace to a file on the phone and shows it to you
+            on the next start, so you can copy it and report it. That report is never uploaded —
+            there is nowhere for it to go.
           </p>
         </div>
 
