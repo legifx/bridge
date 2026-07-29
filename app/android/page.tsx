@@ -18,7 +18,7 @@ export const metadata = {
 };
 
 const FACTS = [
-  { label: "Version", value: "1.0.1" },
+  { label: "Version", value: "1.0.2" },
   { label: "Size", value: "1.5 MB" },
   { label: "Requires", value: "Android 8.0 (API 26) or newer" },
   { label: "Permissions", value: "Internet and notifications — no camera, no storage, no location" },
@@ -110,7 +110,7 @@ export default function Android() {
             Sideloaded software should be checkable. SHA-256 of the file served here:
           </p>
           <code className="mt-3 block break-all font-mono text-xs text-text">
-            387237289af0cded4c08ab2b134d514e64b7ff7a6b4b760b7fa4901881dd6059
+            d93e6a358d46ae2623955b98f66f466d85bf25134573a64625d03556f227c381
           </code>
           <p className="mt-3 text-sm leading-relaxed text-dim">
             Signing certificate (SHA-256), the same key every future build carries:
