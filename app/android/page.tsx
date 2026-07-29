@@ -18,7 +18,7 @@ export const metadata = {
 };
 
 const FACTS = [
-  { label: "Version", value: "1.0.2" },
+  { label: "Version", value: "1.0.3" },
   { label: "Size", value: "1.5 MB" },
   { label: "Requires", value: "Android 8.0 (API 26) or newer" },
   { label: "Permissions", value: "Internet and notifications — no camera, no storage, no location" },
@@ -53,8 +53,10 @@ export default function Android() {
           , running under your own domain.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-dim">
-          On first launch the app asks for that address. Without one it will show you a sign-in
-          screen and nothing else — that is expected, not a bug.
+          On first launch the app asks for that address, and checks it before accepting it — if
+          you paste the address of this demo, it will say so rather than failing later at sign-in.
+          Without a server it shows you a sign-in screen and nothing else; that is expected, not a
+          bug.
         </p>
         <p className="mt-3 text-sm leading-relaxed text-dim">
           The address has to be <code className="font-mono text-xs text-text">https://</code>.
@@ -110,7 +112,7 @@ export default function Android() {
             Sideloaded software should be checkable. SHA-256 of the file served here:
           </p>
           <code className="mt-3 block break-all font-mono text-xs text-text">
-            d93e6a358d46ae2623955b98f66f466d85bf25134573a64625d03556f227c381
+            301299bc6c6087b5c0600300cd95481ecb00e0f800096710d507849ea201f649
           </code>
           <p className="mt-3 text-sm leading-relaxed text-dim">
             Signing certificate (SHA-256), the same key every future build carries:
