@@ -7,8 +7,8 @@ ranked matches — hears nothing but noise. Tell *that* student an ionic bond wo
 transfer between two esports orgs, one player handed over, two teams bound by the deal, and it
 clicks in a second.
 
-Every good teacher does this. They improvise a bridge from the thing in front of them to the
-thing the kid already understands. It works, and it does not scale: one teacher, thirty students,
+Every good teacher does this — improvises a bridge from the thing in front of them to the thing
+the kid already understands. It works, and it does not scale: one teacher, thirty students,
 forty-five minutes.
 
 The mechanism has a name, and using the right one matters. This is **prior-knowledge anchoring /
@@ -20,13 +20,13 @@ does the second.
 
 ## What it does
 
-A learner photographs a page of their textbook. Bridge reads it, pulls out the concepts and how
-they depend on each other, and works out what to study first. Separately, a short adaptive
-interview builds a profile of what that person actually knows well — not from a checkbox list, but
-from evidence. Then, for each concept, it writes an explanation through that person's own world
-and **fact-checks it against the source material before showing it.** If the check fails, it
-retries with the contradiction fed back. If it fails again, the learner gets a plain, correct
-explanation instead of a beautiful, wrong one.
+A learner photographs a page of their textbook. Bridge pulls out the concepts and how they depend
+on each other, and works out what to study first. Separately, a short adaptive interview builds a
+profile of what that person actually knows well — from evidence, not a checkbox list. Then, for
+each concept, it writes an explanation through that person's own world and **fact-checks it
+against the source material before showing it.** If the check fails it retries with the
+contradiction fed back; if it fails again, the learner gets a plain, correct explanation instead
+of a beautiful, wrong one.
 
 ### The teaching decisions, not just the engineering ones
 
@@ -39,12 +39,12 @@ Most of the hard calls in this project were pedagogical:
 - **The explanation names where the analogy breaks.** Each bridge ends with the point at which the
   comparison stops holding. An analogy taken too far becomes a misconception, and the cheapest
   place to stop that is inside the explanation itself.
-- **Nothing is taught before its prerequisites.** The concept graph is a DAG; the learner is told
-  when something rests on ground they have not covered, and pointed at that first.
-- **Known misconceptions are carried alongside each concept** and handed to both the generator and
-  the checker, so an analogy cannot quietly teach the standard wrong idea.
-- **Reading level is adjustable and steers every later explanation** — "too easy" and "too hard"
-  are the most common feedback a learner has, and it used to be set once and never again.
+- **Nothing is taught before its prerequisites.** The concept graph is a DAG; a learner standing
+  on ground they have not covered is told so, and pointed at it first.
+- **Known misconceptions travel with each concept** and are handed to both the generator and the
+  checker, so an analogy cannot quietly teach the standard wrong idea.
+- **Reading level is adjustable** and steers every later explanation — "too easy" and "too hard"
+  are the most common feedback a learner has.
 - **Teachers see aggregates only**, and any row with fewer than three answers is withheld. A tool
   that turns into per-student surveillance stops being used honestly by students.
 
@@ -63,34 +63,45 @@ Four stages, each its own module, each independently testable:
 4. **`lib/adaptive`** — Thompson sampling over interest domains, Elo for mastery, SM-2-lite for
    scheduling. Our own code, unit-tested.
 
+Three front ends share those modules: the **open demo** (no sign-up), an **account-based server**
+adding logins and quotas, and a **native Android client** talking to that server.
+
 ## Challenges we ran into
 
-**The verifier was asking the wrong question.** An external fact-check of a photosynthesis bridge
-found errors our own verifier had waved through. The cause was not a weak model — it was
-epistemics. The prompt asked *"is this covered by the 1–2 sentence definition?"* instead of *"is
-this true?"* Everything outside the definition therefore went unchecked, and that is exactly where
-the errors live. We rebuilt the judgement as two tracks (source **and** world knowledge), added an
-eight-point error taxonomy, and forced the model to enumerate its absolute claims.
+**The verifier was asking the wrong question.** A fact-check run by a different model, outside our
+own pipeline, found errors in a photosynthesis bridge that our verifier had waved through. The
+cause was not a weak model — it was epistemics. The prompt asked *"is this covered by the 1–2
+sentence definition?"* instead of *"is this true?"* A definition is one or two sentences; an
+analogy necessarily says more, so roughly everything the learner actually read went unchecked —
+and that is exactly where the errors live. We rebuilt the judgement as two tracks (source **and**
+world knowledge), added an eight-point error taxonomy, and forced the model to enumerate its
+absolute claims.
 
-On a hand-built set of five texts with planted errors, the verifier went from catching **0 of 5**
-to **5 of 5**; of its six flags across that set, one was a false positive. On the same set,
-end-to-end factual errors per generated text fell from **1.33 to 0.5**. The fix adds no extra
-model call. We also tried simply swapping in a stronger model — it changed nothing. The question
-was the bug.
+Three separate measurements, all small (n = 5–6), so treat them as a direction and not as a
+result:
+
+- Against the text that started this: the old prompt caught **0 of 5** planted false claims, the
+  new one **5 of 5**.
+- Recall and precision, with a correct control text included: from **0/6 recall at 6/6 precision**
+  — it accepted everything, which makes a checker worthless — to **6/6 recall at 5/6 precision**.
+- End to end, through the real generate → verify → retry loop and scored by a different, larger
+  model: factual errors per delivered text fell from **1.33 to 0.5**, and wall-clock actually
+  dropped slightly (4.08 s → 3.76 s), because the fix adds no extra call.
+
+We also swapped in a stronger model. No improvement, higher cost. The question was the bug.
 
 **The chain was hardened everywhere except at its root.** We checked every analogy against the
-definition, while the definition itself came from a model reading a photograph and was taken on
-trust. A misread definition passed every later gate. Concepts are now checked against their own
-stored transcription.
+definition — while the definition itself came from a model reading a photograph and was taken on
+trust, so a misread one passed every later gate. Concepts are now checked against their own stored
+transcription.
 
-**A model's own arithmetic was believed.** Numeric problems came back with the answer attached,
-and that answer was trusted — so a miscalculation marked a *correct* learner wrong and moved their
-mastery down. Every numeric problem is now solved a second time by an independent call and
-survives only if both agree.
+**A model's own arithmetic was believed.** Numeric problems arrived with the answer attached, and
+it was trusted — so a miscalculation marked a *correct* learner wrong and moved their mastery
+down. Each one is now solved again by an independent call and kept only if both agree.
 
-**Self-reported depth is worthless.** Asking "how well do you know cars?" gets politeness, not
-information. The interview ends with a word magnet: real domain terms across three difficulty
-tiers, mixed with plausible decoys, and which is which never leaves the server.
+**Self-reported depth is worthless.** "How well do you know cars?" gets politeness, not
+information. The interview ends with a word magnet instead: real domain terms across three
+difficulty tiers, mixed with plausible decoys, and which is which never leaves the server.
 
 ## Accomplishments that we're proud of
 
@@ -118,8 +129,8 @@ check. And: reach for the prompt before reaching for a bigger model.
 ## What's next for Bridge
 
 **A classroom trial, because that is the evidence we do not have.** Everything above measures
-whether the system is correct, not whether it teaches better — that claim needs learners, a
-control condition and a retention check, and we would rather name the gap than round it up.
+whether the system is *correct*, not whether it *teaches better* — that needs learners, a control
+condition and a retention check. We would rather name the gap than round it up.
 
 Beyond that: the teacher and class model, the Android app out of sideloading and into the Play
 Store, and multilingual embeddings in production. Open and honest: the generated misconception
