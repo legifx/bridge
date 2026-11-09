@@ -33,7 +33,7 @@ fun StatsScreen(dash: Dash) {
     val recorded = s.days.takeLast(7)
 
     SpacedColumn {
-        Text("Statistik", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = C.text)
+        ScreenTitle("Statistik")
 
         Section("Social Media & Games, 7 Tage") {
             BarChart(dop, labels, s.budgetMin)
@@ -42,7 +42,7 @@ fun StatsScreen(dash: Dash) {
         }
 
         Section("Handy gesamt, 7 Tage") {
-            BarChart(total, labels, limit = 120, highlightLast = true)
+            BarChart(total, labels, limit = 120, highlightLast = true, overColor = C.warn)
             Spacer(Modifier.height(8.dp))
             val avg = if (recorded.isNotEmpty()) recorded.sumOf { it.totalMin } / recorded.size else dash.totalMin
             Hint("Schnitt: ${Times.minutesLabel(avg)} pro Tag. Gestrichelt: 2 Stunden als Richtwert.")

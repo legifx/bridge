@@ -64,6 +64,10 @@ object Engine {
             "night_enabled" -> s.nightEnabled = value == "true"
             "night_window" -> value.split("-").takeIf { it.size == 2 }?.let { s.nightStart = it[0]; s.nightEnd = it[1] }
             "unlock_limits" -> s.limitsLocked = false
+            "filter_off" -> s.filterEnabled = false
+            "safe_search_off" -> s.filterSafeSearch = false
+            "netblock_limit_off" -> s.netBlockLimit = false
+            "netblock_night_off" -> s.netBlockNight = false
         }
     }
 

@@ -16,9 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -78,7 +76,7 @@ fun SetupScreen(back: () -> Unit) {
         }
 
         Section("2. Apps wirklich sperren (empfohlen)") {
-            Text("Diese App misst, erinnert und belohnt — sie sperrt nicht. Für eine harte Grenze, die du nicht einfach wegklicken kannst, nimm die eingebauten Werkzeuge:", color = C.text, fontSize = 14.sp)
+            Text("Der Netzfilter dieser App trennt Social-Media-Apps bei Limit und nachts vom Netz, lässt sich aber in den Android-Einstellungen wieder ausschalten. Für eine Grenze, die du nicht selbst aufheben kannst, nimm zusätzlich die eingebauten Werkzeuge:", color = C.text, fontSize = 14.sp)
             Spacer(Modifier.height(10.dp))
             Guide(
                 "Google Family Link mit Vertrauensperson",

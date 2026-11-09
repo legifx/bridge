@@ -21,10 +21,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -101,7 +99,7 @@ private fun PrivateScreen(back: () -> Unit) {
 
         Button(
             onClick = { urge = true }, modifier = Modifier.fillMaxWidth().height(56.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = C.xp),
+            color = C.xp,
         ) { Text("Drang-Hilfe (10 Min)", fontSize = 17.sp) }
 
         Section("Ehrlich bleiben") {

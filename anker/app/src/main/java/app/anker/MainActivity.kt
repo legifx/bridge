@@ -12,22 +12,20 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreHoriz
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -39,15 +37,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import app.anker.data.Engine
 import app.anker.data.Store
+import app.anker.filter.FilterService
 import app.anker.ui.AnkerTheme
+import app.anker.ui.AppBackground
+import app.anker.ui.NavBar
 import app.anker.ui.C
 import app.anker.ui.HomeScreen
 import app.anker.ui.MoreScreen
@@ -82,7 +84,12 @@ class Ui(
     fun toast(msg: String) { scope.launch { snackbar.showSnackbar(msg) } }
 }
 
-val LocalUi = staticCompositionLocalOf<Ui> { error("kein Ui") }
+/**
+ * Bewusst kein statisches Local: Bei jeder Änderung im Speicher wird ein neues [Ui] bereitgestellt,
+ * und genau die Bildschirmteile, die es lesen, zeichnen sich neu. Sonst blieben z. B. abgehakte
+ * Aufgaben stehen, bis zufällig etwas anderes ein Neuzeichnen auslöst.
+ */
+val LocalUi = compositionLocalOf<Ui> { error("kein Ui") }
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -127,40 +134,38 @@ private fun App(initialRoute: String?) {
         while (!app.anker.ui.TestMode) { delay(60_000); reload++ }
     }
 
-    val ui = remember { Ui(store, snackbar, scope, { reload++ }, { r -> tab = 3; sub = r }) }
+    val ui = remember(version) { Ui(store, snackbar, scope, { reload++ }, { r -> tab = 3; sub = r }) }
 
     BackHandler(enabled = sub.isNotEmpty() || tab != 0) {
         if (sub.isNotEmpty()) sub = "" else tab = 0
     }
 
     CompositionLocalProvider(LocalUi provides ui) {
-        Scaffold(
-            containerColor = C.bg,
-            snackbarHost = { SnackbarHost(snackbar) },
-            bottomBar = {
-                NavigationBar(containerColor = C.surface) {
-                    val items = listOf(
-                        Triple("Heute", Icons.Filled.Home, 0),
-                        Triple("Plan", Icons.Filled.Checklist, 1),
-                        Triple("Statistik", Icons.Filled.BarChart, 2),
-                        Triple("Mehr", Icons.Filled.MoreHoriz, 3),
-                    )
-                    items.forEach { (label, icon, i) ->
-                        NavigationBarItem(
-                            selected = tab == i,
-                            onClick = { tab = i; sub = "" },
-                            icon = { Icon(icon, label) },
-                            label = { Text(label) },
-                            colors = NavigationBarItemDefaults.colors(indicatorColor = C.surface2),
-                        )
+        AppBackground {
+            Scaffold(
+                containerColor = Color.Transparent,
+                snackbarHost = {
+                    SnackbarHost(snackbar) { data ->
+                        Snackbar(data, containerColor = C.surface2, contentColor = C.text, shape = RoundedCornerShape(18.dp))
                     }
-                }
-            },
-        ) { pad ->
-            Box(Modifier.fillMaxSize().padding(pad)) {
+                },
+                bottomBar = {
+                    NavBar(
+                        items = listOf(
+                            "Heute" to Icons.Filled.Home,
+                            "Plan" to Icons.Filled.Checklist,
+                            "Statistik" to Icons.Filled.BarChart,
+                            "Mehr" to Icons.Filled.MoreHoriz,
+                        ),
+                        selected = tab,
+                        onSelect = { tab = it; sub = "" },
+                        modifier = Modifier.navigationBarsPadding(),
+                    )
+                },
+            ) { pad ->
                 Box(
-                    Modifier.fillMaxSize().verticalScroll(rememberScrollState())
-                        .padding(PaddingValues(horizontal = 16.dp, vertical = 12.dp))
+                    Modifier.fillMaxSize().padding(pad).verticalScroll(rememberScrollState())
+                        .padding(PaddingValues(horizontal = 18.dp, vertical = 14.dp))
                 ) {
                     when (tab) {
                         0 -> HomeScreen(dash)
@@ -175,8 +180,9 @@ private fun App(initialRoute: String?) {
 }
 
 private fun loadDash(context: android.content.Context, s: Store): Dash {
-    if (!Usage.hasPermission(context)) return Dash(ready = true, permission = false)
+    if (!Usage.hasPermission(context)) { FilterService.sync(context); return Dash(ready = true, permission = false) }
     Engine.applyDuePending(s)
+    FilterService.sync(context)
     Engine.closePastDays(context, s)
     val map = Usage.todayMillis(context)
     val exclude = Engine.excludedFromTotal(context)

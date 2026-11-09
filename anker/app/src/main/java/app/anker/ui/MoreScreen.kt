@@ -22,16 +22,14 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -44,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -72,6 +71,7 @@ fun MoreScreen(sub: String, go: (String) -> Unit) {
         "ai" -> AiScreen(back)
         "backup" -> BackupScreen(back)
         "private" -> PrivateGate(back)
+        "filter" -> FilterScreen(back)
         else -> MoreMenu(go)
     }
 }
@@ -79,22 +79,24 @@ fun MoreScreen(sub: String, go: (String) -> Unit) {
 @Composable
 private fun MoreMenu(go: (String) -> Unit) {
     SpacedColumn {
-        Text("Mehr", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = C.text)
+        ScreenTitle("Mehr")
         Section {
-            MenuRow(Icons.Filled.EmojiEvents, "Belohnungen", "Punkte gegen selbst gewählte Belohnungen tauschen") { go("rewards") }
-            HorizontalDivider(color = C.surface2)
-            MenuRow(Icons.Filled.School, "Schule & Profil", "Stundenplan, Klausuren, Tagesrhythmus") { go("school") }
-            HorizontalDivider(color = C.surface2)
-            MenuRow(Icons.Filled.Timer, "Limits", "Tageslimit, welche Apps zählen, Nachtzeit") { go("limits") }
-            HorizontalDivider(color = C.surface2)
-            MenuRow(Icons.Filled.SmartToy, "KI-Einstellungen", "API-Key für den Planer") { go("ai") }
+            MenuRow(Icons.Filled.EmojiEvents, "Belohnungen", "Punkte gegen selbst gewählte Belohnungen tauschen", C.xp) { go("rewards") }
+            HorizontalDivider(color = C.border)
+            MenuRow(Icons.Filled.School, "Schule & Profil", "Stundenplan, Klausuren, Tagesrhythmus", C.accent2) { go("school") }
+            HorizontalDivider(color = C.border)
+            MenuRow(Icons.Filled.Timer, "Limits", "Tageslimit, welche Apps zählen, Nachtzeit", C.warn) { go("limits") }
+            HorizontalDivider(color = C.border)
+            MenuRow(Icons.Filled.SmartToy, "KI-Einstellungen", "API-Key für den Planer", C.accent) { go("ai") }
         }
         Section {
-            MenuRow(Icons.Filled.Shield, "Einrichtung & harte Sperre", "Berechtigungen und wie du Apps wirklich sperrst") { go("setup") }
-            HorizontalDivider(color = C.surface2)
-            MenuRow(Icons.Filled.Backup, "Sicherung", "Daten exportieren / importieren") { go("backup") }
-            HorizontalDivider(color = C.surface2)
-            MenuRow(Icons.Filled.Lock, "Privat", null) { go("private") }
+            MenuRow(Icons.Filled.WifiOff, "Netzfilter", "Inhalte filtern, Apps bei Limit und nachts vom Netz trennen", C.bad) { go("filter") }
+            HorizontalDivider(color = C.border)
+            MenuRow(Icons.Filled.Shield, "Einrichtung & harte Sperre", "Berechtigungen und wie du Apps wirklich sperrst", C.accent) { go("setup") }
+            HorizontalDivider(color = C.border)
+            MenuRow(Icons.Filled.Backup, "Sicherung", "Daten exportieren / importieren", C.accent2) { go("backup") }
+            HorizontalDivider(color = C.border)
+            MenuRow(Icons.Filled.Lock, "Privat", null, C.dim) { go("private") }
         }
     }
 }
@@ -261,7 +263,10 @@ private fun LimitsScreen(back: () -> Unit) {
         SubHeader("Limits", back)
         Section("Tageslimit Social Media & Games") {
             Text("${budget.toInt()} Minuten", fontSize = 26.sp, fontWeight = FontWeight.Bold, color = budgetColor(0, 1))
-            Slider(value = budget, onValueChange = { budget = it }, valueRange = 0f..180f, steps = 35)
+            Slider(
+                value = budget, onValueChange = { budget = it }, valueRange = 0f..180f, steps = 35,
+                colors = SliderDefaults.colors(activeTickColor = Color.Transparent, inactiveTickColor = Color.Transparent, inactiveTrackColor = C.surface2),
+            )
             Hint("Dein Ziel war höchstens 1 Stunde, eher weniger. Tipp: jede Woche um 5–10 Minuten runter.")
             Spacer(Modifier.height(8.dp))
             Button(onClick = {
@@ -321,7 +326,7 @@ private fun LimitsScreen(back: () -> Unit) {
                             if (add) s.dopaminePackages = s.dopaminePackages + a.pkg
                             else loosened(Engine.requestLoosening(s, "remove_app", a.pkg, "${a.label} nicht mehr zählen"))
                         },
-                        colors = CheckboxDefaults.colors(checkedColor = C.warn),
+                        color = C.warn,
                     )
                     Text(a.label, color = C.text, modifier = Modifier.weight(1f))
                     if (a.isGame) Text("Spiel", color = C.faint, fontSize = 11.sp)

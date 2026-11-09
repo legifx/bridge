@@ -39,6 +39,19 @@ class Store private constructor(context: Context) {
     /** Festgeschrieben: Lockerungen der Limits gelten erst nach 24 Stunden. */
     var limitsLocked by bool("limits_locked", false)
 
+    // ---- Netzfilter ---------------------------------------------------------------
+    /** Lokaler DNS-Filter an: nicht jugendfreie Seiten werden im ganzen Handy blockiert. */
+    var filterEnabled by bool("filter_enabled", false)
+    var filterSafeSearch by bool("filter_safe_search", true)
+    /** Social-Media-Apps vom Netz trennen, sobald das Tageslimit erreicht ist / in Fokus-Sessions. */
+    var netBlockLimit by bool("net_block_limit", true)
+    /** Social-Media-Apps in der Nachtzeit vom Netz trennen. */
+    var netBlockNight by bool("net_block_night", true)
+    var filterBlockedDay by string("filter_blocked_day", "")
+    var filterBlockedCount by int("filter_blocked_count", 0)
+    /** Zeitpunkt, zu dem der Filter zuletzt von aussen getrennt wurde (0 = nie / wieder an). */
+    var filterRevokedAt by long("filter_revoked_at", 0L)
+
     // ---- Fokus (Agent arbeitet) -----------------------------------------------
     var focusUntil by long("focus_until", 0L)
     var focusStartedAt by long("focus_started_at", 0L)

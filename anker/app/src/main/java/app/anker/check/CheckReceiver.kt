@@ -48,8 +48,9 @@ class CheckReceiver : BroadcastReceiver() {
 
         fun runCheck(context: Context) {
             val s = Store.get(context)
-            if (!Usage.hasPermission(context)) return
             Engine.applyDuePending(s)
+            app.anker.filter.FilterService.sync(context)
+            if (!Usage.hasPermission(context)) return
             Engine.closePastDays(context, s)
             Engine.settleFocus(context, s)?.let { (min, xp, clean) ->
                 Notify.show(
@@ -103,6 +104,7 @@ class BootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED || intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
             CheckReceiver.schedule(context.applicationContext)
+            app.anker.filter.FilterService.sync(context.applicationContext)
         }
     }
 }

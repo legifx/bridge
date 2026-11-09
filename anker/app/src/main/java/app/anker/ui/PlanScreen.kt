@@ -22,10 +22,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,6 +38,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -61,7 +59,7 @@ import java.time.LocalDate
 @Composable
 fun PlanScreen() {
     SpacedColumn {
-        Text("Plan", fontSize = 28.sp, fontWeight = FontWeight.Bold, color = C.text)
+        ScreenTitle("Plan")
         DictationCard()
         DayPlanCard()
         TaskListCard()
@@ -98,7 +96,11 @@ private fun DictationCard() {
         Spacer(Modifier.height(12.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                Modifier.size(64.dp).background(if (listening) C.bad else C.accent, CircleShape),
+                Modifier.size(76.dp).background((if (listening) C.bad else C.accent).copy(alpha = 0.14f), CircleShape).padding(7.dp)
+                    .background(
+                        if (listening) Brush.linearGradient(listOf(C.bad, C.warn)) else Brush.linearGradient(listOf(C.accent, C.accent2)),
+                        CircleShape,
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
                 IconButton(onClick = {
@@ -186,7 +188,6 @@ private fun DayPlanCard() {
                         }
                         s.plan = s.plan.mapIndexed { j, x -> if (j == i) x.copy(done = done) else x }
                     },
-                    colors = CheckboxDefaults.colors(checkedColor = C.accent),
                 )
                 Text("${b.start}–${b.end}", color = kindColor(b.kind), fontSize = 13.sp, modifier = Modifier.width(96.dp))
                 Text(
@@ -282,7 +283,6 @@ private fun TaskRow(t: Task) {
                 Engine.completeTask(s, t.id, it)
                 if (it) ui.toast("Erledigt: +${Engine.taskXp(t)} XP")
             },
-            colors = CheckboxDefaults.colors(checkedColor = C.accent),
         )
         Column(Modifier.weight(1f)) {
             Text(
