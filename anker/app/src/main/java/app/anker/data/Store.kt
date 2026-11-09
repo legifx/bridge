@@ -33,39 +33,20 @@ class Store private constructor(context: Context) {
     var dopaminePackages by stringSet("dopamine_pkgs", emptySet())
     var catalogSeeded by bool("catalog_seeded", false)
 
-    var interceptEnabled by bool("intercept_enabled", true)
-    var interceptSeconds by int("intercept_seconds", 10)
-
     var nightEnabled by bool("night_enabled", true)
     var nightStart by string("night_start", "22:30")
     var nightEnd by string("night_end", "06:30")
-    var nightBlockBrowsers by bool("night_block_browsers", true)
-
-    /** Einstellungs-Waechter scharf: Deinstallieren/Deaktivieren wird abgefangen. */
-    var strictArmed by bool("strict_armed", false)
-    /** Bis wann der Waechter fuer Wartung pausiert ist (nach 24 h Antrag + PC-Code). */
-    var guardPausedUntil by long("guard_paused_until", 0L)
+    /** Festgeschrieben: Lockerungen der Limits gelten erst nach 24 Stunden. */
+    var limitsLocked by bool("limits_locked", false)
 
     // ---- Fokus (Agent arbeitet) -----------------------------------------------
     var focusUntil by long("focus_until", 0L)
     var focusStartedAt by long("focus_started_at", 0L)
 
-    // ---- Freischaltung ----------------------------------------------------------
-    var unlockSecret by string("unlock_secret", "")
-    var unlockSecretConfirmed by bool("unlock_secret_confirmed", false)
-    var unlockUntil by long("unlock_until", 0L)
-    var unlockRequestAt by long("unlock_request_at", 0L)
-    var unlockRequestReason by string("unlock_request_reason", "")
-    var unlockChallenge by string("unlock_challenge", "")
-    var maxUnlocksPerDay by int("max_unlocks_per_day", 2)
-
-    // ---- Schutzfilter (diskret) -------------------------------------------------
-    var shieldEnabled by bool("shield_enabled", false)
-    var shieldBlockPrivate by bool("shield_block_private", true)
-    var shieldScanContent by bool("shield_scan_content", true)
-    var shieldShowOnHome by bool("shield_show_home", false)
-    var shieldStreakStart by long("shield_streak_start", 0L)
-    var shieldBestStreakDays by int("shield_best_streak", 0)
+    // ---- Privater Bereich (diskret) ---------------------------------------------
+    var privateShowOnHome by bool("private_show_home", false)
+    var streakStart by long("streak_start", 0L)
+    var bestStreakDays by int("best_streak", 0)
     var advancedPin by string("advanced_pin", "")
 
     // ---- Profil / Schule / KI ---------------------------------------------------
@@ -89,8 +70,9 @@ class Store private constructor(context: Context) {
     var warnedLevelDay by string("warned_level_day", "")
     var warnedLevel by int("warned_level", 0)
     var installedAt by long("installed_at", 0L)
-    var guardLastSeen by long("guard_last_seen", 0L)
     var setupDone by bool("setup_done", false)
+    var lastOverWarn by long("last_over_warn", 0L)
+    var lastNightWarn by long("last_night_warn", 0L)
 
     // ---- Listen ------------------------------------------------------------------
     var tasks: List<Task>
@@ -114,20 +96,39 @@ class Store private constructor(context: Context) {
     var relapses: List<Relapse>
         get() = readList("relapses", Relapse::from)
         set(v) = writeList("relapses", v.takeLast(200).map { it.json() })
-    var unlocks: List<UnlockEvent>
-        get() = readList("unlocks", UnlockEvent::from)
-        set(v) = writeList("unlocks", v.takeLast(200).map { it.json() })
-    var violations: List<Violation>
-        get() = readList("violations", Violation::from)
-        set(v) = writeList("violations", v.takeLast(200).map { it.json() })
-
-    fun logViolation(kind: String, detail: String = "") {
-        violations = violations + Violation(System.currentTimeMillis(), kind, detail)
+    // ---- Sicherung ---------------------------------------------------------------------
+    fun exportJson(): String {
+        val o = JSONObject()
+        for ((k, v) in sp.all) {
+            val e = JSONObject()
+            when (v) {
+                is Int -> e.put("t", "i").put("v", v)
+                is Long -> e.put("t", "l").put("v", v)
+                is Boolean -> e.put("t", "b").put("v", v)
+                is String -> e.put("t", "s").put("v", v)
+                is Set<*> -> e.put("t", "set").put("v", JSONArray(v.map { it.toString() }))
+                else -> continue
+            }
+            o.put(k, e)
+        }
+        return JSONObject().put("app", "anker").put("v", 1).put("data", o).toString(2)
     }
 
-    fun unlocksToday(): Int {
-        val today = LocalDate.now()
-        return unlocks.count { java.time.Instant.ofEpochMilli(it.at).atZone(java.time.ZoneId.systemDefault()).toLocalDate() == today }
+    fun importJson(raw: String) {
+        val data = JSONObject(raw).getJSONObject("data")
+        val ed = sp.edit().clear()
+        for (k in data.keys()) {
+            val e = data.getJSONObject(k)
+            when (e.getString("t")) {
+                "i" -> ed.putInt(k, e.getInt("v"))
+                "l" -> ed.putLong(k, e.getLong("v"))
+                "b" -> ed.putBoolean(k, e.getBoolean("v"))
+                "s" -> ed.putString(k, e.getString("v"))
+                "set" -> ed.putStringSet(k, e.getJSONArray("v").let { a -> (0 until a.length()).map { a.getString(it) }.toSet() })
+            }
+        }
+        ed.apply()
+        bump()
     }
 
     // ---- Delegates -----------------------------------------------------------------
@@ -183,12 +184,12 @@ class Store private constructor(context: Context) {
         fun newId(): String = UUID.randomUUID().toString().take(8)
 
         val DEFAULT_AGENT_TASKS = listOf(
-            "Naechsten Prompt fuer den Agenten vorformulieren",
+            "Nächsten Prompt für den Agenten vorformulieren",
             "Aufgabenliste checken: was kommt nach diesem Schritt?",
             "Glas Wasser holen",
             "10 Kniebeugen oder 1 Minute dehnen",
-            "Schreibtisch / Desktop aufraeumen (2 Min)",
-            "5 Karteikarten fuer die naechste Klausur",
+            "Schreibtisch / Desktop aufräumen (2 Min)",
+            "5 Karteikarten für die nächste Klausur",
             "Augen 20 Sekunden aus dem Fenster in die Ferne richten",
         )
     }
@@ -291,14 +292,4 @@ data class Pending(
 data class Relapse(val at: Long, val trigger: String) {
     fun json() = JSONObject().put("at", at).put("trigger", trigger)
     companion object { fun from(o: JSONObject) = Relapse(o.getLong("at"), o.optString("trigger", "")) }
-}
-
-data class UnlockEvent(val at: Long, val reason: String, val minutes: Int) {
-    fun json() = JSONObject().put("at", at).put("reason", reason).put("min", minutes)
-    companion object { fun from(o: JSONObject) = UnlockEvent(o.getLong("at"), o.optString("reason", ""), o.optInt("min", 0)) }
-}
-
-data class Violation(val at: Long, val kind: String, val detail: String) {
-    fun json() = JSONObject().put("at", at).put("kind", kind).put("detail", detail)
-    companion object { fun from(o: JSONObject) = Violation(o.getLong("at"), o.getString("kind"), o.optString("detail", "")) }
 }

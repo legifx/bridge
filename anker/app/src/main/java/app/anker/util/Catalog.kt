@@ -1,10 +1,8 @@
-package app.anker.guard
+package app.anker.util
 
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
-import android.view.inputmethod.InputMethodManager
 
 /** Welche Apps sind was? Bekannte Listen plus das, was auf dem Handy installiert ist. */
 object Catalog {
@@ -37,29 +35,6 @@ object Catalog {
         "com.disney.disneyplus" to "Disney+",
         "com.discord" to "Discord",
         "com.joyreactor" to "Joyreactor",
-    )
-
-    val KNOWN_BROWSERS = setOf(
-        "com.android.chrome", "com.chrome.beta", "com.chrome.dev", "com.chrome.canary",
-        "org.mozilla.firefox", "org.mozilla.firefox_beta", "org.mozilla.fenix", "org.mozilla.focus",
-        "org.mozilla.klar", "com.sec.android.app.sbrowser", "com.sec.android.app.sbrowser.beta",
-        "com.brave.browser", "com.opera.browser", "com.opera.mini.native", "com.opera.gx",
-        "com.microsoft.emmx", "com.duckduckgo.mobile.android", "com.kiwibrowser.browser",
-        "com.vivaldi.browser", "com.yandex.browser", "com.UCMobile.intl", "com.mi.globalbrowser",
-        "com.android.browser", "com.huawei.browser", "com.heytap.browser", "org.chromium.chrome",
-        "com.ecosia.android", "com.cloudmosa.puffinFree", "mark.via.gp", "com.qwant.liberty",
-        "org.torproject.torbrowser", "info.guardianproject.orfox", "com.aloha.browser",
-        "com.google.android.googlequicksearchbox",
-    )
-
-    /** View-IDs der Adresszeile in verbreiteten Browsern. */
-    val URL_BAR_IDS = listOf(
-        "com.android.chrome:id/url_bar", "com.chrome.beta:id/url_bar", "org.chromium.chrome:id/url_bar",
-        "org.mozilla.firefox:id/mozac_browser_toolbar_url_view", "org.mozilla.fenix:id/mozac_browser_toolbar_url_view",
-        "com.sec.android.app.sbrowser:id/location_bar_edit_text", "com.sec.android.app.sbrowser:id/custom_tab_toolbar_url_bar_text",
-        "com.brave.browser:id/url_bar", "com.opera.browser:id/url_field", "com.microsoft.emmx:id/url_bar",
-        "com.duckduckgo.mobile.android:id/omnibarTextInput", "com.kiwibrowser.browser:id/url_bar",
-        "com.vivaldi.browser:id/url_bar", "com.ecosia.android:id/url_bar",
     )
 
     private val ALWAYS_ALLOWED = setOf(
@@ -103,30 +78,6 @@ object Catalog {
             val pm = context.packageManager
             pm.getApplicationInfo(pkg, 0).loadLabel(pm).toString()
         }.getOrElse { KNOWN_DOPAMINE[pkg] ?: pkg }
-
-    fun isBrowser(context: Context, pkg: String): Boolean {
-        if (pkg in KNOWN_BROWSERS) return true
-        return browserPackages(context).contains(pkg)
-    }
-
-    @Volatile private var browserCache: Set<String>? = null
-    fun browserPackages(context: Context): Set<String> {
-        browserCache?.let { return it }
-        val pm = context.packageManager
-        val i = Intent(Intent.ACTION_VIEW, android.net.Uri.parse("https://example.com"))
-        val set = pm.queryIntentActivities(i, PackageManager.MATCH_ALL).map { it.activityInfo.packageName }.toSet()
-        browserCache = set
-        return set
-    }
-
-    @Volatile private var imeCache: Set<String>? = null
-    fun inputMethods(context: Context): Set<String> {
-        imeCache?.let { return it }
-        val imm = context.getSystemService(InputMethodManager::class.java)
-        val set = imm?.inputMethodList?.map { it.packageName }?.toSet() ?: emptySet()
-        imeCache = set
-        return set
-    }
 
     fun launcherPackages(context: Context): Set<String> {
         val i = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)

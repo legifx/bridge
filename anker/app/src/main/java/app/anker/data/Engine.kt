@@ -1,61 +1,48 @@
 package app.anker.data
 
 import android.content.Context
-import app.anker.guard.Catalog
-import app.anker.guard.Policy
 import app.anker.usage.Usage
+import app.anker.util.Catalog
+import app.anker.util.Times
 import java.time.LocalDate
 import java.time.LocalTime
 import kotlin.math.max
 
 /**
- * Alles, was Waechter und Oberflaeche gemeinsam brauchen: verbrauchte Minuten,
- * verzoegerte Lockerungen, Tagesabschluss und Punkte.
+ * Alles, was Oberflaeche und Hintergrund-Check gemeinsam brauchen: verbrauchte
+ * Minuten, verzoegerte Lockerungen, Tagesabschluss und Punkte.
  */
 object Engine {
 
     const val LOOSEN_DELAY_MS = 24L * 60 * 60 * 1000
-    const val UNLOCK_WAIT_MS = 10L * 60 * 1000
-    const val UNLOCK_WAIT_NIGHT_MS = 20L * 60 * 1000
 
     // ---- Minuten ---------------------------------------------------------------------
 
-    fun webSecondsToday(s: Store): Int =
-        if (s.webDopamineDay == LocalDate.now().toString()) s.webDopamineSeconds else 0
-
-    fun addWebSeconds(s: Store, seconds: Int) {
-        val today = LocalDate.now().toString()
-        if (s.webDopamineDay != today) { s.webDopamineDay = today; s.webDopamineSeconds = 0 }
-        s.webDopamineSeconds = s.webDopamineSeconds + seconds
-    }
-
     fun usedMinutesToday(context: Context, s: Store, today: Map<String, Long> = Usage.todayMillis(context)): Int =
-        Usage.sumMinutes(today, s.dopaminePackages) + webSecondsToday(s) / 60
+        Usage.sumMinutes(today, s.dopaminePackages)
+
+    fun nightStart(s: Store): LocalTime = Times.parse(s.nightStart, LocalTime.of(22, 30))
+    fun nightEnd(s: Store): LocalTime = Times.parse(s.nightEnd, LocalTime.of(6, 30))
 
     fun nightActive(s: Store, now: LocalTime = LocalTime.now()): Boolean =
-        s.nightEnabled && Policy.inWindow(
-            now,
-            Policy.parseTime(s.nightStart, LocalTime.of(22, 30)),
-            Policy.parseTime(s.nightEnd, LocalTime.of(6, 30)),
-        )
+        s.nightEnabled && Times.inWindow(now, nightStart(s), nightEnd(s))
 
     fun focusActive(s: Store) = s.focusUntil > System.currentTimeMillis()
-    fun unlockActive(s: Store) = s.unlockUntil > System.currentTimeMillis()
-    fun guardPaused(s: Store) = s.guardPausedUntil > System.currentTimeMillis()
 
-    /** Lockerungen nur mit Verzoegerung, sobald der Schutz scharf ist. */
-    fun armed(s: Store) = s.strictArmed && !guardPaused(s)
+    fun excludedFromTotal(context: Context): Set<String> =
+        Catalog.launcherPackages(context) + setOf(context.packageName, "com.android.systemui")
 
     // ---- Lockerungen mit Wartezeit -------------------------------------------------------
 
     /**
-     * Verschaerfungen gelten sofort. Lockerungen laufen ueber diese Funktion: vor dem
-     * Scharfschalten sofort, danach erst nach 24 Stunden. Das ist der "Odysseus-Vertrag":
-     * Die Entscheidung triffst du mit klarem Kopf, nicht im Moment des Verlangens.
+     * Verschaerfungen gelten sofort. Lockerungen laufen ueber diese Funktion: solange die
+     * Limits nicht festgeschrieben sind sofort, danach erst nach 24 Stunden. Das ist ein
+     * "Odysseus-Vertrag": Die Entscheidung triffst du mit klarem Kopf, nicht im Moment,
+     * in dem du gerade mehr willst. Gibt true zurueck, wenn die Aenderung sofort galt.
      */
     fun requestLoosening(s: Store, type: String, value: String, label: String): Boolean {
-        if (!armed(s)) { apply(s, type, value); return true }
-        s.pending = s.pending.filterNot { it.type == type && it.value == value } +
+        if (!s.limitsLocked) { apply(s, type, value); return true }
+        s.pending = s.pending.filterNot { it.type == type } +
             Pending(type = type, value = value, applyAt = System.currentTimeMillis() + LOOSEN_DELAY_MS, label = label)
         return false
     }
@@ -75,15 +62,8 @@ object Engine {
             "budget" -> value.toIntOrNull()?.let { s.budgetMin = it.coerceIn(0, 240) }
             "remove_app" -> s.dopaminePackages = s.dopaminePackages - value
             "night_enabled" -> s.nightEnabled = value == "true"
-            "night_start" -> s.nightStart = value
-            "night_end" -> s.nightEnd = value
-            "night_browsers" -> s.nightBlockBrowsers = value == "true"
-            "intercept" -> s.interceptEnabled = value == "true"
-            "max_unlocks" -> value.toIntOrNull()?.let { s.maxUnlocksPerDay = it.coerceIn(0, 5) }
-            "shield_off" -> s.shieldEnabled = false
-            "shield_private" -> s.shieldBlockPrivate = value == "true"
-            "shield_scan" -> s.shieldScanContent = value == "true"
-            "disarm" -> s.strictArmed = false
+            "night_window" -> value.split("-").takeIf { it.size == 2 }?.let { s.nightStart = it[0]; s.nightEnd = it[1] }
+            "unlock_limits" -> s.limitsLocked = false
         }
     }
 
@@ -95,7 +75,7 @@ object Engine {
         s.coins = s.coins + amount
     }
 
-    /** Level n braucht 50 * n * (n - 1) XP: 0, 100, 300, 600, 1000, ... */
+    /** Level n beginnt bei 50 * n * (n - 1) XP: 0, 100, 300, 600, 1000, ... */
     fun level(xp: Int): Int {
         var n = 1
         while (50 * (n + 1) * n <= xp) n++
@@ -110,45 +90,12 @@ object Engine {
         val t = s.tasks.find { it.id == id } ?: return
         if (t.done == done) return
         s.tasks = s.tasks.map { if (it.id == id) it.copy(done = done, doneAt = if (done) System.currentTimeMillis() else 0L) else it }
-        if (done) addXp(s, taskXp(t)) else { s.xp = max(0, s.xp - taskXp(t)); s.coins = max(0, s.coins - taskXp(t)) }
+        val xp = taskXp(t)
+        if (done) addXp(s, xp) else { s.xp = max(0, s.xp - xp); s.coins = max(0, s.coins - xp) }
         s.plan = s.plan.map { if (it.taskId == id) it.copy(done = done) else it }
     }
 
-    // ---- Tagesabschluss ------------------------------------------------------------------
-
-    /**
-     * Schliesst alle vergangenen Tage ab, die noch offen sind (hoechstens 14):
-     * Minuten unter dem Budget werden zu Punkten, eine saubere Nacht gibt einen Bonus.
-     */
-    fun closePastDays(context: Context, s: Store) {
-        val today = LocalDate.now()
-        val last = runCatching { LocalDate.parse(s.lastClosedDay) }.getOrNull()
-        if (last == null) { s.lastClosedDay = today.minusDays(1).toString(); return }
-        var d = last.plusDays(1)
-        if (d.isBefore(today.minusDays(14))) d = today.minusDays(14)
-        val exclude = Catalog.launcherPackages(context) + setOf(context.packageName, "com.android.systemui")
-        val records = s.days.toMutableList()
-        while (d.isBefore(today)) {
-            val map = Usage.dayMillis(context, d)
-            val dop = Usage.sumMinutes(map, s.dopaminePackages) + (if (s.webDopamineDay == d.toString()) s.webDopamineSeconds / 60 else 0)
-            val total = Usage.totalMinutes(map, exclude)
-            val nightUnlock = s.unlocks.any {
-                val z = java.time.Instant.ofEpochMilli(it.at).atZone(java.time.ZoneId.systemDefault())
-                z.toLocalDate() == d && nightActive(s, z.toLocalTime())
-            }
-            var xp = 0
-            if (map.isNotEmpty() && dop <= s.budgetMin) xp += 20 + (s.budgetMin - dop)
-            if (!nightUnlock) xp += 10
-            records.removeAll { it.date == d.toString() }
-            records += DayRecord(d.toString(), dop, total, s.budgetMin, xp, !nightUnlock)
-            addXp(s, xp)
-            d = d.plusDays(1)
-        }
-        s.days = records.sortedBy { it.date }
-        s.lastClosedDay = today.minusDays(1).toString()
-        // Fokus-Belohnung: abgelaufene Sessions abrechnen
-        settleFocus(s)
-    }
+    // ---- Fokus (Agent arbeitet) ---------------------------------------------------------------
 
     fun startFocus(s: Store, minutes: Int) {
         val now = System.currentTimeMillis()
@@ -156,19 +103,67 @@ object Engine {
         s.focusUntil = now + minutes * 60_000L
     }
 
-    /** Beendet eine Fokus-Session und gibt 1 XP pro Minute, die durchgehalten wurde. */
-    fun settleFocus(s: Store, stopNow: Boolean = false) {
-        if (s.focusStartedAt == 0L) return
+    /**
+     * Rechnet eine Fokus-Session ab: 1 XP pro Minute, und das Doppelte, wenn in der Zeit
+     * keine Dopamin-App benutzt wurde. Gibt (Minuten, XP, sauber) zurueck oder null.
+     */
+    fun settleFocus(context: Context, s: Store, stopNow: Boolean = false): Triple<Int, Int, Boolean>? {
+        if (s.focusStartedAt == 0L) return null
         val now = System.currentTimeMillis()
-        if (!stopNow && s.focusUntil > now) return
+        if (!stopNow && s.focusUntil > now) return null
         val end = minOf(now, s.focusUntil)
         val minutes = ((end - s.focusStartedAt) / 60_000L).toInt()
-        addXp(s, minutes)
+        val used = Usage.sumMinutes(Usage.foregroundMillis(context, s.focusStartedAt, end), s.dopaminePackages)
+        val clean = used == 0
+        val xp = if (clean) minutes * 2 else minutes
+        addXp(s, xp)
         s.focusStartedAt = 0L
         if (stopNow) s.focusUntil = 0L
+        return Triple(minutes, xp, clean)
     }
 
-    /** Laengste Serie aufeinanderfolgender Tage unter Budget, bis gestern. */
+    // ---- Tagesabschluss ------------------------------------------------------------------
+
+    /**
+     * Schliesst alle vergangenen, noch offenen Tage ab (hoechstens 14): Minuten unter dem
+     * Budget werden zu Punkten, ein Abend ohne Dopamin-Apps im Nachtfenster gibt einen Bonus.
+     */
+    fun closePastDays(context: Context, s: Store) {
+        val today = LocalDate.now()
+        val last = runCatching { LocalDate.parse(s.lastClosedDay) }.getOrNull()
+        if (last == null) { s.lastClosedDay = today.minusDays(1).toString(); return }
+        var d = last.plusDays(1)
+        if (d.isBefore(today.minusDays(14))) d = today.minusDays(14)
+        if (!d.isBefore(today)) return
+        val exclude = excludedFromTotal(context)
+        val records = s.days.toMutableList()
+        while (d.isBefore(today)) {
+            val map = Usage.dayMillis(context, d)
+            val dop = Usage.sumMinutes(map, s.dopaminePackages)
+            val total = Usage.totalMinutes(map, exclude)
+            val nightClean = nightMinutes(context, s, d) < 2
+            var xp = 0
+            if (map.isNotEmpty() && dop <= s.budgetMin) xp += 20 + (s.budgetMin - dop)
+            if (s.nightEnabled && nightClean) xp += 15
+            records.removeAll { it.date == d.toString() }
+            records += DayRecord(d.toString(), dop, total, s.budgetMin, xp, nightClean)
+            addXp(s, xp)
+            d = d.plusDays(1)
+        }
+        s.days = records.sortedBy { it.date }
+        s.lastClosedDay = today.minusDays(1).toString()
+    }
+
+    /** Dopamin-Minuten am Abend von [d] ab Beginn des Nachtfensters bis Mitternacht. */
+    fun nightMinutes(context: Context, s: Store, d: LocalDate): Int {
+        val start = nightStart(s)
+        if (start < LocalTime.NOON) return 0 // Fenster beginnt erst nach Mitternacht
+        val from = Usage.dayStart(d) + start.toSecondOfDay() * 1000L
+        val to = Usage.dayStart(d.plusDays(1))
+        return Usage.sumMinutes(Usage.foregroundMillis(context, from, to), s.dopaminePackages)
+    }
+
+    /** Aufeinanderfolgende Tage unter Budget, bis gestern. */
     fun budgetStreak(s: Store): Int {
         val byDate = s.days.associateBy { it.date }
         var d = LocalDate.now().minusDays(1)
@@ -181,8 +176,8 @@ object Engine {
         return n
     }
 
-    fun shieldDays(s: Store): Int {
-        if (s.shieldStreakStart == 0L) return 0
-        return ((System.currentTimeMillis() - s.shieldStreakStart) / (24L * 60 * 60 * 1000)).toInt()
+    fun streakDays(s: Store): Int {
+        if (s.streakStart == 0L) return 0
+        return ((System.currentTimeMillis() - s.streakStart) / (24L * 60 * 60 * 1000)).toInt()
     }
 }
