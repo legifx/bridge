@@ -14,8 +14,8 @@ android {
         applicationId = "app.anker"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1.0"
+        versionCode = 3
+        versionName = "1.2.0"
     }
 
     // Signaturschluessel gehoert NICHT ins Repo. Lege ihn lokal ab und beschreibe ihn in
@@ -80,6 +80,7 @@ dependencies {
     implementation("com.anthropic:anthropic-java:3.6.0")
 
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
     testImplementation("org.robolectric:robolectric:4.14.1")
     testImplementation("androidx.compose.ui:ui-test-junit4")
     testImplementation("androidx.test.ext:junit:1.2.1")

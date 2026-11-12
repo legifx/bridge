@@ -55,6 +55,7 @@ import app.anker.ui.HomeScreen
 import app.anker.ui.MoreScreen
 import app.anker.ui.PlanScreen
 import app.anker.ui.StatsScreen
+import app.anker.ui.UpdateGate
 import app.anker.usage.Usage
 import app.anker.util.Catalog
 import kotlinx.coroutines.CoroutineScope
@@ -141,6 +142,7 @@ private fun App(initialRoute: String?) {
     }
 
     CompositionLocalProvider(LocalUi provides ui) {
+        UpdateGate()
         AppBackground {
             Scaffold(
                 containerColor = Color.Transparent,

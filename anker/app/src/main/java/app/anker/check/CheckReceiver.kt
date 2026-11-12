@@ -50,6 +50,7 @@ class CheckReceiver : BroadcastReceiver() {
             val s = Store.get(context)
             Engine.applyDuePending(s)
             app.anker.filter.FilterService.sync(context)
+            runCatching { app.anker.update.Updater.notifyIfNew(context) }
             if (!Usage.hasPermission(context)) return
             Engine.closePastDays(context, s)
             Engine.settleFocus(context, s)?.let { (min, xp, clean) ->

@@ -130,10 +130,10 @@ private fun DictationCard() {
                     busy = true
                     ui.scope.launch {
                         try {
-                            if (s.apiKey.isBlank()) {
+                            if (!Planner.available(s)) {
                                 val tasks = Planner.offlineTasks(transcript)
                                 s.tasks = s.tasks + tasks
-                                summary = "${tasks.size} Aufgaben ohne KI angelegt (Satz für Satz). Mit API-Key werden sie geschätzt, priorisiert und sortiert."
+                                summary = "${tasks.size} Aufgaben ohne KI angelegt (Satz für Satz). Mit eingerichteter KI werden sie geschätzt, priorisiert und sortiert."
                             } else {
                                 val r = withContext(Dispatchers.IO) { Planner(s).extract(transcript) }
                                 s.tasks = s.tasks + r.tasks
@@ -206,7 +206,7 @@ private fun DayPlanCard() {
             Button(
                 enabled = !busy,
                 onClick = {
-                    if (s.apiKey.isBlank()) { ui.toast("Dafür braucht es einen API-Key (Mehr → KI)."); return@Button }
+                    if (!Planner.available(s)) { ui.toast("Dafür erst die KI einrichten (Mehr → KI-Einstellungen)."); return@Button }
                     busy = true
                     ui.scope.launch {
                         try {

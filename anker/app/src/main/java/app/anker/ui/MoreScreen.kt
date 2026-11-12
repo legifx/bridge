@@ -50,12 +50,14 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.anker.LocalUi
+import app.anker.ai.Bridge
 import app.anker.data.Engine
 import app.anker.data.Exam
 import app.anker.data.Reward
 import app.anker.util.Catalog
 import app.anker.util.Times
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalTime
@@ -87,7 +89,7 @@ private fun MoreMenu(go: (String) -> Unit) {
             HorizontalDivider(color = C.border)
             MenuRow(Icons.Filled.Timer, "Limits", "Tageslimit, welche Apps zählen, Nachtzeit", C.warn) { go("limits") }
             HorizontalDivider(color = C.border)
-            MenuRow(Icons.Filled.SmartToy, "KI-Einstellungen", "API-Key für den Planer", C.accent) { go("ai") }
+            MenuRow(Icons.Filled.SmartToy, "KI-Einstellungen", "Planer über dein Claude-Abo verbinden", C.accent) { go("ai") }
         }
         Section {
             MenuRow(Icons.Filled.WifiOff, "Netzfilter", "Inhalte filtern, Apps bei Limit und nachts vom Netz trennen", C.bad) { go("filter") }
@@ -98,6 +100,7 @@ private fun MoreMenu(go: (String) -> Unit) {
             HorizontalDivider(color = C.border)
             MenuRow(Icons.Filled.Lock, "Privat", null, C.dim) { go("private") }
         }
+        Section { UpdateRow() }
     }
 }
 
@@ -352,31 +355,95 @@ private fun LimitsScreen(back: () -> Unit) {
 private fun AiScreen(back: () -> Unit) {
     val ui = LocalUi.current
     val s = ui.store
+    var url by remember { mutableStateOf(s.bridgeUrl) }
+    var code by remember { mutableStateOf(s.bridgeCode) }
     var key by remember { mutableStateOf(s.apiKey) }
     var model by remember { mutableStateOf(s.model) }
+    var testing by remember { mutableStateOf(false) }
+    var showKey by remember { mutableStateOf(s.apiKey.isNotBlank()) }
+
     SpacedColumn {
         SubHeader("KI-Einstellungen", back)
-        Section("Claude API-Key") {
+
+        Section(tint = if (s.bridgeUrl.isNotBlank()) C.accent else null) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("Über dein Claude-Abo", color = C.text, fontFamily = Display, fontWeight = FontWeight.SemiBold, fontSize = 19.sp, modifier = Modifier.weight(1f))
+                if (s.bridgeUrl.isNotBlank()) Pill("verbunden", C.accent)
+            }
+            Spacer(Modifier.height(6.dp))
             Hint(
-                "Der Planer nutzt die Claude-API. Einen Key bekommst du unter console.anthropic.com → API Keys " +
-                    "(braucht ein paar Euro Guthaben; eine Planung kostet grob 1–3 Cent). Das ist getrennt von deinem Claude-Abo. " +
-                    "Der Key bleibt nur auf diesem Handy."
+                "Kein API-Key nötig: Die App schickt ihre Anfragen an ein kleines Programm auf deinem PC (die PC-Brücke), " +
+                    "das sie an dein Claude Code weiterreicht. Abgerechnet wird über dein Abo."
             )
-            Spacer(Modifier.height(8.dp))
-            OutlinedTextField(
-                key, { key = it.trim() }, Modifier.fillMaxWidth(), label = { Text("sk-ant-…") },
-                singleLine = true, visualTransformation = PasswordVisualTransformation(),
+            Spacer(Modifier.height(12.dp))
+            Text("So geht's", color = C.dim, fontSize = 12.sp, fontWeight = FontWeight.SemiBold)
+            Hint(
+                "1. Am PC im Projektordner: node anker/pc/anker-bridge.mjs\n" +
+                    "2. Das Fenster zeigt eine Adresse und einen Kopplungscode. Beides hier eintragen.\n" +
+                    "3. Handy und PC müssen im selben WLAN sein. Für unterwegs: Tailscale auf beiden, dann die 100.x-Adresse nehmen."
             )
+            Spacer(Modifier.height(10.dp))
+            OutlinedTextField(url, { url = it.trim() }, Modifier.fillMaxWidth(), label = { Text("Adresse, z. B. 192.168.1.20:8787") }, singleLine = true)
             Spacer(Modifier.height(8.dp))
+            OutlinedTextField(code, { code = it.uppercase() }, Modifier.fillMaxWidth(), label = { Text("Kopplungscode") }, singleLine = true)
+            Spacer(Modifier.height(12.dp))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Button(enabled = !testing && url.isNotBlank() && code.isNotBlank(), onClick = {
+                    testing = true
+                    ui.scope.launch {
+                        val result = withContext(Dispatchers.IO) {
+                            val u = Bridge.normalizeUrl(url)
+                            if (!Bridge.health(u)) return@withContext "Unter dieser Adresse antwortet keine PC-Brücke. Läuft sie, und stimmt das WLAN?"
+                            try {
+                                Bridge.complete(u, code, "Antworte mit genau einem Wort.", "Sag: bereit", s.model)
+                                null
+                            } catch (e: Bridge.BridgeException) { e.message }
+                        }
+                        testing = false
+                        if (result == null) {
+                            s.bridgeUrl = Bridge.normalizeUrl(url); s.bridgeCode = Bridge.normalizeCode(code)
+                            url = s.bridgeUrl
+                            ui.toast("Verbunden. Der Planer läuft jetzt über dein Abo.")
+                        } else ui.toast(result)
+                    }
+                }) { Text(if (testing) "Teste…" else "Verbinden & testen") }
+                if (s.bridgeUrl.isNotBlank()) TextButton(onClick = { s.bridgeUrl = ""; s.bridgeCode = ""; url = ""; code = "" }) { Text("Trennen") }
+            }
+        }
+
+        Section("Modell") {
             OutlinedTextField(model, { model = it.trim() }, Modifier.fillMaxWidth(), label = { Text("Modell") }, singleLine = true)
             Spacer(Modifier.height(8.dp))
-            Button(onClick = {
-                s.apiKey = key; s.model = model.ifBlank { "claude-opus-5-5" }
-                ui.toast("Gespeichert")
-            }) { Text("Speichern") }
+            Hint("Standard: claude-opus-5-5. Schneller und sparsamer fürs Abo-Limit: claude-sonnet-5-5 oder claude-haiku-5-5.")
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(onClick = { s.model = model.ifBlank { "claude-opus-5-5" }; ui.toast("Gespeichert") }) { Text("Speichern") }
         }
-        Section("Was an Claude geht") {
-            Hint("Nur beim Tippen auf \"In Aufgaben umwandeln\" oder \"Tag planen\": dein Text, offene Aufgaben, Klausuren, Stundenplan und \"Über mich\". Keine Nutzungsdaten, nichts aus dem privaten Bereich.")
+
+        Section("Ohne PC: API-Key") {
+            Hint(
+                "Falls der PC aus ist. Wird nur benutzt, wenn keine PC-Brücke verbunden ist. Kostet extra (grob 1–3 Cent pro Planung). " +
+                    "Bei Max-Abos ist monatliches API-Guthaben enthalten, das du in der Claude Console einlösen kannst."
+            )
+            Spacer(Modifier.height(8.dp))
+            if (!showKey) OutlinedButton(onClick = { showKey = true }) { Text("API-Key eintragen") }
+            else {
+                OutlinedTextField(
+                    key, { key = it.trim() }, Modifier.fillMaxWidth(), label = { Text("sk-ant-…") },
+                    singleLine = true, visualTransformation = PasswordVisualTransformation(),
+                )
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(onClick = { s.apiKey = key; ui.toast("Gespeichert") }) { Text("Speichern") }
+            }
+        }
+
+        Section("Gut zu wissen") {
+            Hint(
+                "• Das Diktieren selbst macht die Spracherkennung deines Handys. An Claude geht danach nur der Text.\n" +
+                    "• An Claude geht nur, was du mit „In Aufgaben umwandeln“ oder „Tag planen“ abschickst, dazu offene Aufgaben, Klausuren, " +
+                    "Stundenplan und „Über mich“. Keine Nutzungsdaten, nichts aus dem privaten Bereich.\n" +
+                    "• Das Abo direkt in die App einzubauen erlaubt Anthropic nicht; die Anmeldung mit dem Abo ist den eigenen Programmen " +
+                    "wie Claude Code vorbehalten. Die PC-Brücke nutzt genau dieses Claude Code auf deinem PC."
+            )
         }
     }
 }

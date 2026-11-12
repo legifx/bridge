@@ -52,6 +52,12 @@ class Store private constructor(context: Context) {
     /** Zeitpunkt, zu dem der Filter zuletzt von aussen getrennt wurde (0 = nie / wieder an). */
     var filterRevokedAt by long("filter_revoked_at", 0L)
 
+    // ---- Updates --------------------------------------------------------------------
+    var updateCheckedAt by long("update_checked_at", 0L)
+    var updateManifest by string("update_manifest", "")
+    var updateNotifiedCode by int("update_notified_code", 0)
+    var updateError by string("update_error", "")
+
     // ---- Fokus (Agent arbeitet) -----------------------------------------------
     var focusUntil by long("focus_until", 0L)
     var focusStartedAt by long("focus_started_at", 0L)
@@ -63,6 +69,9 @@ class Store private constructor(context: Context) {
     var advancedPin by string("advanced_pin", "")
 
     // ---- Profil / Schule / KI ---------------------------------------------------
+    /** Adresse und Kopplungscode der PC-Brücke (Claude-Abo über Claude Code auf dem PC). */
+    var bridgeUrl by string("bridge_url", "")
+    var bridgeCode by string("bridge_code", "")
     var apiKey by string("api_key", "")
     var model by string("model", "claude-opus-5-5")
     var aboutMe by string("about_me", "")

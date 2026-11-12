@@ -1,0 +1,2 @@
+• Updates kommen jetzt von selbst: Die App meldet neue Versionen und installiert sie mit einem Tipp.
+• KI über dein Claude-Abo statt API-Key: PC-Brücke unter Mehr → KI-Einstellungen verbinden.

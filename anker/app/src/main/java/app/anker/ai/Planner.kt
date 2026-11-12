@@ -167,8 +167,9 @@ class Planner(private val store: Store) {
     // ---- API-Aufruf -------------------------------------------------------------------------
 
     private fun call(userPrompt: String, schemaProps: Map<String, Any>): JSONObject {
+        if (store.bridgeUrl.isNotBlank()) return callBridge(userPrompt, schemaProps)
         val key = store.apiKey.trim()
-        if (key.isBlank()) throw PlannerException("Kein API-Key. Trag ihn unter Mehr → KI-Einstellungen ein.")
+        if (key.isBlank()) throw PlannerException("Keine KI eingerichtet. Verbinde unter Mehr → KI-Einstellungen deinen PC.")
         val client = AnthropicOkHttpClient.builder().apiKey(key).build()
         try {
             return try {
@@ -195,6 +196,31 @@ class Planner(private val store: Store) {
         } finally {
             client.close()
         }
+    }
+
+    /**
+     * Über die PC-Brücke (Claude-Abo). Das Schema steht hier in der Anfrage statt in einem
+     * API-Parameter, darum wird die Antwort geprüft und bei kaputtem JSON einmal wiederholt.
+     */
+    private fun callBridge(userPrompt: String, schemaProps: Map<String, Any>): JSONObject {
+        val schema = JSONObject(mapOf(
+            "type" to "object", "properties" to schemaProps,
+            "required" to schemaProps.keys.toList(), "additionalProperties" to false,
+        ))
+        val prompt = userPrompt + "\n\nAntworte ausschließlich mit einem einzigen JSON-Objekt nach diesem JSON-Schema. " +
+            "Kein Text davor oder danach, kein Code-Block:\n" + schema.toString()
+        var last = ""
+        repeat(2) {
+            val text = try {
+                Bridge.complete(store.bridgeUrl, store.bridgeCode, system, prompt, store.model.ifBlank { "claude-opus-5-5" })
+            } catch (e: Bridge.BridgeException) {
+                throw PlannerException(e.message ?: "Fehler der PC-Brücke")
+            }
+            last = text
+            val json = Bridge.extractJson(text)?.let { runCatching { JSONObject(it) }.getOrNull() }
+            if (json != null && schemaProps.keys.all { json.has(it) }) return json
+        }
+        throw PlannerException("Die Antwort war kein gültiges JSON: " + last.take(120))
     }
 
     private fun send(
@@ -249,6 +275,9 @@ class Planner(private val store: Store) {
     private fun isDate(s: String) = runCatching { LocalDate.parse(s) }.isSuccess
 
     companion object {
+        /** Ist irgendeine KI eingerichtet (PC-Brücke oder API-Key)? */
+        fun available(store: Store) = store.bridgeUrl.isNotBlank() || store.apiKey.isNotBlank()
+
         /** Einfacher Ersatz ohne KI: jeder Satz wird eine Aufgabe. */
         fun offlineTasks(transcript: String): List<Task> =
             transcript.split(Regex("""[.!?\n]+|\bund dann\b|\bausserdem\b|\baußerdem\b""", RegexOption.IGNORE_CASE))

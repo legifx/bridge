@@ -1,0 +1,77 @@
+name: Anker Release
+
+# Baut die Anker-App, signiert sie mit dem dauerhaften Schlüssel und legt APK + version.json
+# in das Release "anker-latest". Die App schaut dort nach und bietet das Update von selbst an.
+#
+# Einmalig nötig: das Repository-Secret ANKER_KEYSTORE_B64 (der Signaturschlüssel, base64).
+# Ohne das Secret wird nichts veröffentlicht, denn ein Update mit anderem Schlüssel ließe
+# sich nicht über die installierte App installieren.
+on:
+  push:
+    branches: [main, "claude/**"]
+    paths:
+      - "anker/**"
+      - "!anker/release/**"
+      - ".github/workflows/anker-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: anker-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: anker
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Schlüssel vorhanden?
+        id: key
+        env:
+          KEYSTORE_B64: ${{ secrets.ANKER_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "::warning::Secret ANKER_KEYSTORE_B64 fehlt. Es wird gebaut und getestet, aber nichts veröffentlicht."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/anker.keystore"
+            # Passwort und Alias sind die bekannten Standardwerte eines Debug-Schlüssels;
+            # geheim ist allein die Schlüsseldatei.
+            printf 'storeFile=%s\nstorePassword=android\nkeyAlias=androiddebugkey\nkeyPassword=android\n' \
+              "$RUNNER_TEMP/anker.keystore" > keystore.properties
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Tests
+        run: |
+          node --test pc/bridge.test.mjs
+          ./gradlew testDebugUnitTest --console=plain --max-workers=2
+
+      - name: Bauen
+        run: ./gradlew assembleRelease --console=plain --max-workers=2
+
+      - name: Veröffentlichen
+        if: steps.key.outputs.present == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/release.mjs
+          gh release view anker-latest >/dev/null 2>&1 || \
+            gh release create anker-latest --title "Anker (aktuelle Version)" \
+              --notes "Wird automatisch aktualisiert. Die App lädt ihre Updates von hier." --latest=false
+          gh release upload anker-latest release/anker.apk release/version.json --clobber

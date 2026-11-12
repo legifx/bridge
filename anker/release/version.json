@@ -1,0 +1,8 @@
+{
+  "versionCode": 3,
+  "versionName": "1.2.0",
+  "sha256": "bc30749b3372c671e895a688d9cb869b601aa8e6bf69ad3bd5f2f025eab0c7e0",
+  "size": 22433320,
+  "apk": "anker.apk",
+  "notes": "• Updates kommen jetzt von selbst: Die App meldet neue Versionen und installiert sie mit einem Tipp.\n• KI über dein Claude-Abo statt API-Key: PC-Brücke unter Mehr → KI-Einstellungen verbinden."
+}

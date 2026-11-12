@@ -55,4 +55,5 @@ object Notify {
     const val ID_SHIELD = 12
     const val ID_FOCUS = 13
     const val ID_FILTER = 14
+    const val ID_UPDATE = 15
 }
